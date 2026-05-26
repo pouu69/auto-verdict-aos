@@ -3,8 +3,11 @@ package com.daksin.autoverdict
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import com.daksin.autoverdict.db.AppDatabase
 
 class AutoVerdictApp : Application() {
+
+    val database: AppDatabase by lazy { AppDatabase.getInstance(this) }
 
     override fun onCreate() {
         super.onCreate()
