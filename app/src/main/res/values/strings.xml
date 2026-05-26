@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AutoVerdict</string>
+    <string name="tab_analyze">분석하기</string>
+    <string name="tab_saved">저장목록</string>
+    <string name="tab_settings">설정</string>
+    <string name="floating_notification_title">AutoVerdict 실행 중</string>
+    <string name="floating_notification_text">플로팅 버튼이 활성화되어 있습니다</string>
+</resources>
