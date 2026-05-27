@@ -9,6 +9,7 @@ export default defineConfig({
       '@core': path.resolve(__dirname, '../../daksin-car/src/core'),
     },
   },
+  base: './',
   build: {
     outDir: 'dist',
     assetsInlineLimit: 0,
