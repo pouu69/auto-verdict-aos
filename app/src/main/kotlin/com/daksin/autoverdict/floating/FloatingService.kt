@@ -57,16 +57,18 @@ class FloatingService : Service() {
     }
 
     private fun showFloatingButton() {
-        val button = TextView(this).apply {
-            text = "AV"
-            textSize = 16f
-            setTextColor(0xFFFFFFFF.toInt())
-            gravity = Gravity.CENTER
+        val size = dpToPx(52)
+        val iconPadding = dpToPx(14)
+        val button = android.widget.ImageView(this).apply {
+            setImageResource(R.drawable.ic_av_icon)
             setBackgroundResource(R.drawable.ic_av_button)
+            setPadding(iconPadding, iconPadding, iconPadding, iconPadding)
+            scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+            elevation = dpToPx(8).toFloat()
         }
 
         val params = WindowManager.LayoutParams(
-            dpToPx(48), dpToPx(48),
+            size, size,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT,
