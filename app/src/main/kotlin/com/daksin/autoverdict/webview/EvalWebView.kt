@@ -13,6 +13,7 @@ class EvalWebView(context: Context) {
     private var pageLoaded = false
     private var pendingJson: String? = null
     private var pendingError: String? = null
+    private var pendingAlreadySaved: Boolean? = null
 
     init {
         setup()
@@ -40,6 +41,10 @@ class EvalWebView(context: Context) {
                 pendingError?.let { msg ->
                     pendingError = null
                     sendError(msg)
+                }
+                pendingAlreadySaved?.let { saved ->
+                    pendingAlreadySaved = null
+                    setAlreadySaved(saved)
                 }
             }
         }
@@ -72,6 +77,14 @@ class EvalWebView(context: Context) {
         }
         val escaped = JsEscape.escapeForSingleQuotedString("""{"message":"${message.replace("\"", "\\\"")}"}""")
         webView.evaluateJavascript("window.receiveError?.('$escaped')", null)
+    }
+
+    fun setAlreadySaved(saved: Boolean) {
+        if (!pageLoaded) {
+            pendingAlreadySaved = saved
+            return
+        }
+        webView.evaluateJavascript("window.setAlreadySaved?.($saved)", null)
     }
 
     fun destroy() {

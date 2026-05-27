@@ -8,12 +8,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -76,18 +79,19 @@ fun CompareScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.surface)
-                .padding(horizontal = 8.dp, vertical = 12.dp),
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .padding(horizontal = 4.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
                 Icon(
-                    painter = painterResource(id = android.R.drawable.ic_menu_revert),
-                    contentDescription = "뒤로",
+                    painter = painterResource(id = android.R.drawable.ic_menu_close_clear_cancel),
+                    contentDescription = "닫기",
                 )
             }
             Text(
                 text = "비교",
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
             )
         }
 
@@ -272,12 +276,6 @@ private fun ScoreBadgeCell(
     score: Int,
     width: androidx.compose.ui.unit.Dp,
 ) {
-    val (textColor, bgColor) = when {
-        score >= 70 -> Success to SuccessBg
-        score >= 40 -> Warning to WarningBg
-        else -> Danger to DangerBg
-    }
-
     Box(
         modifier = Modifier
             .width(width)
@@ -288,16 +286,44 @@ private fun ScoreBadgeCell(
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(6.dp))
-                .background(bgColor)
+                .background(scoreColor(score))
                 .padding(horizontal = 12.dp, vertical = 4.dp),
         ) {
             Text(
                 text = "$score",
                 style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                color = textColor,
+                color = androidx.compose.ui.graphics.Color.White,
             )
         }
     }
+}
+
+private val COLOR_STOPS = listOf(
+    0 to Triple(198, 40, 40),
+    30 to Triple(230, 81, 0),
+    50 to Triple(245, 127, 23),
+    65 to Triple(158, 157, 36),
+    78 to Triple(46, 125, 50),
+    88 to Triple(0, 137, 123),
+    100 to Triple(21, 101, 192),
+)
+
+private fun scoreColor(score: Int): androidx.compose.ui.graphics.Color {
+    val s = score.coerceIn(0, 100)
+    var lo = COLOR_STOPS.first()
+    var hi = COLOR_STOPS.last()
+    for (i in 0 until COLOR_STOPS.size - 1) {
+        if (s >= COLOR_STOPS[i].first && s <= COLOR_STOPS[i + 1].first) {
+            lo = COLOR_STOPS[i]
+            hi = COLOR_STOPS[i + 1]
+            break
+        }
+    }
+    val t = if (hi.first == lo.first) 0f else (s - lo.first).toFloat() / (hi.first - lo.first)
+    val r = (lo.second.first + (hi.second.first - lo.second.first) * t).toInt()
+    val g = (lo.second.second + (hi.second.second - lo.second.second) * t).toInt()
+    val b = (lo.second.third + (hi.second.third - lo.second.third) * t).toInt()
+    return androidx.compose.ui.graphics.Color(r, g, b)
 }
 
 @Composable

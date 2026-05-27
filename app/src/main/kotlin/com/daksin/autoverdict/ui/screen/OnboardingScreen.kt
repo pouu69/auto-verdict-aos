@@ -33,26 +33,26 @@ import com.daksin.autoverdict.ui.theme.TextSecondary
 import kotlinx.coroutines.launch
 
 private data class OnboardingPage(
-    val emoji: String,
+    val icon: String,
     val title: String,
     val description: String,
 )
 
 private val pages = listOf(
     OnboardingPage(
-        emoji = "🚗",
-        title = "엔카 매물을 빠르게 평가하세요",
-        description = "AutoVerdict는 엔카 중고차 매물을 12가지 규칙으로\n자동 분석하여 0~100점으로 평가합니다.",
+        icon = "AV",
+        title = "엔카 매물을 자동으로 분석하세요",
+        description = "AutoVerdict는 엔카 중고차 매물의\n사고이력, 정비기록, 진단정보를\n12가지 규칙으로 자동 평가합니다.",
     ),
     OnboardingPage(
-        emoji = "📤",
+        icon = ">>",
         title = "브라우저에서 공유하기",
-        description = "엔카 앱이나 브라우저에서 매물 페이지를 열고\n공유 버튼을 눌러 AutoVerdict를 선택하세요.",
+        description = "브라우저에서 엔카 매물 페이지를 열고\n메뉴의 공유 버튼을 탭한 뒤\n목록에서 AutoVerdict를 선택하세요.",
     ),
     OnboardingPage(
-        emoji = "✅",
-        title = "결과를 바로 확인",
-        description = "화면 위에 떠오르는 오버레이로\n위험 요소, 주의 사항, 종합 점수를 확인하고\n마음에 드는 매물을 저장하세요.",
+        icon = "100",
+        title = "종합 점수로 한눈에 파악",
+        description = "위험 요소, 주의 사항, 종합 점수를\n확인하고 마음에 드는 매물은\n저장하여 비교해보세요.",
     ),
 )
 
@@ -94,10 +94,19 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                Text(
-                    text = item.emoji,
-                    style = MaterialTheme.typography.displayLarge,
-                )
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Primary),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = item.icon,
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
+                }
                 Spacer(modifier = Modifier.height(32.dp))
                 Text(
                     text = item.title,

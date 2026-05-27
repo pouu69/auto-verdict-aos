@@ -32,6 +32,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -216,7 +217,7 @@ private fun SavedCarCard(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(Primary),
+                    .background(scoreColor(car.score)),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -233,6 +234,16 @@ private fun SavedCarCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+                if (car.url.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = car.url,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Primary.copy(alpha = 0.7f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
                 Spacer(modifier = Modifier.height(4.dp))
 
                 val details = buildList {
@@ -290,4 +301,32 @@ private fun SeverityChip(
             color = textColor,
         )
     }
+}
+
+private val COLOR_STOPS = listOf(
+    0 to Triple(198, 40, 40),
+    30 to Triple(230, 81, 0),
+    50 to Triple(245, 127, 23),
+    65 to Triple(158, 157, 36),
+    78 to Triple(46, 125, 50),
+    88 to Triple(0, 137, 123),
+    100 to Triple(21, 101, 192),
+)
+
+private fun scoreColor(score: Int): Color {
+    val s = score.coerceIn(0, 100)
+    var lo = COLOR_STOPS.first()
+    var hi = COLOR_STOPS.last()
+    for (i in 0 until COLOR_STOPS.size - 1) {
+        if (s >= COLOR_STOPS[i].first && s <= COLOR_STOPS[i + 1].first) {
+            lo = COLOR_STOPS[i]
+            hi = COLOR_STOPS[i + 1]
+            break
+        }
+    }
+    val t = if (hi.first == lo.first) 0f else (s - lo.first).toFloat() / (hi.first - lo.first)
+    val r = (lo.second.first + (hi.second.first - lo.second.first) * t).toInt()
+    val g = (lo.second.second + (hi.second.second - lo.second.second) * t).toInt()
+    val b = (lo.second.third + (hi.second.third - lo.second.third) * t).toInt()
+    return Color(r, g, b)
 }

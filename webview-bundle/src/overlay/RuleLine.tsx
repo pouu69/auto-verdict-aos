@@ -21,7 +21,7 @@ export function RuleLine({ result }: { result: RuleResult }) {
   return (
     <div style={{
       display: 'flex',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       padding: '10px 0',
       borderBottom: `1px solid ${color.border}`,
       gap: '10px',
@@ -49,9 +49,8 @@ export function RuleLine({ result }: { result: RuleResult }) {
           fontSize: '12px',
           color: color.textSecondary,
           marginTop: '2px',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
+          wordBreak: 'keep-all',
+          lineHeight: '1.4',
         }}>
           {result.message}
         </div>

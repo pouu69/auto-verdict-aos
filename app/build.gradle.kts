@@ -81,6 +81,7 @@ dependencies {
     implementation("androidx.webkit:webkit:1.12.1")
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation("com.google.android.gms:play-services-ads:23.6.0")
     // Test
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.14.1")
@@ -91,4 +92,19 @@ dependencies {
 
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
+}
+
+val buildWebView by tasks.registering(Exec::class) {
+    workingDir = file("${rootProject.projectDir}/webview-bundle")
+    commandLine("bash", "-lc", "npm run build")
+}
+
+val copyWebViewAssets by tasks.registering(Exec::class) {
+    dependsOn(buildWebView)
+    workingDir = file("${rootProject.projectDir}/webview-bundle")
+    commandLine("bash", "-lc", "npm run copy-to-assets")
+}
+
+tasks.named("preBuild") {
+    dependsOn(copyWebViewAssets)
 }

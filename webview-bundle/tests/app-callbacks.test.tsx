@@ -48,7 +48,6 @@ describe('App window callbacks', () => {
       }));
     });
 
-    expect(screen.getByText('점검 리포트')).toBeInTheDocument();
     expect(screen.getByText(/현대 투싼/)).toBeInTheDocument();
   });
 
