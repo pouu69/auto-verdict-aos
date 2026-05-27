@@ -1,6 +1,7 @@
 package com.daksin.autoverdict.ui.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,15 +16,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,6 +39,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.daksin.autoverdict.AutoVerdictApp
 import com.daksin.autoverdict.db.SavedCarEntity
+import com.daksin.autoverdict.ui.theme.Border
 import com.daksin.autoverdict.ui.theme.Danger
 import com.daksin.autoverdict.ui.theme.DangerBg
 import com.daksin.autoverdict.ui.theme.Primary
@@ -46,52 +54,137 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun SavedListScreen(modifier: Modifier = Modifier, onCarClick: (String) -> Unit) {
+fun SavedListScreen(
+    modifier: Modifier = Modifier,
+    onCarClick: (String) -> Unit,
+    onCompare: (List<String>) -> Unit = {},
+) {
     val context = LocalContext.current
     val app = context.applicationContext as AutoVerdictApp
     val savedFlow = remember { app.database.savedCarDao().getAllFlow() }
     val savedCars by savedFlow.collectAsState(initial = emptyList())
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 16.dp),
-    ) {
-        Text(
-            text = "저장된 매물",
-            style = MaterialTheme.typography.titleLarge,
-        )
-        Spacer(modifier = Modifier.height(16.dp))
+    var compareMode by remember { mutableStateOf(false) }
+    var selectedCarIds by remember { mutableStateOf(emptySet<String>()) }
 
-        if (savedCars.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "저장된 매물이 없습니다",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = TextSecondary,
+                    text = "저장된 매물",
+                    style = MaterialTheme.typography.titleLarge,
                 )
-            }
-        } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(savedCars, key = { it.carId }) { car ->
-                    SavedCarCard(car = car, onClick = { onCarClick(car.url) })
+                if (savedCars.size >= 2) {
+                    TextButton(
+                        onClick = {
+                            compareMode = !compareMode
+                            if (!compareMode) {
+                                selectedCarIds = emptySet()
+                            }
+                        },
+                    ) {
+                        Text(
+                            text = if (compareMode) "취소" else "비교하기",
+                            color = Primary,
+                        )
+                    }
                 }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (savedCars.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = "저장된 매물이 없습니다",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = TextSecondary,
+                    )
+                }
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = if (compareMode && selectedCarIds.size >= 2) {
+                        Modifier.padding(bottom = 64.dp)
+                    } else {
+                        Modifier
+                    },
+                ) {
+                    items(savedCars, key = { it.carId }) { car ->
+                        val isSelected = car.carId in selectedCarIds
+                        SavedCarCard(
+                            car = car,
+                            compareMode = compareMode,
+                            isSelected = isSelected,
+                            onClick = {
+                                if (compareMode) {
+                                    selectedCarIds = if (isSelected) {
+                                        selectedCarIds - car.carId
+                                    } else if (selectedCarIds.size < 4) {
+                                        selectedCarIds + car.carId
+                                    } else {
+                                        selectedCarIds
+                                    }
+                                } else {
+                                    onCarClick(car.url)
+                                }
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
+        if (compareMode && selectedCarIds.size >= 2) {
+            Button(
+                onClick = {
+                    onCompare(selectedCarIds.toList())
+                    compareMode = false
+                    selectedCarIds = emptySet()
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                shape = RoundedCornerShape(12.dp),
+            ) {
+                Text("비교 (${selectedCarIds.size}대)")
             }
         }
     }
 }
 
 @Composable
-private fun SavedCarCard(car: SavedCarEntity, onClick: () -> Unit) {
+private fun SavedCarCard(
+    car: SavedCarEntity,
+    compareMode: Boolean = false,
+    isSelected: Boolean = false,
+    onClick: () -> Unit,
+) {
     val dateFormat = remember { SimpleDateFormat("yyyy.MM.dd", Locale.getDefault()) }
     val numberFormat = remember { NumberFormat.getNumberInstance(Locale.KOREA) }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .then(
+                if (compareMode && isSelected) {
+                    Modifier.border(2.dp, Primary, RoundedCornerShape(12.dp))
+                } else {
+                    Modifier
+                },
+            )
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(12.dp),
@@ -101,6 +194,24 @@ private fun SavedCarCard(car: SavedCarEntity, onClick: () -> Unit) {
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.Top,
         ) {
+            if (compareMode) {
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .background(if (isSelected) Primary else Border),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (isSelected) {
+                        Text(
+                            text = "✓",
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+            }
             Box(
                 modifier = Modifier
                     .size(48.dp)

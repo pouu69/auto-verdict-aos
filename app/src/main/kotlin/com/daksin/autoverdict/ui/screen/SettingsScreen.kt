@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +57,13 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     var canDrawOverlays by remember { mutableStateOf(Settings.canDrawOverlays(context)) }
     var floatingEnabled by remember { mutableStateOf(false) }
     var a11yEnabled by remember { mutableStateOf(isAccessibilityServiceEnabled(context)) }
+    var cacheCount by remember { mutableStateOf(0) }
+    var showCacheClearConfirm by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        val app = context.applicationContext as AutoVerdictApp
+        cacheCount = app.database.cacheDao().count()
+    }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -200,31 +208,85 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         }
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Cache clear
+        // Cache management
         SettingsCard {
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("캐시 삭제", style = MaterialTheme.typography.bodyLarge)
-                    Text(
-                        "분석 결과 캐시를 모두 삭제합니다",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary,
-                    )
-                }
-                TextButton(
-                    onClick = {
-                        scope.launch(Dispatchers.IO) {
-                            val app = context.applicationContext as AutoVerdictApp
-                            app.database.cacheDao().clearAll()
-                        }
-                    },
+                Text("캐시 관리", style = MaterialTheme.typography.bodyLarge)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text("삭제", color = Danger)
+                    Text("캐시 항목", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                    Text("${cacheCount}개", style = MaterialTheme.typography.bodySmall)
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text("캐시 유효기간", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                    Text("24시간", style = MaterialTheme.typography.bodySmall)
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+
+                if (showCacheClearConfirm) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            "${cacheCount}개 항목을 삭제하시겠습니까?",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Danger,
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            TextButton(onClick = { showCacheClearConfirm = false }) {
+                                Text("취소", color = TextSecondary)
+                            }
+                            TextButton(
+                                onClick = {
+                                    scope.launch(Dispatchers.IO) {
+                                        val app = context.applicationContext as AutoVerdictApp
+                                        app.database.cacheDao().clearAll()
+                                        cacheCount = 0
+                                        showCacheClearConfirm = false
+                                        kotlinx.coroutines.withContext(Dispatchers.Main) {
+                                            android.widget.Toast.makeText(
+                                                context,
+                                                "캐시가 삭제되었습니다",
+                                                android.widget.Toast.LENGTH_SHORT,
+                                            ).show()
+                                        }
+                                    }
+                                },
+                            ) {
+                                Text("삭제", color = Danger)
+                            }
+                        }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                    ) {
+                        TextButton(
+                            onClick = { showCacheClearConfirm = true },
+                            enabled = cacheCount > 0,
+                        ) {
+                            Text(
+                                "캐시 삭제",
+                                color = if (cacheCount > 0) Danger else TextSecondary,
+                            )
+                        }
+                    }
                 }
             }
         }

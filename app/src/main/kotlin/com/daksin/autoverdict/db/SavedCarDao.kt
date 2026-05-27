@@ -22,4 +22,7 @@ interface SavedCarDao {
 
     @Query("SELECT COUNT(*) FROM saved_cars")
     suspend fun count(): Int
+
+    @Query("SELECT * FROM saved_cars WHERE carId IN (:carIds)")
+    suspend fun getByCarIds(carIds: List<String>): List<SavedCarEntity>
 }

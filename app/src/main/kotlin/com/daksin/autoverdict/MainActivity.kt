@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -24,6 +25,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.daksin.autoverdict.floating.FloatingService
 import com.daksin.autoverdict.ui.screen.AnalyzeScreen
+import com.daksin.autoverdict.ui.screen.CompareScreen
 import com.daksin.autoverdict.ui.screen.SavedListScreen
 import com.daksin.autoverdict.ui.screen.SettingsScreen
 import com.daksin.autoverdict.ui.theme.AutoVerdictTheme
@@ -83,6 +85,16 @@ private enum class Tab(val labelRes: Int, val iconRes: Int) {
 @Composable
 private fun MainScreen(onAnalyze: (String) -> Unit) {
     var selectedTab by rememberSaveable { mutableStateOf(Tab.ANALYZE) }
+    var compareCarIds by remember { mutableStateOf<List<String>?>(null) }
+
+    val currentCompareIds = compareCarIds
+    if (currentCompareIds != null) {
+        CompareScreen(
+            carIds = currentCompareIds,
+            onBack = { compareCarIds = null },
+        )
+        return
+    }
 
     Scaffold(
         bottomBar = {
@@ -112,7 +124,11 @@ private fun MainScreen(onAnalyze: (String) -> Unit) {
         val modifier = Modifier.padding(innerPadding)
         when (selectedTab) {
             Tab.ANALYZE -> AnalyzeScreen(modifier = modifier, onAnalyze = onAnalyze)
-            Tab.SAVED -> SavedListScreen(modifier = modifier, onCarClick = onAnalyze)
+            Tab.SAVED -> SavedListScreen(
+                modifier = modifier,
+                onCarClick = onAnalyze,
+                onCompare = { carIds -> compareCarIds = carIds },
+            )
             Tab.SETTINGS -> SettingsScreen(modifier = modifier)
         }
     }

@@ -22,4 +22,7 @@ interface CacheDao {
 
     @Query("DELETE FROM cache")
     suspend fun clearAll()
+
+    @Query("SELECT COUNT(*) FROM cache")
+    suspend fun count(): Int
 }
