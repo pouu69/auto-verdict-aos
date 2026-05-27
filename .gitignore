@@ -1,18 +1,29 @@
+# Android / Gradle
 *.iml
 .gradle
+.kotlin
 /local.properties
 /.idea
-.DS_Store
 /build
 /captures
 .externalNativeBuild
 .cxx
 /app/build
+
+# WebView bundle (built artifacts)
 /app/src/main/assets/eval-ui/
 node_modules/
 webview-bundle/dist/
-.omc/
-.superpowers/
+
+# Signing
 keystore.properties
 *.jks
 *.keystore
+
+# OS
+.DS_Store
+
+# Tools
+.omc/
+.superpowers/
+.claude/
