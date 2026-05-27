@@ -26,7 +26,13 @@ export function App() {
       setLoading(true);
       setError(null);
       try {
-        const input: MobileOrchestratorInput = JSON.parse(json);
+        const raw: unknown = JSON.parse(json);
+        if (typeof raw !== 'object' || raw === null || !('url' in raw) || !('carId' in raw)) {
+          setError('잘못된 데이터 형식');
+          setLoading(false);
+          return;
+        }
+        const input = raw as MobileOrchestratorInput;
         const { parsed, facts, report } = orchestrateMobile(input);
         const carBase = isValue(parsed.raw.base) ? parsed.raw.base.value : null;
         setState({ report, carBase, carId: input.carId, url: input.url, rawInput: input });
@@ -39,12 +45,20 @@ export function App() {
 
     window.receiveError = (json: string) => {
       try {
-        const { message } = JSON.parse(json);
-        setError(message ?? '알 수 없는 오류');
+        const raw: unknown = JSON.parse(json);
+        const message = typeof raw === 'object' && raw !== null && 'message' in raw
+          ? String((raw as Record<string, unknown>).message)
+          : '알 수 없는 오류';
+        setError(message);
       } catch {
         setError('알 수 없는 오류');
       }
       setLoading(false);
+    };
+
+    return () => {
+      window.receiveEncarData = undefined;
+      window.receiveError = undefined;
     };
   }, []);
 

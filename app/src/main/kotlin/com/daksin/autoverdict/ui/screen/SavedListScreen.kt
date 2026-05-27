@@ -46,14 +46,14 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun SavedListScreen(onCarClick: (String) -> Unit) {
+fun SavedListScreen(modifier: Modifier = Modifier, onCarClick: (String) -> Unit) {
     val context = LocalContext.current
     val app = context.applicationContext as AutoVerdictApp
     val savedFlow = remember { app.database.savedCarDao().getAllFlow() }
     val savedCars by savedFlow.collectAsState(initial = emptyList())
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp, vertical = 16.dp),
     ) {

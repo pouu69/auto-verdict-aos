@@ -50,9 +50,9 @@ class MainActivity : ComponentActivity() {
 
     private fun handleShareIntent(intent: Intent?) {
         if (intent?.action == Intent.ACTION_SEND && intent.type == "text/plain") {
-            val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT)
+            val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT) ?: return
             if (EncarUrl.isEncarDetail(sharedText)) {
-                launchAnalysis(sharedText!!)
+                launchAnalysis(sharedText)
             }
         }
     }
@@ -111,9 +111,9 @@ private fun MainScreen(onAnalyze: (String) -> Unit) {
     ) { innerPadding ->
         val modifier = Modifier.padding(innerPadding)
         when (selectedTab) {
-            Tab.ANALYZE -> AnalyzeScreen(onAnalyze = onAnalyze)
-            Tab.SAVED -> SavedListScreen(onCarClick = onAnalyze)
-            Tab.SETTINGS -> SettingsScreen()
+            Tab.ANALYZE -> AnalyzeScreen(modifier = modifier, onAnalyze = onAnalyze)
+            Tab.SAVED -> SavedListScreen(modifier = modifier, onCarClick = onAnalyze)
+            Tab.SETTINGS -> SettingsScreen(modifier = modifier)
         }
     }
 }

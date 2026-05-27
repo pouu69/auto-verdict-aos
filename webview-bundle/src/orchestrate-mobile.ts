@@ -56,18 +56,23 @@ const resolveApi = <T>(
   return parse(json);
 };
 
+const isPlainObject = (v: unknown): v is Record<string, unknown> =>
+  typeof v === 'object' && v !== null && !Array.isArray(v);
+
+const toStateRoot = (preloadedState: unknown): Parameters<typeof extractBase>[0] => {
+  if (!isPlainObject(preloadedState)) return { __PRELOADED_STATE__: {} } as Parameters<typeof extractBase>[0];
+
+  if (isPlainObject(preloadedState.__PRELOADED_STATE__)) return preloadedState as Parameters<typeof extractBase>[0];
+
+  if (isPlainObject(preloadedState.cars)) return { __PRELOADED_STATE__: { cars: preloadedState.cars } } as Parameters<typeof extractBase>[0];
+
+  return { __PRELOADED_STATE__: preloadedState } as Parameters<typeof extractBase>[0];
+};
+
 export const orchestrateMobile = (
   input: MobileOrchestratorInput,
 ): MobileOrchestratorResult => {
-  const root = (input.preloadedState ?? {}) as {
-    __PRELOADED_STATE__?: unknown;
-    __NEXT_DATA__?: unknown;
-    cars?: unknown;
-  };
-
-  const stateRoot = root.cars
-    ? { __PRELOADED_STATE__: { cars: root.cars } }
-    : (root as Parameters<typeof extractBase>[0]);
+  const stateRoot = toStateRoot(input.preloadedState);
 
   const base = extractBase(stateRoot);
   const detailFlags = extractDetailFlags(stateRoot);
@@ -89,10 +94,10 @@ export const orchestrateMobile = (
   );
 
   const baseValue = isValue(base) ? base.value : undefined;
-  const vehicleId =
-    baseValue && typeof (baseValue as { vehicleId?: unknown }).vehicleId === 'number'
-      ? (baseValue as { vehicleId?: number }).vehicleId
-      : undefined;
+  const rawState = isPlainObject(input.preloadedState) ? input.preloadedState : {};
+  const rawCars = isPlainObject(rawState.cars) ? rawState.cars : {};
+  const rawBase = isPlainObject(rawCars.base) ? rawCars.base : {};
+  const vehicleId = typeof rawBase.vehicleId === 'number' ? rawBase.vehicleId : undefined;
   const vehicleNo = baseValue?.vehicleNo;
 
   const parsed: EncarParsedData = {

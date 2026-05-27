@@ -7,7 +7,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 
 class EvalWebView(context: Context) {
-    val webView: WebView = WebView(context)
+    val webView: WebView = WebView(context.applicationContext)
 
     init {
         setup()
@@ -32,17 +32,28 @@ class EvalWebView(context: Context) {
     }
 
     fun sendData(json: String) {
-        val escaped = json.replace("\\", "\\\\").replace("'", "\\'").replace("\n", "\\n")
+        val escaped = escapeForJs(json)
         webView.evaluateJavascript("window.receiveEncarData?.('$escaped')", null)
     }
 
     fun sendError(message: String) {
-        val escaped = """{"message":"${message.replace("\"", "\\\"")}"}""".replace("'", "\\'")
+        val escaped = escapeForJs("""{"message":"${message.replace("\"", "\\\"")}"}""")
         webView.evaluateJavascript("window.receiveError?.('$escaped')", null)
     }
 
     fun destroy() {
         webView.removeJavascriptInterface(NativeBridge.BRIDGE_NAME)
         webView.destroy()
+    }
+
+    companion object {
+        private fun escapeForJs(s: String): String = s
+            .replace("\\", "\\\\")
+            .replace("'", "\\'")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t")
+            .replace(" ", "\\u2028")
+            .replace(" ", "\\u2029")
     }
 }

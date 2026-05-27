@@ -47,7 +47,7 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun AnalyzeScreen(onAnalyze: (String) -> Unit) {
+fun AnalyzeScreen(modifier: Modifier = Modifier, onAnalyze: (String) -> Unit) {
     val context = LocalContext.current
     var urlText by remember { mutableStateOf("") }
     val app = context.applicationContext as AutoVerdictApp
@@ -55,7 +55,7 @@ fun AnalyzeScreen(onAnalyze: (String) -> Unit) {
     val recentItems by recentFlow.collectAsState(initial = emptyList())
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp, vertical = 16.dp),
     ) {

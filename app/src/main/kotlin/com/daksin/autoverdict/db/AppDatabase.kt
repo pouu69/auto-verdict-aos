@@ -22,8 +22,8 @@ abstract class AppDatabase : RoomDatabase() {
                 INSTANCE ?: Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "autoverdict.db"
-                ).build().also { INSTANCE = it }
+                    "autoverdict.db",
+                ).fallbackToDestructiveMigration().build().also { INSTANCE = it }
             }
     }
 }

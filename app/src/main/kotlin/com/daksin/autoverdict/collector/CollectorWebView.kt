@@ -19,6 +19,7 @@ class CollectorWebView(context: Context) {
     private val webView: WebView = WebView(context.applicationContext)
     private val handler = Handler(Looper.getMainLooper())
     private var timeoutRunnable: Runnable? = null
+    private var callbackFired = false
 
     init {
         setup()
@@ -37,12 +38,26 @@ class CollectorWebView(context: Context) {
 
     fun collect(url: String, carId: String, callback: (Result) -> Unit) {
         cancelTimeout()
+        callbackFired = false
         val fullUrl = if (url.startsWith("http")) url else EncarUrl.buildDetailUrl(carId)
 
+        val guardedCallback = { result: Result ->
+            if (!callbackFired) {
+                callbackFired = true
+                cancelTimeout()
+                callback(result)
+            }
+        }
+
         webView.webViewClient = object : WebViewClient() {
+            private var extracted = false
+
             override fun onPageFinished(view: WebView?, loadedUrl: String?) {
                 super.onPageFinished(view, loadedUrl)
-                extractPreloadedState(carId, callback)
+                if (!extracted && !callbackFired) {
+                    extracted = true
+                    extractPreloadedState(carId, guardedCallback)
+                }
             }
 
             @Suppress("DEPRECATION")
@@ -52,13 +67,12 @@ class CollectorWebView(context: Context) {
                 description: String?,
                 failingUrl: String?,
             ) {
-                cancelTimeout()
-                callback(Result.Error("페이지 로드 실패: $description"))
+                guardedCallback(Result.Error("페이지 로드 실패: $description"))
             }
         }
 
         timeoutRunnable = Runnable {
-            callback(Result.Error("시간 초과 — 네트워크를 확인하세요"))
+            guardedCallback(Result.Error("시간 초과 — 네트워크를 확인하세요"))
             webView.stopLoading()
         }
         handler.postDelayed(timeoutRunnable!!, TIMEOUT_MS)
@@ -137,7 +151,7 @@ class CollectorWebView(context: Context) {
 
         val apiJs = """
         (function() {
-            var vid = $vehicleId; var vno = '$vehicleNo';
+            var vid = $vehicleId; var vno = '${vehicleNo.replace("\\", "\\\\").replace("'", "\\'")}';
             var base = 'https://api.encar.com/v1/readside';
             var results = {}; var statuses = {};
             function fetchApi(name, url) {
