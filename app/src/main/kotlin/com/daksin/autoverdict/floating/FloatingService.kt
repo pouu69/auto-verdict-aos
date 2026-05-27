@@ -122,6 +122,13 @@ class FloatingService : Service() {
 
     private fun onFloatingButtonTap() {
         Log.d(TAG, "onFloatingButtonTap called")
+        val detectedUrl = com.daksin.autoverdict.accessibility.DetectedUrlHolder.getUrl()
+        if (detectedUrl != null) {
+            Log.d(TAG, "Using detected URL: $detectedUrl")
+            startAnalysis(detectedUrl)
+            return
+        }
+        // Fallback: open MainActivity for manual URL input
         val intent = Intent(this, com.daksin.autoverdict.MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
