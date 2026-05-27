@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.IBinder
+import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -101,13 +102,16 @@ class FloatingService : Service() {
                 MotionEvent.ACTION_MOVE -> {
                     val dx = event.rawX - initialTouchX
                     val dy = event.rawY - initialTouchY
-                    if (dx * dx + dy * dy > DRAG_THRESHOLD_SQ) isDragging = true
-                    params.x = initialX + dx.toInt()
-                    params.y = initialY + dy.toInt()
-                    windowManager.updateViewLayout(view, params)
+                    if (dx * dx + dy * dy > DRAG_THRESHOLD_SQ) {
+                        isDragging = true
+                        params.x = initialX + dx.toInt()
+                        params.y = initialY + dy.toInt()
+                        windowManager.updateViewLayout(view, params)
+                    }
                     true
                 }
                 MotionEvent.ACTION_UP -> {
+                    Log.d(TAG, "ACTION_UP isDragging=$isDragging")
                     if (!isDragging) onFloatingButtonTap()
                     true
                 }
@@ -117,12 +121,11 @@ class FloatingService : Service() {
     }
 
     private fun onFloatingButtonTap() {
-        val clipUrl = getClipboardEncarUrl()
-        if (clipUrl != null) {
-            startAnalysis(clipUrl)
-        } else {
-            Toast.makeText(this, "엔카 매물 URL을 복사한 후 다시 눌러주세요", Toast.LENGTH_SHORT).show()
+        Log.d(TAG, "onFloatingButtonTap called")
+        val intent = Intent(this, com.daksin.autoverdict.MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
+        startActivity(intent)
     }
 
     fun startAnalysis(url: String) {
@@ -147,8 +150,9 @@ class FloatingService : Service() {
     private fun dpToPx(dp: Int): Int = (dp * resources.displayMetrics.density).toInt()
 
     companion object {
+        private const val TAG = "FloatingService"
         private const val NOTIFICATION_ID = 1
-        private const val DRAG_THRESHOLD_SQ = 25
+        private const val DRAG_THRESHOLD_SQ = 400
         const val EXTRA_URL = "extra_url"
     }
 }

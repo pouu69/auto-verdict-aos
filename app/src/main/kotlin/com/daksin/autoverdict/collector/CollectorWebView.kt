@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.webkit.JavascriptInterface
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -21,6 +22,7 @@ class CollectorWebView(context: Context) {
     private val handler = Handler(Looper.getMainLooper())
     private var timeoutRunnable: Runnable? = null
     private var callbackFired = false
+    private var apiResultHandler: ((String) -> Unit)? = null
 
     init {
         setup()
@@ -35,6 +37,14 @@ class CollectorWebView(context: Context) {
             userAgentString = webView.settings.userAgentString.replace("; wv", "")
         }
         webView.layoutParams = android.widget.FrameLayout.LayoutParams(0, 0)
+        webView.addJavascriptInterface(ApiBridge(), "ApiCallback")
+    }
+
+    inner class ApiBridge {
+        @JavascriptInterface
+        fun onResult(json: String) {
+            handler.post { apiResultHandler?.invoke(json) }
+        }
     }
 
     fun collect(url: String, carId: String, callback: (Result) -> Unit) {
@@ -158,52 +168,48 @@ class CollectorWebView(context: Context) {
             return
         }
 
-        webView.addJavascriptInterface(object {
-            @android.webkit.JavascriptInterface
-            fun onResult(json: String) {
-                handler.post {
-                    cancelTimeout()
-                    webView.removeJavascriptInterface("ApiCallback")
-                    Log.d(TAG, "API result received: ${json.take(200)}")
-                    try {
-                        val apiResponse = JSONObject(json)
-                        val results = apiResponse.optJSONObject("results")
-                        val statuses = apiResponse.optJSONObject("statuses")
-                        val httpStatus = mutableMapOf<String, String>()
-                        statuses?.keys()?.forEach { key -> httpStatus[key] = statuses.getString(key) }
-                        callback(
-                            Result.Success(
-                                buildResultJson(
-                                    carId, carsJson,
-                                    results?.optJSONObject("recordJson")?.toString(),
-                                    results?.optJSONObject("diagnosisJson")?.toString(),
-                                    results?.optJSONObject("inspectionJson")?.toString(),
-                                    httpStatus,
-                                ),
-                            ),
-                        )
-                    } catch (e: Exception) {
-                        Log.e(TAG, "API result parse failed", e)
-                        callback(
-                            Result.Success(
-                                buildResultJson(carId, carsJson, null, null, null, emptyMap()),
-                            ),
-                        )
-                    }
-                    webView.loadUrl("about:blank")
-                }
+        apiResultHandler = { json ->
+            cancelTimeout()
+            Log.d(TAG, "API result received: ${json.take(200)}")
+            try {
+                val apiResponse = JSONObject(json)
+                val results = apiResponse.optJSONObject("results")
+                val statuses = apiResponse.optJSONObject("statuses")
+                val httpStatus = mutableMapOf<String, String>()
+                statuses?.keys()?.forEach { key -> httpStatus[key] = statuses.getString(key) }
+                callback(
+                    Result.Success(
+                        buildResultJson(
+                            carId, carsJson,
+                            results?.optJSONObject("recordJson")?.toString(),
+                            results?.optJSONObject("diagnosisJson")?.toString(),
+                            results?.optJSONObject("inspectionJson")?.toString(),
+                            httpStatus,
+                        ),
+                    ),
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "API result parse failed", e)
+                callback(
+                    Result.Success(
+                        buildResultJson(carId, carsJson, null, null, null, emptyMap()),
+                    ),
+                )
             }
-        }, "ApiCallback")
+            webView.loadUrl("about:blank")
+            apiResultHandler = null
+        }
 
+        val vnoEscaped = vehicleNo.replace("\\", "\\\\").replace("'", "\\'")
         val apiJs = """
         (function() {
             var vid = $vehicleId;
-            var vno = '${vehicleNo.replace("\\", "\\\\").replace("'", "\\'")}';
+            var vno = '$vnoEscaped';
             var base = 'https://api.encar.com/v1/readside';
             var results = {};
             var statuses = {};
             function fetchApi(name, url) {
-                return fetch(url, { credentials: 'include' })
+                return fetch(url)
                     .then(function(r) {
                         statuses[name] = r.ok ? 'ok' : (r.status === 404 ? 'not_found' : (r.status === 401 ? 'unauthorized' : 'error'));
                         return r.ok ? r.json() : null;
@@ -218,7 +224,7 @@ class CollectorWebView(context: Context) {
             ]).then(function() {
                 ApiCallback.onResult(JSON.stringify({ results: results, statuses: statuses }));
             }).catch(function(e) {
-                ApiCallback.onResult(JSON.stringify({ results: {}, statuses: {} }));
+                ApiCallback.onResult(JSON.stringify({ results: {}, statuses: {}, error: e.message }));
             });
         })();
         """.trimIndent()
@@ -252,6 +258,8 @@ class CollectorWebView(context: Context) {
 
     fun destroy() {
         cancelTimeout()
+        apiResultHandler = null
+        webView.removeJavascriptInterface("ApiCallback")
         webView.stopLoading()
         webView.destroy()
     }
