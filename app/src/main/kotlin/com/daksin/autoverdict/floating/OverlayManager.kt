@@ -3,6 +3,7 @@ package com.daksin.autoverdict.floating
 import android.content.Context
 import android.graphics.PixelFormat
 import android.util.Log
+import org.json.JSONObject
 import android.view.Gravity
 import android.view.WindowManager
 import android.widget.FrameLayout
@@ -61,7 +62,21 @@ class OverlayManager(
                 activeScope.launch(Dispatchers.Main) {
                     when (result) {
                         is CollectorWebView.Result.Success -> {
-                            Log.d(TAG, "collector success: ${result.json.take(200)}")
+                            Log.d(TAG, "collector success, json length: ${result.json.length}")
+                            try {
+                                val debug = JSONObject(result.json)
+                                val ps = debug.optJSONObject("preloadedState")
+                                val cars = ps?.optJSONObject("cars")
+                                val base = cars?.optJSONObject("base")
+                                Log.d(TAG, "preloadedState.cars keys: ${cars?.keys()?.asSequence()?.toList()}")
+                                Log.d(TAG, "base keys: ${base?.keys()?.asSequence()?.toList()}")
+                                Log.d(TAG, "has recordJson: ${debug.has("recordJson")}")
+                                Log.d(TAG, "has diagnosisJson: ${debug.has("diagnosisJson")}")
+                                Log.d(TAG, "has inspectionJson: ${debug.has("inspectionJson")}")
+                                Log.d(TAG, "httpStatus: ${debug.optJSONObject("httpStatus")}")
+                            } catch (e: Exception) {
+                                Log.e(TAG, "debug parse failed", e)
+                            }
                             evalWebView?.sendData(result.json)
                             cacheResult(carId, url, result.json)
                         }
