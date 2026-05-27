@@ -20,6 +20,9 @@ class EvalWebView(context: Context) {
             javaScriptEnabled = true
             domStorageEnabled = true
             cacheMode = WebSettings.LOAD_NO_CACHE
+            @Suppress("DEPRECATION")
+            allowFileAccessFromFileURLs = true
+            allowFileAccess = true
         }
         webView.webViewClient = WebViewClient()
     }
