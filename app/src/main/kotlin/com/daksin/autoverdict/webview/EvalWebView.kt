@@ -5,6 +5,7 @@ import android.content.Context
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import com.daksin.autoverdict.util.JsEscape
 
 class EvalWebView(context: Context) {
     val webView: WebView = WebView(context.applicationContext)
@@ -32,28 +33,17 @@ class EvalWebView(context: Context) {
     }
 
     fun sendData(json: String) {
-        val escaped = escapeForJs(json)
+        val escaped = JsEscape.escapeForSingleQuotedString(json)
         webView.evaluateJavascript("window.receiveEncarData?.('$escaped')", null)
     }
 
     fun sendError(message: String) {
-        val escaped = escapeForJs("""{"message":"${message.replace("\"", "\\\"")}"}""")
+        val escaped = JsEscape.escapeForSingleQuotedString("""{"message":"${message.replace("\"", "\\\"")}"}""")
         webView.evaluateJavascript("window.receiveError?.('$escaped')", null)
     }
 
     fun destroy() {
         webView.removeJavascriptInterface(NativeBridge.BRIDGE_NAME)
         webView.destroy()
-    }
-
-    companion object {
-        private fun escapeForJs(s: String): String = s
-            .replace("\\", "\\\\")
-            .replace("'", "\\'")
-            .replace("\n", "\\n")
-            .replace("\r", "\\r")
-            .replace("\t", "\\t")
-            .replace(" ", "\\u2028")
-            .replace(" ", "\\u2029")
     }
 }
