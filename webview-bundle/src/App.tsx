@@ -109,6 +109,21 @@ export function App() {
           animation: 'spin 0.8s linear infinite',
         }} />
         <div style={{ fontSize: '14px', color: color.textSecondary }}>분석 중...</div>
+        <button
+          onClick={handleClose}
+          style={{
+            marginTop: '8px',
+            padding: '10px 24px',
+            background: color.primary,
+            color: '#fff',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '14px',
+            cursor: 'pointer',
+          }}
+        >
+          닫기
+        </button>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
@@ -128,21 +143,39 @@ export function App() {
       }}>
         <div style={{ fontSize: '36px', marginBottom: '12px' }}>⚠️</div>
         <div style={{ fontSize: '16px', fontWeight: 600, color: color.textPrimary }}>{error}</div>
-        <button
-          onClick={handleClose}
-          style={{
-            marginTop: '20px',
-            padding: '10px 24px',
-            background: color.primary,
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '14px',
-            cursor: 'pointer',
-          }}
-        >
-          닫기
-        </button>
+        <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+          <button
+            onClick={() => {
+              AndroidBridge.showToast('다시 시도합니다');
+              AndroidBridge.closeOverlay();
+            }}
+            style={{
+              padding: '10px 24px',
+              background: '#fff',
+              color: color.primary,
+              border: `1px solid ${color.primary}`,
+              borderRadius: '8px',
+              fontSize: '14px',
+              cursor: 'pointer',
+            }}
+          >
+            다시 시도
+          </button>
+          <button
+            onClick={handleClose}
+            style={{
+              padding: '10px 24px',
+              background: color.primary,
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '14px',
+              cursor: 'pointer',
+            }}
+          >
+            닫기
+          </button>
+        </div>
       </div>
     );
   }

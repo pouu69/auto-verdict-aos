@@ -4,6 +4,9 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import com.daksin.autoverdict.db.AppDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class AutoVerdictApp : Application() {
 
@@ -12,6 +15,13 @@ class AutoVerdictApp : Application() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
+        purgeExpiredCache()
+    }
+
+    private fun purgeExpiredCache() {
+        CoroutineScope(Dispatchers.IO).launch {
+            database.cacheDao().purgeExpired()
+        }
     }
 
     private fun createNotificationChannel() {
