@@ -6,5 +6,4 @@
     <string name="tab_settings">설정</string>
     <string name="floating_notification_title">AutoVerdict 실행 중</string>
     <string name="floating_notification_text">플로팅 버튼이 활성화되어 있습니다</string>
-    <string name="accessibility_service_description">엔카 매물 URL을 자동으로 감지하여 차량을 평가합니다. 브라우저나 엔카 앱에서 매물 상세 페이지를 볼 때 플로팅 버튼으로 바로 분석할 수 있습니다.</string>
 </resources>
