@@ -20,6 +20,7 @@ export function App() {
   const [state, setState] = useState<EvalState | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [alreadySaved, setAlreadySaved] = useState(false);
 
   useEffect(() => {
     window.receiveEncarData = (json: string) => {
@@ -43,6 +44,10 @@ export function App() {
       }
     };
 
+    window.setAlreadySaved = (saved: boolean) => {
+      setAlreadySaved(saved);
+    };
+
     window.receiveError = (json: string) => {
       try {
         const raw: unknown = JSON.parse(json);
@@ -59,6 +64,7 @@ export function App() {
     return () => {
       window.receiveEncarData = undefined;
       window.receiveError = undefined;
+      window.setAlreadySaved = undefined;
     };
   }, []);
 
@@ -202,6 +208,7 @@ export function App() {
       carBase={state.carBase}
       onClose={handleClose}
       onSave={handleSave}
+      hideSave={alreadySaved}
     />
   );
 }

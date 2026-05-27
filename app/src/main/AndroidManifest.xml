@@ -2,10 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".AutoVerdictApp"
@@ -16,6 +12,10 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
         android:theme="@style/Theme.AutoVerdict">
+
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-5353705048338468~6253564104" />
 
         <activity
             android:name=".MainActivity"
@@ -31,11 +31,6 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
-
-        <service
-            android:name=".floating.FloatingService"
-            android:exported="false"
-            android:foregroundServiceType="specialUse" />
 
     </application>
 </manifest>

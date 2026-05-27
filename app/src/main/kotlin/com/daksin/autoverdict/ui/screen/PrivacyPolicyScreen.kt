@@ -1,19 +1,27 @@
 package com.daksin.autoverdict.ui.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.daksin.autoverdict.ui.theme.Primary
 import com.daksin.autoverdict.ui.theme.TextSecondary
 
 @Composable
@@ -21,22 +29,33 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 16.dp),
+            .background(MaterialTheme.colorScheme.background),
     ) {
-        TextButton(onClick = onBack) {
-            Text("< 뒤로", color = Primary)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface)
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .padding(horizontal = 4.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(
+                    painter = painterResource(id = android.R.drawable.ic_menu_close_clear_cancel),
+                    contentDescription = "닫기",
+                )
+            }
+            Text(
+                text = "개인정보 처리방침",
+                style = MaterialTheme.typography.titleMedium,
+            )
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "개인정보 처리방침",
-            style = MaterialTheme.typography.titleLarge,
-        )
-        Spacer(modifier = Modifier.height(16.dp))
 
         Column(
             modifier = Modifier
                 .weight(1f)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 16.dp),
         ) {
             PolicySection(
                 title = "1. 수집하는 정보",

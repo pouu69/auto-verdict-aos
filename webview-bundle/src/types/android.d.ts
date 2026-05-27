@@ -9,4 +9,5 @@ interface Window {
   Android?: AndroidBridgeInterface;
   receiveEncarData?: (json: string) => void;
   receiveError?: (json: string) => void;
+  setAlreadySaved?: (saved: boolean) => void;
 }
