@@ -1,5 +1,6 @@
 package com.daksin.autoverdict.ui.screen
 
+import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -15,7 +16,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +45,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.daksin.autoverdict.AutoVerdictApp
+import com.daksin.autoverdict.BuildConfig
 import com.daksin.autoverdict.floating.FloatingService
 import com.daksin.autoverdict.ui.theme.Danger
 import com.daksin.autoverdict.ui.theme.DangerBg
@@ -51,12 +57,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
-fun SettingsScreen(modifier: Modifier = Modifier) {
+fun SettingsScreen(modifier: Modifier = Modifier, onPrivacyPolicy: () -> Unit = {}) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var canDrawOverlays by remember { mutableStateOf(Settings.canDrawOverlays(context)) }
-    var floatingEnabled by remember { mutableStateOf(false) }
-    var a11yEnabled by remember { mutableStateOf(isAccessibilityServiceEnabled(context)) }
+    var floatingEnabled by remember { mutableStateOf(isFloatingServiceRunning(context)) }
     var cacheCount by remember { mutableStateOf(0) }
     var showCacheClearConfirm by remember { mutableStateOf(false) }
 
@@ -70,7 +75,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 canDrawOverlays = Settings.canDrawOverlays(context)
-                a11yEnabled = isAccessibilityServiceEnabled(context)
+                floatingEnabled = isFloatingServiceRunning(context)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -80,6 +85,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 16.dp),
     ) {
         Text(
@@ -121,91 +127,32 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         }
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Overlay permission
-        if (!canDrawOverlays) {
-            SettingsCard {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            val intent = Intent(
-                                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                                Uri.parse("package:${context.packageName}"),
-                            )
-                            context.startActivity(intent)
-                        }
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("오버레이 권한", style = MaterialTheme.typography.bodyLarge)
-                        Text(
-                            "다른 앱 위에 표시 권한이 필요합니다",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Danger,
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(DangerBg)
-                            .padding(horizontal = 10.dp, vertical = 4.dp),
-                    ) {
-                        Text("설정", style = MaterialTheme.typography.labelMedium, color = Danger)
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-        }
+        // Permission status cards
+        PermissionStatusCard(
+            title = "오버레이 권한",
+            description = "다른 앱 위에 표시",
+            granted = canDrawOverlays,
+            onFix = {
+                val intent = Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:${context.packageName}"),
+                )
+                context.startActivity(intent)
+            },
+        )
+        Spacer(modifier = Modifier.height(8.dp))
 
-        // Accessibility service status
-        SettingsCard {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .then(
-                        if (!a11yEnabled) {
-                            Modifier.clickable {
-                                val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                                context.startActivity(intent)
-                            }
-                        } else {
-                            Modifier
-                        },
-                    )
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("URL 자동 감지", style = MaterialTheme.typography.bodyLarge)
-                    Text(
-                        "브라우저에서 엔카 매물을 자동으로 감지합니다",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary,
-                    )
+        PermissionStatusCard(
+            title = "알림 권한",
+            description = "서비스 실행 알림",
+            granted = true,
+            onFix = {
+                val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                    putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
                 }
-                if (a11yEnabled) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(SuccessBg)
-                            .padding(horizontal = 10.dp, vertical = 4.dp),
-                    ) {
-                        Text("활성", style = MaterialTheme.typography.labelMedium, color = Success)
-                    }
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(DangerBg)
-                            .padding(horizontal = 10.dp, vertical = 4.dp),
-                    ) {
-                        Text("설정 필요", style = MaterialTheme.typography.labelMedium, color = Danger)
-                    }
-                }
-            }
-        }
+                context.startActivity(intent)
+            },
+        )
         Spacer(modifier = Modifier.height(8.dp))
 
         // Cache management
@@ -290,15 +237,38 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                 }
             }
         }
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Privacy policy
+        SettingsCard {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onPrivacyPolicy)
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    "개인정보 처리방침",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    ">",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = TextSecondary,
+                )
+            }
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Version info
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
         ) {
             Text(
-                text = "AutoVerdict v1.0.0",
+                text = "AutoVerdict v${BuildConfig.VERSION_NAME}",
                 style = MaterialTheme.typography.bodySmall,
                 color = TextSecondary,
             )
@@ -306,14 +276,60 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     }
 }
 
-private fun isAccessibilityServiceEnabled(context: Context): Boolean {
-    val enabledServices = Settings.Secure.getString(
-        context.contentResolver,
-        Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
-    ) ?: return false
-    return enabledServices.contains(
-        "${context.packageName}/.accessibility.AutoVerdictAccessibilityService",
-    )
+@Suppress("DEPRECATION")
+private fun isFloatingServiceRunning(context: Context): Boolean {
+    val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+    return manager.getRunningServices(Integer.MAX_VALUE)
+        .any { it.service.className == FloatingService::class.java.name }
+}
+
+@Composable
+private fun PermissionStatusCard(
+    title: String,
+    description: String,
+    granted: Boolean,
+    onFix: () -> Unit,
+) {
+    SettingsCard {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(if (!granted) Modifier.clickable(onClick = onFix) else Modifier)
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            StatusDot(granted)
+            Spacer(modifier = Modifier.width(10.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary,
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(if (granted) SuccessBg else DangerBg)
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
+            ) {
+                Text(
+                    if (granted) "활성" else "설정",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = if (granted) Success else Danger,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatusDot(granted: Boolean) {
+    val color = if (granted) Success else Danger
+    androidx.compose.foundation.Canvas(modifier = Modifier.size(10.dp)) {
+        drawCircle(color = color)
+    }
 }
 
 @Composable

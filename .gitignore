@@ -13,3 +13,6 @@ node_modules/
 webview-bundle/dist/
 .omc/
 .superpowers/
+keystore.properties
+*.jks
+*.keystore

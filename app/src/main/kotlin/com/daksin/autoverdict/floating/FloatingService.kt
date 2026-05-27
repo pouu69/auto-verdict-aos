@@ -1,8 +1,6 @@
 package com.daksin.autoverdict.floating
 
 import android.app.Service
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.IBinder
@@ -11,8 +9,6 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
-import android.widget.TextView
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.daksin.autoverdict.AutoVerdictApp
 import com.daksin.autoverdict.R
@@ -50,7 +46,7 @@ class FloatingService : Service() {
         val notification = NotificationCompat.Builder(this, AutoVerdictApp.CHANNEL_ID)
             .setContentTitle(getString(R.string.floating_notification_title))
             .setContentText(getString(R.string.floating_notification_text))
-            .setSmallIcon(android.R.drawable.ic_menu_search)
+            .setSmallIcon(R.drawable.ic_notification)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
         startForeground(NOTIFICATION_ID, notification)
@@ -124,13 +120,6 @@ class FloatingService : Service() {
 
     private fun onFloatingButtonTap() {
         Log.d(TAG, "onFloatingButtonTap called")
-        val detectedUrl = com.daksin.autoverdict.accessibility.DetectedUrlHolder.getUrl()
-        if (detectedUrl != null) {
-            Log.d(TAG, "Using detected URL: $detectedUrl")
-            startAnalysis(detectedUrl)
-            return
-        }
-        // Fallback: open MainActivity for manual URL input
         val intent = Intent(this, com.daksin.autoverdict.MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
@@ -144,12 +133,6 @@ class FloatingService : Service() {
             overlayManager = OverlayManager(this, windowManager, app.database)
         }
         overlayManager?.show(url, carId)
-    }
-
-    private fun getClipboardEncarUrl(): String? {
-        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val text = clipboard.primaryClip?.getItemAt(0)?.text?.toString()
-        return if (EncarUrl.isEncarDetail(text)) text else null
     }
 
     private fun removeFloatingButton() {
