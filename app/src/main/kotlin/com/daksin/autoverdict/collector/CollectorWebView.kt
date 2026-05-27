@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -76,6 +77,7 @@ class CollectorWebView(context: Context) {
             webView.stopLoading()
         }
         handler.postDelayed(timeoutRunnable!!, TIMEOUT_MS)
+        Log.d(TAG, "loading: $fullUrl")
         webView.loadUrl(fullUrl)
     }
 
@@ -234,6 +236,7 @@ class CollectorWebView(context: Context) {
     }
 
     companion object {
+        private const val TAG = "CollectorWebView"
         private const val TIMEOUT_MS = 15_000L
         private const val RETRY_DELAY_MS = 1_000L
         private const val MAX_RETRIES = 5
