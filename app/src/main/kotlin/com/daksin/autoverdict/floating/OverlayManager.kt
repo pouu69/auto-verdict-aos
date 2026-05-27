@@ -14,6 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class OverlayManager(
@@ -24,7 +25,12 @@ class OverlayManager(
     private var overlayView: FrameLayout? = null
     private var evalWebView: EvalWebView? = null
     private var collector: CollectorWebView? = null
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private var scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    private fun ensureActiveScope(): CoroutineScope {
+        if (!scope.isActive) scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+        return scope
+    }
 
     private val overlayParams = WindowManager.LayoutParams(
         WindowManager.LayoutParams.MATCH_PARENT,
@@ -37,7 +43,8 @@ class OverlayManager(
     }
 
     fun show(url: String, carId: String) {
-        scope.launch {
+        val activeScope = ensureActiveScope()
+        activeScope.launch {
             val cached = database.cacheDao().getValid(carId)
             if (cached != null) {
                 showOverlay()
@@ -47,7 +54,7 @@ class OverlayManager(
             showOverlay()
             if (collector == null) collector = CollectorWebView(context)
             collector?.collect(url, carId) { result ->
-                scope.launch(Dispatchers.Main) {
+                activeScope.launch(Dispatchers.Main) {
                     when (result) {
                         is CollectorWebView.Result.Success -> {
                             evalWebView?.sendData(result.json)
@@ -66,7 +73,7 @@ class OverlayManager(
         if (overlayView != null) return
         val container = FrameLayout(context)
         val eval = EvalWebView(context)
-        val bridge = NativeBridge(database, scope, onClose = { dismiss() }, toastContext = context)
+        val bridge = NativeBridge(database, scope, onClose = { dismiss() }, appContext = context.applicationContext)
         eval.addBridge(bridge)
         eval.loadEvalUi()
         container.addView(
@@ -95,7 +102,7 @@ class OverlayManager(
     }
 
     private fun cacheResult(carId: String, url: String, rawInputJson: String) {
-        scope.launch(Dispatchers.IO) {
+        ensureActiveScope().launch(Dispatchers.IO) {
             val now = System.currentTimeMillis()
             database.cacheDao().upsert(
                 CacheEntity(

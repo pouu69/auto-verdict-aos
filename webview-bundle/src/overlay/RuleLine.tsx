@@ -1,10 +1,10 @@
-import type { RuleResult } from '@core/types/RuleTypes.js';
+import type { RuleResult, Severity } from '@core/types/RuleTypes.js';
 import { RULE_META } from '../rule-meta';
 import { color } from '../tokens';
 
 interface SeverityStyle { bg: string; text: string; label: string }
 
-const severityStyle: Record<string, SeverityStyle> = {
+const severityStyle: Record<Severity, SeverityStyle> = {
   pass: { bg: color.successBg, text: color.success, label: '통과' },
   warn: { bg: color.warningBg, text: color.warning, label: '주의' },
   fail: { bg: color.dangerBg, text: color.danger, label: '위험' },
