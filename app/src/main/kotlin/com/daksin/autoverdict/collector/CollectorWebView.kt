@@ -138,10 +138,17 @@ class CollectorWebView(context: Context) {
         callback: (Result) -> Unit,
     ) {
         val base = carsJson.optJSONObject("base")
-        val vehicleId = base?.optInt("vehicleId", 0) ?: 0
+        val vehicleIdRaw = base?.opt("vehicleId")
+        Log.d(TAG, "vehicleId raw: $vehicleIdRaw (${vehicleIdRaw?.javaClass?.simpleName})")
+        val vehicleId = when (vehicleIdRaw) {
+            is Number -> vehicleIdRaw.toLong()
+            is String -> vehicleIdRaw.toLongOrNull() ?: 0L
+            else -> 0L
+        }
         val vehicleNo = base?.optString("vehicleNo", "") ?: ""
+        Log.d(TAG, "vehicleId=$vehicleId vehicleNo=$vehicleNo")
 
-        if (vehicleId == 0 || vehicleNo.isEmpty()) {
+        if (vehicleId == 0L || vehicleNo.isEmpty()) {
             cancelTimeout()
             callback(
                 Result.Success(
@@ -151,58 +158,72 @@ class CollectorWebView(context: Context) {
             return
         }
 
+        webView.addJavascriptInterface(object {
+            @android.webkit.JavascriptInterface
+            fun onResult(json: String) {
+                handler.post {
+                    cancelTimeout()
+                    webView.removeJavascriptInterface("ApiCallback")
+                    Log.d(TAG, "API result received: ${json.take(200)}")
+                    try {
+                        val apiResponse = JSONObject(json)
+                        val results = apiResponse.optJSONObject("results")
+                        val statuses = apiResponse.optJSONObject("statuses")
+                        val httpStatus = mutableMapOf<String, String>()
+                        statuses?.keys()?.forEach { key -> httpStatus[key] = statuses.getString(key) }
+                        callback(
+                            Result.Success(
+                                buildResultJson(
+                                    carId, carsJson,
+                                    results?.optJSONObject("recordJson")?.toString(),
+                                    results?.optJSONObject("diagnosisJson")?.toString(),
+                                    results?.optJSONObject("inspectionJson")?.toString(),
+                                    httpStatus,
+                                ),
+                            ),
+                        )
+                    } catch (e: Exception) {
+                        Log.e(TAG, "API result parse failed", e)
+                        callback(
+                            Result.Success(
+                                buildResultJson(carId, carsJson, null, null, null, emptyMap()),
+                            ),
+                        )
+                    }
+                    webView.loadUrl("about:blank")
+                }
+            }
+        }, "ApiCallback")
+
         val apiJs = """
         (function() {
-            var vid = $vehicleId; var vno = '${vehicleNo.replace("\\", "\\\\").replace("'", "\\'")}';
+            var vid = $vehicleId;
+            var vno = '${vehicleNo.replace("\\", "\\\\").replace("'", "\\'")}';
             var base = 'https://api.encar.com/v1/readside';
-            var results = {}; var statuses = {};
+            var results = {};
+            var statuses = {};
             function fetchApi(name, url) {
                 return fetch(url, { credentials: 'include' })
-                    .then(function(r) { statuses[name] = r.ok ? 'ok' : (r.status === 404 ? 'not_found' : 'error'); return r.ok ? r.json() : null; })
+                    .then(function(r) {
+                        statuses[name] = r.ok ? 'ok' : (r.status === 404 ? 'not_found' : (r.status === 401 ? 'unauthorized' : 'error'));
+                        return r.ok ? r.json() : null;
+                    })
                     .then(function(data) { results[name] = data; })
-                    .catch(function() { statuses[name] = 'error'; results[name] = null; });
+                    .catch(function(e) { statuses[name] = 'error'; results[name] = null; });
             }
-            return Promise.all([
+            Promise.all([
                 fetchApi('recordJson', base + '/record/vehicle/' + vid + '/open?vehicleNo=' + encodeURIComponent(vno)),
                 fetchApi('diagnosisJson', base + '/diagnosis/vehicle/' + vid),
                 fetchApi('inspectionJson', base + '/inspection/vehicle/' + vid)
-            ]).then(function() { return JSON.stringify({ results: results, statuses: statuses }); });
+            ]).then(function() {
+                ApiCallback.onResult(JSON.stringify({ results: results, statuses: statuses }));
+            }).catch(function(e) {
+                ApiCallback.onResult(JSON.stringify({ results: {}, statuses: {} }));
+            });
         })();
         """.trimIndent()
 
-        webView.evaluateJavascript(apiJs) { raw ->
-            cancelTimeout()
-            val parsed = raw?.removeSurrounding("\"")
-                ?.replace("\\\"", "\"")
-                ?.replace("\\\\", "\\")
-                ?.replace("\\n", "\n")
-            try {
-                val apiResponse =
-                    if (parsed != null && parsed != "null") JSONObject(parsed) else null
-                val results = apiResponse?.optJSONObject("results")
-                val statuses = apiResponse?.optJSONObject("statuses")
-                val httpStatus = mutableMapOf<String, String>()
-                statuses?.keys()?.forEach { key -> httpStatus[key] = statuses.getString(key) }
-                callback(
-                    Result.Success(
-                        buildResultJson(
-                            carId, carsJson,
-                            results?.optJSONObject("recordJson")?.toString(),
-                            results?.optJSONObject("diagnosisJson")?.toString(),
-                            results?.optJSONObject("inspectionJson")?.toString(),
-                            httpStatus,
-                        ),
-                    ),
-                )
-            } catch (e: Exception) {
-                callback(
-                    Result.Success(
-                        buildResultJson(carId, carsJson, null, null, null, emptyMap()),
-                    ),
-                )
-            }
-            webView.loadUrl("about:blank")
-        }
+        webView.evaluateJavascript(apiJs, null)
     }
 
     private fun buildResultJson(
