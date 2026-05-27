@@ -2,6 +2,7 @@ package com.daksin.autoverdict.floating
 
 import android.content.Context
 import android.graphics.PixelFormat
+import android.util.Log
 import android.view.Gravity
 import android.view.WindowManager
 import android.widget.FrameLayout
@@ -43,24 +44,29 @@ class OverlayManager(
     }
 
     fun show(url: String, carId: String) {
+        Log.d(TAG, "show: url=$url carId=$carId")
         val activeScope = ensureActiveScope()
         activeScope.launch {
             val cached = database.cacheDao().getValid(carId)
             if (cached != null) {
+                Log.d(TAG, "cache hit for $carId")
                 showOverlay()
                 evalWebView?.sendData(cached.rawInputJson)
                 return@launch
             }
+            Log.d(TAG, "cache miss — starting collector")
             showOverlay()
             if (collector == null) collector = CollectorWebView(context)
             collector?.collect(url, carId) { result ->
                 activeScope.launch(Dispatchers.Main) {
                     when (result) {
                         is CollectorWebView.Result.Success -> {
+                            Log.d(TAG, "collector success: ${result.json.take(200)}")
                             evalWebView?.sendData(result.json)
                             cacheResult(carId, url, result.json)
                         }
                         is CollectorWebView.Result.Error -> {
+                            Log.e(TAG, "collector error: ${result.message}")
                             evalWebView?.sendError(result.message)
                         }
                     }
@@ -121,6 +127,7 @@ class OverlayManager(
     }
 
     companion object {
+        private const val TAG = "OverlayManager"
         private const val CACHE_TTL_MS = 24 * 60 * 60 * 1000L
     }
 }
