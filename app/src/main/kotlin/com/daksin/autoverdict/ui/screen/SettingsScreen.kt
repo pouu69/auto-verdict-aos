@@ -1,5 +1,6 @@
 package com.daksin.autoverdict.ui.screen
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
@@ -42,6 +43,8 @@ import com.daksin.autoverdict.floating.FloatingService
 import com.daksin.autoverdict.ui.theme.Danger
 import com.daksin.autoverdict.ui.theme.DangerBg
 import com.daksin.autoverdict.ui.theme.Primary
+import com.daksin.autoverdict.ui.theme.Success
+import com.daksin.autoverdict.ui.theme.SuccessBg
 import com.daksin.autoverdict.ui.theme.TextSecondary
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -52,12 +55,14 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     val scope = rememberCoroutineScope()
     var canDrawOverlays by remember { mutableStateOf(Settings.canDrawOverlays(context)) }
     var floatingEnabled by remember { mutableStateOf(false) }
+    var a11yEnabled by remember { mutableStateOf(isAccessibilityServiceEnabled(context)) }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 canDrawOverlays = Settings.canDrawOverlays(context)
+                a11yEnabled = isAccessibilityServiceEnabled(context)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -145,6 +150,56 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.height(8.dp))
         }
 
+        // Accessibility service status
+        SettingsCard {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .then(
+                        if (!a11yEnabled) {
+                            Modifier.clickable {
+                                val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                context.startActivity(intent)
+                            }
+                        } else {
+                            Modifier
+                        },
+                    )
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("URL 자동 감지", style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        "브라우저에서 엔카 매물을 자동으로 감지합니다",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary,
+                    )
+                }
+                if (a11yEnabled) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(SuccessBg)
+                            .padding(horizontal = 10.dp, vertical = 4.dp),
+                    ) {
+                        Text("활성", style = MaterialTheme.typography.labelMedium, color = Success)
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(DangerBg)
+                            .padding(horizontal = 10.dp, vertical = 4.dp),
+                    ) {
+                        Text("설정 필요", style = MaterialTheme.typography.labelMedium, color = Danger)
+                    }
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+
         // Cache clear
         SettingsCard {
             Row(
@@ -187,6 +242,16 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             )
         }
     }
+}
+
+private fun isAccessibilityServiceEnabled(context: Context): Boolean {
+    val enabledServices = Settings.Secure.getString(
+        context.contentResolver,
+        Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+    ) ?: return false
+    return enabledServices.contains(
+        "${context.packageName}/.accessibility.AutoVerdictAccessibilityService",
+    )
 }
 
 @Composable
