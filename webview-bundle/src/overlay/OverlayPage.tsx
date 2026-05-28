@@ -24,7 +24,9 @@ export function OverlayPage({ report, carBase, onClose, onSave, hideSave }: Over
     <div style={{
       minHeight: '100vh',
       background: color.background,
-      paddingBottom: hideSave ? '16px' : '80px',
+      paddingBottom: hideSave
+        ? 'calc(16px + env(safe-area-inset-bottom, 0px))'
+        : 'calc(96px + env(safe-area-inset-bottom, 16px))',
     }}>
       <div style={{ paddingTop: '12px' }}>
         <ScoreCard score={report.score} verdict={report.verdict} carBase={carBase} />
@@ -44,7 +46,10 @@ export function OverlayPage({ report, carBase, onClose, onSave, hideSave }: Over
           bottom: 0,
           left: 0,
           right: 0,
-          padding: '12px 16px',
+          paddingTop: '12px',
+          paddingLeft: '16px',
+          paddingRight: '16px',
+          paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 16px))',
           background: color.surface,
           borderTop: `1px solid ${color.border}`,
         }}>
