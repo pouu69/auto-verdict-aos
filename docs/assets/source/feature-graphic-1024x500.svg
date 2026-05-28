@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E8F1FF"/>
+      <stop offset="60%" stop-color="#F7F8FA"/>
+      <stop offset="100%" stop-color="#FFFFFF"/>
+    </linearGradient>
+    <linearGradient id="iconBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0064FF"/>
+      <stop offset="100%" stop-color="#0050D9"/>
+    </linearGradient>
+    <linearGradient id="scoreCardBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F7F8FA"/>
+    </linearGradient>
+    <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="14"/>
+      <feOffset dx="0" dy="8"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.18"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Canvas -->
+  <rect width="1024" height="500" fill="url(#bg)"/>
+
+  <!-- Decorative blobs -->
+  <circle cx="900" cy="80" r="160" fill="#0064FF" opacity="0.05"/>
+  <circle cx="80" cy="450" r="120" fill="#0064FF" opacity="0.04"/>
+
+  <!-- Left: Brand + Title -->
+  <g transform="translate(72,128)">
+    <!-- Logo mark -->
+    <rect x="0" y="0" width="88" height="88" rx="20" fill="url(#iconBg)" filter="url(#cardShadow)"/>
+    <g transform="translate(14,14) scale(0.74)">
+      <path d="M30,58 l4,-8 l8,-4 l24,0 l6,6 l6,0 l0,6 l-2,0
+               a4,4 0 0 1 -8,0 l-24,0 a4,4 0 0 1 -8,0 l-6,0 z"
+            fill="none" stroke="white" stroke-width="3.5"
+            stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="40" cy="58" r="3.2" fill="white"/>
+      <circle cx="68" cy="58" r="3.2" fill="white"/>
+    </g>
+
+    <!-- Title -->
+    <text x="0" y="148" font-family="-apple-system, system-ui, sans-serif"
+          font-size="56" font-weight="800" fill="#1A1A1A" letter-spacing="-1.5">
+      AutoVerdict
+    </text>
+
+    <!-- Tagline -->
+    <text x="0" y="186" font-family="-apple-system, system-ui, sans-serif"
+          font-size="22" font-weight="500" fill="#1A1A1A">
+      엔카 매물 종합 평가
+    </text>
+
+    <!-- Sub copy -->
+    <text x="0" y="220" font-family="-apple-system, system-ui, sans-serif"
+          font-size="16" font-weight="400" fill="#888888">
+      사고이력 · 진단 · 점수를 한눈에
+    </text>
+  </g>
+
+  <!-- Right: Score card mockup -->
+  <g transform="translate(688,80)" filter="url(#cardShadow)">
+    <!-- Card background -->
+    <rect width="264" height="340" rx="24" fill="url(#scoreCardBg)" stroke="#E8E8EC" stroke-width="1"/>
+
+    <!-- Card header -->
+    <text x="22" y="44" font-family="-apple-system, monospace"
+          font-size="13" font-weight="700" fill="#888888" letter-spacing="1.2">01</text>
+
+    <g transform="translate(214,28)">
+      <rect width="34" height="20" rx="6" fill="#0064FF" opacity="0.14"/>
+      <text x="17" y="14" text-anchor="middle"
+            font-family="-apple-system, monospace" font-size="10" font-weight="700"
+            fill="#0064FF" letter-spacing="0.8">TOP</text>
+    </g>
+
+    <!-- Title placeholder -->
+    <text x="22" y="84" font-family="-apple-system, sans-serif"
+          font-size="16" font-weight="700" fill="#1A1A1A">현대 그랜저</text>
+    <text x="22" y="104" font-family="-apple-system, sans-serif"
+          font-size="13" fill="#888888">2022년식 · 가솔린</text>
+
+    <!-- Score -->
+    <text x="22" y="178" font-family="-apple-system, monospace"
+          font-size="64" font-weight="800" fill="#2E7D32">85</text>
+    <text x="120" y="178" font-family="-apple-system, monospace"
+          font-size="14" fill="#888888">/100</text>
+
+    <!-- Score bar -->
+    <rect x="22" y="196" width="220" height="6" rx="3" fill="#E8E8EC"/>
+    <rect x="22" y="196" width="187" height="6" rx="3" fill="#2E7D32"/>
+
+    <!-- Severity chips -->
+    <g transform="translate(22,228)">
+      <rect width="60" height="22" rx="6" fill="#FFEBEE"/>
+      <text x="30" y="15" text-anchor="middle" font-family="-apple-system, sans-serif"
+            font-size="11" font-weight="600" fill="#E53935">위험 0</text>
+    </g>
+    <g transform="translate(90,228)">
+      <rect width="60" height="22" rx="6" fill="#FFF3E0"/>
+      <text x="30" y="15" text-anchor="middle" font-family="-apple-system, sans-serif"
+            font-size="11" font-weight="600" fill="#F57C00">주의 2</text>
+    </g>
+    <g transform="translate(158,228)">
+      <rect width="60" height="22" rx="6" fill="#E8F5E9"/>
+      <text x="30" y="15" text-anchor="middle" font-family="-apple-system, sans-serif"
+            font-size="11" font-weight="600" fill="#2E7D32">양호 8</text>
+    </g>
+
+    <!-- Bottom verdict pill -->
+    <g transform="translate(22,272)">
+      <rect width="220" height="38" rx="19" fill="#E8F5E9"/>
+      <text x="110" y="24" text-anchor="middle"
+            font-family="-apple-system, sans-serif"
+            font-size="14" font-weight="700" fill="#2E7D32">
+        구매 추천 매물
+      </text>
+    </g>
+  </g>
+</svg>
