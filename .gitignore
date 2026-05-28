@@ -17,6 +17,7 @@ webview-bundle/dist/
 
 # Signing
 keystore.properties
+secrets/
 *.jks
 *.keystore
 
