@@ -7,8 +7,6 @@
 [![Min SDK](https://img.shields.io/badge/minSdk-26-blue)]()
 [![Target SDK](https://img.shields.io/badge/targetSdk-35-blue)]()
 
----
-
 ## 핵심 기능
 
 - **URL 한 번으로 자동 분석** — 엔카 매물 URL을 입력하거나 공유 인텐트로 받아 즉시 평가
@@ -16,16 +14,6 @@
 - **위험/주의/양호 분류** — 매물 신호를 색상으로 그룹화해 빠른 의사결정 지원
 - **2대 비교** — 저장한 매물을 나란히 놓고 Hero 카드 + 섹션별 메트릭으로 비교
 - **24시간 캐시** — 같은 매물을 다시 열 때 네트워크 없이 즉시 표시
-
-## 스크린샷
-
-| Analyze | Saved | Compare | Settings |
-|---|---|---|---|
-| ![](docs/assets/screenshots/01-analyze.png) | ![](docs/assets/screenshots/02-saved.png) | ![](docs/assets/screenshots/03-compare.png) | ![](docs/assets/screenshots/04-settings.png) |
-
-> 스크린샷은 출시 전 캡처 예정 (`docs/assets-guide.md` 참고)
-
----
 
 ## 기술 스택
 
@@ -75,8 +63,6 @@ webview-bundle/src → @core → ../../daksin-car/src/core/
 
 둘 다 `carId` PK + `@Upsert` 사용.
 
----
-
 ## 빌드 & 실행
 
 ### 사전 준비
@@ -121,8 +107,6 @@ cd webview-bundle && npx vitest run
 
 > ⚠️ **WebView 번들은 Android 빌드 전에 반드시 한 번 빌드해야 합니다.** Gradle이 `webview-bundle/dist/`를 `app/src/main/assets/eval-ui/`로 복사합니다 (gitignored).
 
----
-
 ## 프로젝트 구조
 
 ```
@@ -160,42 +144,3 @@ cd webview-bundle && npx vitest run
 │   └── assets/                          # 512x512 아이콘, 1024x500 피처 그래픽
 └── build-all.sh                         # 전체 빌드 헬퍼
 ```
-
----
-
-## 주요 컨벤션
-
-- **Navigation** — 라이브러리 없이 Compose 상태머신 (`AppScreen` enum + `when` 블록)
-- **State** — `remember` / `rememberSaveable`를 `MainActivity.kt`에 호스팅
-- **서브 화면** — `ResultScreen`, `CompareScreen`, `PrivacyPolicyScreen`은 풀스크린 전환 (early `return`)
-- **URL 검증** — `EncarUrl`이 다양한 엔카 URL 포맷 정규화 및 carId 추출
-- **ProGuard** — `@JavascriptInterface` 메서드와 Room 클래스 keep — 브리지 메서드 추가 시 `proguard-rules.pro` 갱신 필요
-
----
-
-## Google Play 출시
-
-출시 준비 상태와 사용자 액션 가이드는 [`docs/play-store-checklist.md`](docs/play-store-checklist.md)에 정리되어 있습니다.
-
-이미 완료된 작업:
-- Release AAB 빌드 (서명 완료)
-- 앱 아이콘 (512×512) + 피처 그래픽 (1024×500)
-- 개인정보처리방침 / 스토어 카피 / 출시 가이드 문서
-- AD_ID 권한 manifest 명시
-
-남은 작업:
-1. Keystore 외부 백업
-2. 개인정보처리방침 공개 URL 호스팅
-3. 스크린샷 8장 캡처
-4. Play Console 등록 → Closed Testing → Production
-
----
-
-## 면책
-
-본 앱은 엔카(encar.com)의 공식 서비스가 아니며 SK엔카닷컴(주)과 일체의 제휴·승인 관계가 없습니다. 본 앱이 산출하는 점수와 판정은 알고리즘 기반 참고 정보이며 실제 차량 상태에 대한 법적 보증이 아닙니다. 최종 구매 결정은 사용자 본인의 책임 하에 진행해주세요.
-
-## 개발자
-
-- **이관웅** ([@pouu69](https://github.com/pouu69))
-- pouu69@gmail.com

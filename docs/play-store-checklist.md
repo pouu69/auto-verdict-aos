@@ -35,10 +35,17 @@
 ```
 파일:       /Users/kwanung/development/experiments/daksin-car-aos/secrets/autoverdict-upload.jks
 별칭:       autoverdict-upload
-비밀번호:    EjMXhbc21m7gM2upZOr5KY1F
-SHA-256:    F7:C7:C4:62:B1:D6:A4:80:24:B8:11:23:71:87:D9:04:52:05:EC:95:0F:24:08:85:2C:24:27:64:E1:F4:BF:C8
+비밀번호:    <비공개 — keystore.properties 파일 참조 또는 별도 보관>
 유효기간:   2026-05-28 ~ 약 25년
 ```
+
+> 실제 비밀번호와 SHA-256 지문은 git에 절대 커밋하지 마세요.
+> 비밀번호는 로컬 `keystore.properties` (이미 `.gitignore`에 포함)에서 확인할 수 있고,
+> SHA-256 지문은 다음 명령으로 다시 조회 가능합니다:
+>
+> ```bash
+> "$JAVA_HOME/bin/keytool" -list -keystore secrets/autoverdict-upload.jks
+> ```
 
 추천 백업 위치 (**최소 2곳**):
 - ✅ 1Password / Bitwarden / Keychain (비밀번호 매니저)
