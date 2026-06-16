@@ -65,7 +65,7 @@ URL 한 번이면 위험·주의·양호 항목을 한눈에 정리해 드립니
 주시기 바랍니다.
 
 
-개발자: 이관웅 (pouu69@gmail.com)
+개발자: AutoVerdict (pouu69@gmail.com)
 개인정보처리방침: [개인정보 처리방침 URL 입력]
 ```
 
@@ -127,7 +127,7 @@ v1.0.0 첫 출시
 
 ## 연락처 정보
 
-- **개발자명:** 이관웅
+- **개발자명:** AutoVerdict
 - **이메일:** pouu69@gmail.com
 - **개인정보처리방침 URL:** [GitHub Pages 등에 호스팅 후 URL 입력]
 
