@@ -1,6 +1,6 @@
 # AutoVerdict 개인정보처리방침
 
-**최종 업데이트:** 2026년 5월 28일
+**최종 업데이트:** 2026년 6월 16일
 **적용 대상:** AutoVerdict Android 앱 (이하 "본 앱")
 **문의:** pouu69@gmail.com
 
