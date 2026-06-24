@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@core': path.resolve(__dirname, '../../daksin-car/src/core'),
+      '@core': path.resolve(__dirname, 'src/core'),
     },
   },
   base: './',

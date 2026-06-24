@@ -45,9 +45,11 @@ User shares Encar URL (or pastes in app)
 - **JS → Native**: `NativeBridge` exposes `@JavascriptInterface` methods as `window.Android` — `saveCar()`, `closeOverlay()`, `showToast()`.
 - **TypeScript side**: `android-bridge.ts` wraps `window.Android` with type-safe calls and existence checks.
 
-### Shared Core Library
+### Core Library (vendored)
 
-The TypeScript webview imports `@core` which maps to `../../daksin-car/src/core/` (sibling repo). Contains: `ParsedData` types, `ChecklistFacts`, `encarToFacts()` parser, rule definitions, and the evaluation engine.
+The TypeScript webview imports `@core`, which maps to the in-repo copy at `webview-bundle/src/core/` (see `tsconfig.json` paths + `vite.config.ts` alias). Contains: `ParsedData`/`ChecklistFacts`/`RuleTypes`/`FieldStatus` types, the Encar parsers (`parsers/encar/*`), the `encarToFacts()` bridge, and the rule engine (`rules/index.ts`).
+
+This is a vendored subset (the transitive closure aos actually uses) of the shared core that originates in the sibling `daksin-car` repo. It is self-contained — no `dexie`/`zod`/`background` dependencies. When the upstream core changes, re-sync the relevant files manually rather than re-pointing `@core` at the sibling repo (the old setup broke the build whenever `daksin-car` was absent at the expected path).
 
 ### Database (Room)
 
