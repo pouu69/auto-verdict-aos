@@ -1,4 +1,4 @@
-package com.daksin.autoverdict
+package com.car.autoverdict
 
 import android.content.Intent
 import android.os.Bundle
@@ -40,33 +40,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.daksin.autoverdict.preferences.AppPreferences
-import com.daksin.autoverdict.ui.AdBanner
-import com.daksin.autoverdict.ui.InterstitialAdManager
-import com.daksin.autoverdict.ui.screen.AnalyzeScreen
-import com.daksin.autoverdict.ui.screen.CompareScreen
-import com.daksin.autoverdict.ui.screen.OnboardingScreen
-import com.daksin.autoverdict.ui.screen.PrivacyPolicyScreen
-import com.daksin.autoverdict.ui.screen.ResultScreen
-import com.daksin.autoverdict.ui.screen.SavedListScreen
-import com.daksin.autoverdict.ui.screen.SettingsScreen
-import com.daksin.autoverdict.ui.theme.AutoVerdictTheme
-import com.daksin.autoverdict.ui.theme.Primary
-import com.daksin.autoverdict.ui.theme.TextSecondary
-import com.daksin.autoverdict.util.EncarUrl
+import com.car.autoverdict.preferences.AppPreferences
+import com.car.autoverdict.ui.AdBanner
+import com.car.autoverdict.ui.screen.AnalyzeScreen
+import com.car.autoverdict.ui.screen.CompareScreen
+import com.car.autoverdict.ui.screen.OnboardingScreen
+import com.car.autoverdict.ui.screen.PrivacyPolicyScreen
+import com.car.autoverdict.ui.screen.ResultScreen
+import com.car.autoverdict.ui.screen.SavedListScreen
+import com.car.autoverdict.ui.screen.SettingsScreen
+import com.car.autoverdict.ui.theme.AutoVerdictTheme
+import com.car.autoverdict.ui.theme.Primary
+import com.car.autoverdict.ui.theme.TextSecondary
+import com.car.autoverdict.util.EncarUrl
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var appPreferences: AppPreferences
     private val pendingAnalysisUrl = mutableStateOf<String?>(null)
-    private val interstitialAdManager = InterstitialAdManager()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         appPreferences = AppPreferences(this)
-        interstitialAdManager.load(this)
         handleShareIntent(intent)
         setContent {
             AutoVerdictTheme {
@@ -88,9 +85,7 @@ class MainActivity : ComponentActivity() {
         if (intent?.action == Intent.ACTION_SEND && intent.type == "text/plain") {
             val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT) ?: return
             if (EncarUrl.isEncarDetail(sharedText)) {
-                interstitialAdManager.showIfReady(this) {
-                    pendingAnalysisUrl.value = sharedText
-                }
+                pendingAnalysisUrl.value = sharedText
             }
         }
     }
@@ -180,6 +175,8 @@ private fun MainScreen(pendingUrl: MutableState<String?>) {
 
     Scaffold(
         bottomBar = {
+          Column {
+            AdBanner()
             NavigationBar {
                 Tab.entries.forEach { tab ->
                     NavigationBarItem(
@@ -201,6 +198,7 @@ private fun MainScreen(pendingUrl: MutableState<String?>) {
                     )
                 }
             }
+          }
         },
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
@@ -220,7 +218,6 @@ private fun MainScreen(pendingUrl: MutableState<String?>) {
                 onPrivacyPolicy = { showPrivacyPolicy = true },
             )
             }
-            AdBanner()
         }
     }
 }

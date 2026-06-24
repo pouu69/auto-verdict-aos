@@ -1,4 +1,4 @@
-package com.daksin.autoverdict.ui.screen
+package com.car.autoverdict.ui.screen
 
 import android.content.Intent
 import android.net.Uri
@@ -52,17 +52,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.daksin.autoverdict.AutoVerdictApp
-import com.daksin.autoverdict.collector.CollectorWebView
-import com.daksin.autoverdict.db.CacheEntity
-import com.daksin.autoverdict.ui.theme.Background
-import com.daksin.autoverdict.ui.theme.Border
-import com.daksin.autoverdict.ui.theme.Primary
-import com.daksin.autoverdict.ui.theme.TextPrimary
-import com.daksin.autoverdict.ui.theme.TextSecondary
-import com.daksin.autoverdict.util.EncarUrl
-import com.daksin.autoverdict.webview.EvalWebView
-import com.daksin.autoverdict.webview.NativeBridge
+import com.car.autoverdict.AutoVerdictApp
+import com.car.autoverdict.collector.CollectorWebView
+import com.car.autoverdict.db.CacheEntity
+import com.car.autoverdict.ui.AdBanner
+import com.car.autoverdict.ui.theme.Background
+import com.car.autoverdict.ui.theme.Border
+import com.car.autoverdict.ui.theme.Primary
+import com.car.autoverdict.ui.theme.TextPrimary
+import com.car.autoverdict.ui.theme.TextSecondary
+import com.car.autoverdict.util.EncarUrl
+import com.car.autoverdict.webview.EvalWebView
+import com.car.autoverdict.webview.NativeBridge
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -157,7 +158,11 @@ fun ResultScreen(
             },
         )
 
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+        ) {
             AndroidView(
                 factory = {
                     evalWebView.webView.apply {
@@ -174,6 +179,8 @@ fun ResultScreen(
                 LoadingOverlay(statusText = statusText)
             }
         }
+
+        AdBanner(modifier = Modifier.fillMaxWidth())
     }
 }
 
