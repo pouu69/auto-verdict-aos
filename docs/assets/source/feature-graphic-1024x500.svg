@@ -5,10 +5,6 @@
       <stop offset="60%" stop-color="#F7F8FA"/>
       <stop offset="100%" stop-color="#FFFFFF"/>
     </linearGradient>
-    <linearGradient id="iconBg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0064FF"/>
-      <stop offset="100%" stop-color="#0050D9"/>
-    </linearGradient>
     <linearGradient id="scoreCardBg" x1="0%" y1="0%" x2="0%" y2="100%">
       <stop offset="0%" stop-color="#FFFFFF"/>
       <stop offset="100%" stop-color="#F7F8FA"/>
@@ -30,15 +26,19 @@
 
   <!-- Left: Brand + Title -->
   <g transform="translate(72,128)">
-    <!-- Logo mark -->
-    <rect x="0" y="0" width="88" height="88" rx="20" fill="url(#iconBg)" filter="url(#cardShadow)"/>
-    <g transform="translate(14,14) scale(0.74)">
-      <path d="M30,58 l4,-8 l8,-4 l24,0 l6,6 l6,0 l0,6 l-2,0
-               a4,4 0 0 1 -8,0 l-24,0 a4,4 0 0 1 -8,0 l-6,0 z"
-            fill="none" stroke="white" stroke-width="3.5"
+    <!-- Logo mark — faithful to launcher icon (ic_launcher: flat #3B82F6 + car + check badge),
+         foreground scaled from the 108 adaptive viewport to the 88px box (88/108 = 0.81481). -->
+    <rect x="0" y="0" width="88" height="88" rx="20" fill="#3B82F6" filter="url(#cardShadow)"/>
+    <g transform="scale(0.81481)">
+      <path d="M30,58l4,-8l8,-4l24,0l6,6l6,0l0,6l-2,0a4,4 0 0 1 -8,0l-24,0a4,4 0 0 1 -8,0l-6,0z"
+            fill="none" stroke="#FFFFFF" stroke-width="2.4"
             stroke-linejoin="round" stroke-linecap="round"/>
-      <circle cx="40" cy="58" r="3.2" fill="white"/>
-      <circle cx="68" cy="58" r="3.2" fill="white"/>
+      <circle cx="40" cy="58" r="2.5" fill="#FFFFFF"/>
+      <circle cx="68" cy="58" r="2.5" fill="#FFFFFF"/>
+      <circle cx="70" cy="40" r="6" fill="#FFFFFF"/>
+      <path d="M67,40L69,42.5L73,37.5"
+            fill="none" stroke="#3B82F6" stroke-width="2.4"
+            stroke-linecap="round" stroke-linejoin="round"/>
     </g>
 
     <!-- Title -->

@@ -24,6 +24,56 @@
 
 ---
 
+## 📋 앱 기술 정보 (Play Console 입력용)
+
+> `app/build.gradle.kts` · `AndroidManifest.xml`에서 확인한 실제 값. Play Console 양식에 그대로 입력하면 됩니다.
+
+| 항목 | 값 | 비고 |
+|---|---|---|
+| **패키지 이름 (applicationId)** | `com.car.autoverdict` | ⚠️ 한번 등록하면 변경 불가 — 모든 향후 업데이트의 영구 식별자 |
+| namespace | `com.car.autoverdict` | applicationId와 동일 |
+| **버전 코드 (versionCode)** | `1` | 업로드마다 +1 필수 |
+| **버전 이름 (versionName)** | `1.0.0` | 사용자에게 표시되는 버전 |
+| 최소 SDK (minSdk) | API 26 (Android 8.0 Oreo) | 지원 최저 기기 |
+| 타겟 SDK (targetSdk) | API 35 (Android 15) | Play 정책 충족 |
+| 컴파일 SDK (compileSdk) | API 35 | — |
+| 빌드 산출물 | AAB (Android App Bundle) | `app/build/outputs/bundle/release/app-release.aab` |
+| 코드 난독화 | R8 활성화 (`isMinifyEnabled = true`, `isShrinkResources = true`) | ProGuard 규칙: `app/proguard-rules.pro` |
+| 백업 허용 | `allowBackup="false"` | — |
+
+### 권한 (Permissions)
+
+| 권한 | 용도 |
+|---|---|
+| `android.permission.INTERNET` | 엔카 페이지 로드 및 API 호출 |
+| `com.google.android.gms.permission.AD_ID` | AdMob 광고 식별자 (AAID) |
+
+> 위치·카메라·연락처·저장소 등 민감 권한은 **요청하지 않음**.
+
+### 인텐트 필터 (앱 진입점)
+
+- `MAIN` / `LAUNCHER` — 일반 앱 실행
+- `SEND` (`text/plain`) — 엔카 앱·브라우저의 **공유 시트에서 AutoVerdict로 URL 공유** 가능
+
+### AdMob
+
+| 항목 | 값 |
+|---|---|
+| AdMob 앱 ID | `ca-app-pub-5353705048338468~6253564104` |
+| 광고 형식 | 배너 · 전면 (`play-services-ads:23.6.0`) |
+
+> AdMob 앱 ID는 `AndroidManifest.xml`의 `<meta-data>`에 명시되어 있으며, Play Console **데이터 안전성** 및 **광고 선언** 항목과 일치시켜야 합니다.
+
+### 개발자 정보
+
+| 항목 | 값                    |
+|---|----------------------|
+| 개발자명 | 박관웅                  |
+| 연락처 이메일 | pouu69@gmail.com     |
+| 서명 키 별칭 | `autoverdict-upload` |
+
+---
+
 ## 🚨 STEP 0 — 즉시 처리 (분실 위험)
 
 ### Keystore 백업
