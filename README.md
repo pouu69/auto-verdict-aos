@@ -112,7 +112,7 @@ cd webview-bundle && npx vitest run
 ```
 .
 ├── app/
-│   ├── src/main/kotlin/com/daksin/autoverdict/
+│   ├── src/main/kotlin/com/car/autoverdict/
 │   │   ├── MainActivity.kt              # 라우터 (AppScreen enum + when)
 │   │   ├── collector/CollectorWebView.kt
 │   │   ├── webview/{EvalWebView,NativeBridge}.kt
