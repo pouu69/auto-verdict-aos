@@ -1,42 +1,30 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <!-- Background: rounded square with Primary brand color -->
-  <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0064FF"/>
-      <stop offset="100%" stop-color="#0050D9"/>
-    </linearGradient>
-    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
-      <feOffset dx="0" dy="3"/>
-      <feComponentTransfer><feFuncA type="linear" slope="0.3"/></feComponentTransfer>
-      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-  </defs>
+  <!--
+    Play Store 512 icon — faithful render of the actual launcher icon.
+    Background  = ic_launcher_background.xml (flat #3B82F6)
+    Foreground  = ic_launcher_foreground.xml (car + integrated check badge),
+                  scaled from the 108 adaptive viewport to 512 (512/108 = 4.74074).
+    Rounded corners (rx 112) approximate the on-device adaptive mask.
+    Keep this in sync with app/src/main/res whenever the launcher icon changes.
+  -->
 
-  <!-- App icon background -->
-  <rect width="512" height="512" rx="112" ry="112" fill="url(#bg)"/>
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" ry="112" fill="#3B82F6"/>
 
-  <!-- Subtle inner highlight -->
-  <rect x="0" y="0" width="512" height="256" rx="112" ry="112" fill="white" opacity="0.06"/>
-
-  <!-- Car silhouette (centered, scaled up from launcher foreground) -->
-  <g transform="translate(80,160) scale(3.0)" filter="url(#softShadow)">
+  <!-- Foreground: exact copy of ic_launcher_foreground.xml, scaled 108 -> 512 -->
+  <g transform="scale(4.74074)">
     <!-- Car body outline -->
-    <path d="M30,58 l4,-8 l8,-4 l24,0 l6,6 l6,0 l0,6 l-2,0
-             a4,4 0 0 1 -8,0 l-24,0 a4,4 0 0 1 -8,0 l-6,0 z"
-          fill="none" stroke="white" stroke-width="3.5"
+    <path d="M30,58l4,-8l8,-4l24,0l6,6l6,0l0,6l-2,0a4,4 0 0 1 -8,0l-24,0a4,4 0 0 1 -8,0l-6,0z"
+          fill="none" stroke="#FFFFFF" stroke-width="2.4"
           stroke-linejoin="round" stroke-linecap="round"/>
     <!-- Front wheel -->
-    <circle cx="40" cy="58" r="3.2" fill="white"/>
+    <circle cx="40" cy="58" r="2.5" fill="#FFFFFF"/>
     <!-- Rear wheel -->
-    <circle cx="68" cy="58" r="3.2" fill="white"/>
-  </g>
-
-  <!-- Check badge (verdict mark) -->
-  <g transform="translate(296,160)">
-    <circle cx="56" cy="56" r="56" fill="white"/>
-    <path d="M36,58 L50,72 L78,42"
-          fill="none" stroke="#0064FF" stroke-width="9"
+    <circle cx="68" cy="58" r="2.5" fill="#FFFFFF"/>
+    <!-- Check badge (top right) -->
+    <circle cx="70" cy="40" r="6" fill="#FFFFFF"/>
+    <path d="M67,40L69,42.5L73,37.5"
+          fill="none" stroke="#3B82F6" stroke-width="2.4"
           stroke-linecap="round" stroke-linejoin="round"/>
   </g>
 </svg>
