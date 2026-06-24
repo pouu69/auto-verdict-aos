@@ -1,0 +1,273 @@
+package com.car.autoverdict.collector
+
+import android.annotation.SuppressLint
+import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import android.webkit.JavascriptInterface
+import android.webkit.WebSettings
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import com.car.autoverdict.util.EncarUrl
+import org.json.JSONObject
+
+class CollectorWebView(context: Context) {
+    sealed class Result {
+        data class Success(val json: String) : Result()
+        data class Error(val message: String) : Result()
+    }
+
+    private val webView: WebView = WebView(context.applicationContext)
+    private val handler = Handler(Looper.getMainLooper())
+    private var timeoutRunnable: Runnable? = null
+    private var callbackFired = false
+    private var apiResultHandler: ((String) -> Unit)? = null
+
+    init {
+        setup()
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private fun setup() {
+        webView.settings.apply {
+            javaScriptEnabled = true
+            domStorageEnabled = true
+            cacheMode = WebSettings.LOAD_DEFAULT
+            userAgentString = webView.settings.userAgentString.replace("; wv", "")
+        }
+        webView.layoutParams = android.widget.FrameLayout.LayoutParams(0, 0)
+        webView.addJavascriptInterface(ApiBridge(), "ApiCallback")
+    }
+
+    inner class ApiBridge {
+        @JavascriptInterface
+        fun onResult(json: String) {
+            handler.post { apiResultHandler?.invoke(json) }
+        }
+    }
+
+    fun collect(url: String, carId: String, callback: (Result) -> Unit) {
+        cancelTimeout()
+        callbackFired = false
+        val fullUrl = if (url.startsWith("http")) url else EncarUrl.buildDetailUrl(carId)
+
+        val guardedCallback = { result: Result ->
+            if (!callbackFired) {
+                callbackFired = true
+                cancelTimeout()
+                callback(result)
+            }
+        }
+
+        webView.webViewClient = object : WebViewClient() {
+            private var extracted = false
+
+            override fun onPageFinished(view: WebView?, loadedUrl: String?) {
+                super.onPageFinished(view, loadedUrl)
+                if (!extracted && !callbackFired) {
+                    extracted = true
+                    extractPreloadedState(carId, guardedCallback)
+                }
+            }
+
+            @Suppress("DEPRECATION")
+            override fun onReceivedError(
+                view: WebView?,
+                errorCode: Int,
+                description: String?,
+                failingUrl: String?,
+            ) {
+                guardedCallback(Result.Error("페이지 로드 실패: $description"))
+            }
+        }
+
+        timeoutRunnable = Runnable {
+            guardedCallback(Result.Error("시간 초과 — 네트워크를 확인하세요"))
+            webView.stopLoading()
+        }
+        handler.postDelayed(timeoutRunnable!!, TIMEOUT_MS)
+        Log.d(TAG, "loading: $fullUrl")
+        webView.loadUrl(fullUrl)
+    }
+
+    private fun extractPreloadedState(
+        carId: String,
+        callback: (Result) -> Unit,
+        attempt: Int = 0,
+    ) {
+        val js = """
+        (function() {
+            try {
+                var state = window.__PRELOADED_STATE__;
+                if (!state || !state.cars || !state.cars.base || Object.keys(state.cars.base).length === 0) {
+                    return JSON.stringify({ error: 'empty_state' });
+                }
+                return JSON.stringify({ ok: true, cars: state.cars });
+            } catch(e) { return JSON.stringify({ error: e.message }); }
+        })();
+        """.trimIndent()
+
+        webView.evaluateJavascript(js) { raw ->
+            val parsed = raw?.removeSurrounding("\"")
+                ?.replace("\\\"", "\"")
+                ?.replace("\\\\", "\\")
+                ?.replace("\\n", "\n")
+
+            if (parsed == null || parsed == "null") {
+                cancelTimeout()
+                callback(Result.Error("페이지 데이터 추출 실패"))
+                return@evaluateJavascript
+            }
+
+            try {
+                val obj = JSONObject(parsed)
+                if (obj.has("error")) {
+                    if (attempt < MAX_RETRIES) {
+                        handler.postDelayed(
+                            { extractPreloadedState(carId, callback, attempt + 1) },
+                            RETRY_DELAY_MS,
+                        )
+                    } else {
+                        cancelTimeout()
+                        callback(Result.Error("매물 데이터를 찾을 수 없습니다"))
+                    }
+                    return@evaluateJavascript
+                }
+                fetchApis(carId, obj.getJSONObject("cars"), callback)
+            } catch (e: Exception) {
+                cancelTimeout()
+                callback(Result.Error("데이터 파싱 오류: ${e.message}"))
+            }
+        }
+    }
+
+    private fun fetchApis(
+        carId: String,
+        carsJson: JSONObject,
+        callback: (Result) -> Unit,
+    ) {
+        val base = carsJson.optJSONObject("base")
+        val vehicleIdRaw = base?.opt("vehicleId")
+        Log.d(TAG, "vehicleId raw: $vehicleIdRaw (${vehicleIdRaw?.javaClass?.simpleName})")
+        val vehicleId = when (vehicleIdRaw) {
+            is Number -> vehicleIdRaw.toLong()
+            is String -> vehicleIdRaw.toLongOrNull() ?: 0L
+            else -> 0L
+        }
+        val vehicleNo = base?.optString("vehicleNo", "") ?: ""
+        Log.d(TAG, "vehicleId=$vehicleId vehicleNo=$vehicleNo")
+
+        if (vehicleId == 0L || vehicleNo.isEmpty()) {
+            cancelTimeout()
+            callback(
+                Result.Success(
+                    buildResultJson(carId, carsJson, null, null, null, emptyMap()),
+                ),
+            )
+            return
+        }
+
+        apiResultHandler = { json ->
+            cancelTimeout()
+            Log.d(TAG, "API result received: ${json.take(200)}")
+            try {
+                val apiResponse = JSONObject(json)
+                val results = apiResponse.optJSONObject("results")
+                val statuses = apiResponse.optJSONObject("statuses")
+                val httpStatus = mutableMapOf<String, String>()
+                statuses?.keys()?.forEach { key -> httpStatus[key] = statuses.getString(key) }
+                callback(
+                    Result.Success(
+                        buildResultJson(
+                            carId, carsJson,
+                            results?.optJSONObject("recordJson")?.toString(),
+                            results?.optJSONObject("diagnosisJson")?.toString(),
+                            results?.optJSONObject("inspectionJson")?.toString(),
+                            httpStatus,
+                        ),
+                    ),
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "API result parse failed", e)
+                callback(
+                    Result.Success(
+                        buildResultJson(carId, carsJson, null, null, null, emptyMap()),
+                    ),
+                )
+            }
+            webView.loadUrl("about:blank")
+            apiResultHandler = null
+        }
+
+        val vnoEscaped = vehicleNo.replace("\\", "\\\\").replace("'", "\\'")
+        val apiJs = """
+        (function() {
+            var vid = $vehicleId;
+            var vno = '$vnoEscaped';
+            var base = 'https://api.encar.com/v1/readside';
+            var results = {};
+            var statuses = {};
+            function fetchApi(name, url) {
+                return fetch(url)
+                    .then(function(r) {
+                        statuses[name] = r.ok ? 'ok' : (r.status === 404 ? 'not_found' : (r.status === 401 ? 'unauthorized' : 'error'));
+                        return r.ok ? r.json() : null;
+                    })
+                    .then(function(data) { results[name] = data; })
+                    .catch(function(e) { statuses[name] = 'error'; results[name] = null; });
+            }
+            Promise.all([
+                fetchApi('recordJson', base + '/record/vehicle/' + vid + '/open?vehicleNo=' + encodeURIComponent(vno)),
+                fetchApi('diagnosisJson', base + '/diagnosis/vehicle/' + vid),
+                fetchApi('inspectionJson', base + '/inspection/vehicle/' + vid)
+            ]).then(function() {
+                ApiCallback.onResult(JSON.stringify({ results: results, statuses: statuses }));
+            }).catch(function(e) {
+                ApiCallback.onResult(JSON.stringify({ results: {}, statuses: {}, error: e.message }));
+            });
+        })();
+        """.trimIndent()
+
+        webView.evaluateJavascript(apiJs, null)
+    }
+
+    private fun buildResultJson(
+        carId: String,
+        carsJson: JSONObject,
+        recordJson: String?,
+        diagnosisJson: String?,
+        inspectionJson: String?,
+        httpStatus: Map<String, String>,
+    ): String {
+        return JSONObject().apply {
+            put("url", EncarUrl.buildDetailUrl(carId))
+            put("carId", carId)
+            put("preloadedState", JSONObject().put("cars", carsJson))
+            if (recordJson != null) put("recordJson", JSONObject(recordJson))
+            if (diagnosisJson != null) put("diagnosisJson", JSONObject(diagnosisJson))
+            if (inspectionJson != null) put("inspectionJson", JSONObject(inspectionJson))
+            if (httpStatus.isNotEmpty()) put("httpStatus", JSONObject(httpStatus as Map<*, *>))
+        }.toString()
+    }
+
+    private fun cancelTimeout() {
+        timeoutRunnable?.let { handler.removeCallbacks(it) }
+        timeoutRunnable = null
+    }
+
+    fun destroy() {
+        cancelTimeout()
+        apiResultHandler = null
+        webView.removeJavascriptInterface("ApiCallback")
+        webView.stopLoading()
+        webView.destroy()
+    }
+
+    companion object {
+        private const val TAG = "CollectorWebView"
+        private const val TIMEOUT_MS = 15_000L
+        private const val RETRY_DELAY_MS = 1_000L
+        private const val MAX_RETRIES = 5
+    }
+}

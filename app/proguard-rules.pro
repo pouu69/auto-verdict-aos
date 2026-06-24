@@ -1,15 +1,15 @@
 # === JavascriptInterface (WebView bridge) ===
--keepclassmembers class com.daksin.autoverdict.webview.NativeBridge {
+-keepclassmembers class com.car.autoverdict.webview.NativeBridge {
     @android.webkit.JavascriptInterface <methods>;
 }
--keepclassmembers class com.daksin.autoverdict.collector.CollectorWebView$ApiBridge {
+-keepclassmembers class com.car.autoverdict.collector.CollectorWebView$ApiBridge {
     @android.webkit.JavascriptInterface <methods>;
 }
 
 # === Room ===
--keep class com.daksin.autoverdict.db.*Entity { *; }
--keep class com.daksin.autoverdict.db.*Dao { *; }
--keep class com.daksin.autoverdict.db.AppDatabase { *; }
+-keep class com.car.autoverdict.db.*Entity { *; }
+-keep class com.car.autoverdict.db.*Dao { *; }
+-keep class com.car.autoverdict.db.AppDatabase { *; }
 -keep class * extends androidx.room.RoomDatabase { *; }
 -dontwarn androidx.room.paging.**
 

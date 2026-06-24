@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "daksin-car-aos"
+rootProject.name = "autoverdict-android"
 include(":app")
