@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material.icons.outlined.Schedule
@@ -61,7 +62,11 @@ import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(modifier: Modifier = Modifier, onPrivacyPolicy: () -> Unit = {}) {
+fun SettingsScreen(
+    modifier: Modifier = Modifier,
+    onPrivacyPolicy: () -> Unit = {},
+    onReplayGuide: () -> Unit = {},
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var cacheCount by remember { mutableStateOf(0) }
@@ -154,6 +159,22 @@ fun SettingsScreen(modifier: Modifier = Modifier, onPrivacyPolicy: () -> Unit = 
             item { SectionHeader("정보") }
             item {
                 SettingsGroup {
+                    SettingsRow(
+                        icon = Icons.Outlined.HelpOutline,
+                        iconTint = Primary,
+                        iconBg = Primary.copy(alpha = 0.1f),
+                        title = "사용법 다시 보기",
+                        subtitle = "엔카 공유로 분석하는 방법 안내",
+                        onClick = onReplayGuide,
+                        trailing = {
+                            Icon(
+                                imageVector = Icons.Outlined.ChevronRight,
+                                contentDescription = null,
+                                tint = TextSecondary,
+                            )
+                        },
+                    )
+                    SettingsDivider()
                     SettingsRow(
                         icon = Icons.Outlined.PrivacyTip,
                         iconTint = Primary,

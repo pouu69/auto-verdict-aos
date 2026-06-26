@@ -4,6 +4,9 @@ object EncarUrl {
     private val CAR_DETAIL_RE = Regex("""/cars/detail/(\d+)""")
     private const val BASE_URL = "https://fem.encar.com"
 
+    /** Encar mobile landing page — opened in the browser so users can find a listing and share it back. */
+    const val HOME_URL = "https://www.encar.com/"
+
     fun extractCarId(url: String?): String? {
         if (url.isNullOrBlank()) return null
         return CAR_DETAIL_RE.find(url)?.groupValues?.get(1)
