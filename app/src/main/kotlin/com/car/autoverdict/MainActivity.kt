@@ -1,6 +1,7 @@
 package com.car.autoverdict
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -11,9 +12,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -63,6 +67,11 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // Let the bottom NavigationBar color draw all the way to the screen edge
+        // instead of the system adding a translucent scrim on 3-button navigation.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
+        }
         appPreferences = AppPreferences(this)
         handleShareIntent(intent)
         setContent {
@@ -119,7 +128,10 @@ private fun AppRouter(
                 screen = AppScreen.MAIN
             },
         )
-        AppScreen.MAIN -> MainScreen(pendingUrl = pendingUrl)
+        AppScreen.MAIN -> MainScreen(
+            pendingUrl = pendingUrl,
+            onReplayOnboarding = { screen = AppScreen.ONBOARDING },
+        )
     }
 }
 
@@ -130,7 +142,10 @@ private enum class Tab(val labelRes: Int, val iconRes: Int) {
 }
 
 @Composable
-private fun MainScreen(pendingUrl: MutableState<String?>) {
+private fun MainScreen(
+    pendingUrl: MutableState<String?>,
+    onReplayOnboarding: () -> Unit,
+) {
     var selectedTab by rememberSaveable { mutableStateOf(Tab.ANALYZE) }
     var compareCarIds by remember { mutableStateOf<List<String>?>(null) }
     var showPrivacyPolicy by remember { mutableStateOf(false) }
@@ -174,6 +189,9 @@ private fun MainScreen(pendingUrl: MutableState<String?>) {
     }
 
     Scaffold(
+        // safeDrawing includes the IME inset, so the content lambda's innerPadding
+        // lifts the URL text field above the soft keyboard when it opens.
+        contentWindowInsets = WindowInsets.safeDrawing,
         bottomBar = {
           Column {
             AdBanner()
@@ -201,7 +219,11 @@ private fun MainScreen(pendingUrl: MutableState<String?>) {
           }
         },
     ) { innerPadding ->
-        Column(modifier = Modifier.padding(innerPadding)) {
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding),
+        ) {
             val modifier = Modifier.weight(1f)
             when (selectedTab) {
             Tab.ANALYZE -> AnalyzeScreen(
@@ -216,6 +238,7 @@ private fun MainScreen(pendingUrl: MutableState<String?>) {
             Tab.SETTINGS -> SettingsScreen(
                 modifier = modifier,
                 onPrivacyPolicy = { showPrivacyPolicy = true },
+                onReplayGuide = onReplayOnboarding,
             )
             }
         }

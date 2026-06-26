@@ -44,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.car.autoverdict.ui.components.ShareSheetIllustration
 import com.car.autoverdict.ui.theme.Background
 import com.car.autoverdict.ui.theme.Border
 import com.car.autoverdict.ui.theme.Primary
@@ -56,6 +57,7 @@ private data class OnboardingPage(
     val tag: String,
     val title: String,
     val description: String,
+    val showShareSheet: Boolean = false,
 )
 
 private val pages = listOf(
@@ -70,6 +72,7 @@ private val pages = listOf(
         tag = "QUICK SHARE",
         title = "공유 한 번으로\n바로 분석 시작",
         description = "엔카 페이지에서 공유 버튼을 탭하고\nAutoVerdict를 선택하기만 하면 끝.",
+        showShareSheet = true,
     ),
     OnboardingPage(
         icon = Icons.Outlined.Verified,
@@ -188,6 +191,9 @@ private fun OnboardingPageContent(page: OnboardingPage) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
+        if (page.showShareSheet) {
+            ShareSheetIllustration(modifier = Modifier.fillMaxWidth())
+        } else {
         // Hero icon with halo
         Box(
             modifier = Modifier
@@ -227,6 +233,7 @@ private fun OnboardingPageContent(page: OnboardingPage) {
                     modifier = Modifier.size(48.dp),
                 )
             }
+        }
         }
 
         Spacer(Modifier.height(36.dp))
