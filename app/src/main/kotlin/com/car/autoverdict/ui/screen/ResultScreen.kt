@@ -56,6 +56,7 @@ import com.car.autoverdict.AutoVerdictApp
 import com.car.autoverdict.collector.CollectorWebView
 import com.car.autoverdict.db.CacheEntity
 import com.car.autoverdict.ui.AdBanner
+import com.car.autoverdict.ui.AdMediumRectangle
 import com.car.autoverdict.ui.theme.Background
 import com.car.autoverdict.ui.theme.Border
 import com.car.autoverdict.ui.theme.Primary
@@ -180,7 +181,11 @@ fun ResultScreen(
             }
         }
 
-        AdBanner(modifier = Modifier.fillMaxWidth())
+        // 로딩 중에는 분석중 화면의 중형 광고(MREC)만 노출하고 하단 배너는 숨겨
+        // 광고가 한 화면에 중복으로 쌓이지 않도록 한다.
+        if (!isLoading) {
+            AdBanner(modifier = Modifier.fillMaxWidth())
+        }
     }
 }
 
@@ -329,6 +334,10 @@ private fun LoadingOverlay(statusText: String) {
                         .background(Primary),
                 )
             }
+
+            Spacer(Modifier.height(32.dp))
+            // 분석을 기다리는 동안 노출되는 중형(300x250) 광고.
+            AdMediumRectangle()
         }
     }
 }
