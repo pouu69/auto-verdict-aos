@@ -2,7 +2,6 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
 }
@@ -55,9 +54,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
+    // With built-in Kotlin, kotlin compilerOptions.jvmTarget defaults to
+    // compileOptions.targetCompatibility (17), so no kotlinOptions block needed.
 
     buildFeatures {
         compose = true
@@ -79,9 +77,9 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.9.3")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
-    implementation("androidx.room:room-runtime:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
-    ksp("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-runtime:2.8.4")
+    implementation("androidx.room:room-ktx:2.8.4")
+    ksp("androidx.room:room-compiler:2.8.4")
     implementation("androidx.webkit:webkit:1.12.1")
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
@@ -90,7 +88,7 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.14.1")
     testImplementation("androidx.test:core-ktx:1.6.1")
-    testImplementation("androidx.room:room-testing:2.6.1")
+    testImplementation("androidx.room:room-testing:2.8.4")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
 }
 
@@ -135,7 +133,7 @@ fun Exec.withNodeOnPath() {
     }
 }
 
-val buildWebView by tasks.registering(Exec::class) {
+val buildWebView = tasks.register<Exec>("buildWebView") {
     workingDir = webViewDir
     withNodeOnPath()
     // Re-run only when bundle sources or config change (src/ includes vendored src/core).
@@ -151,7 +149,7 @@ val buildWebView by tasks.registering(Exec::class) {
     commandLine(npmExecutable, "run", "build")
 }
 
-val copyWebViewAssets by tasks.registering(Exec::class) {
+val copyWebViewAssets = tasks.register<Exec>("copyWebViewAssets") {
     dependsOn(buildWebView)
     workingDir = webViewDir
     withNodeOnPath()
