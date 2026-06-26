@@ -71,7 +71,7 @@ private val pages = listOf(
         icon = Icons.Outlined.IosShare,
         tag = "QUICK SHARE",
         title = "공유 한 번으로\n바로 분석 시작",
-        description = "엔카 페이지에서 공유 버튼을 탭하고\nAutoVerdict를 선택하기만 하면 끝.",
+        description = "브라우저 메뉴(⋮)에서 '공유'를 누르고\nAutoVerdict를 선택하기만 하면 끝.",
         showShareSheet = true,
     ),
     OnboardingPage(
