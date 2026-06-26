@@ -5,6 +5,8 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,11 +41,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -86,6 +90,7 @@ fun AnalyzeScreen(modifier: Modifier = Modifier, onAnalyze: (String) -> Unit) {
     val app = context.applicationContext as AutoVerdictApp
     val recentFlow: Flow<List<CacheEntity>> = remember { app.database.cacheDao().getRecentFlow() }
     val recentItems by recentFlow.collectAsState(initial = emptyList())
+    var showGuideSheet by remember { mutableStateOf(false) }
 
     // Auto-detect an Encar URL on the clipboard whenever the screen comes to the
     // foreground — e.g. the user copied a listing link in the browser, then
@@ -124,7 +129,7 @@ fun AnalyzeScreen(modifier: Modifier = Modifier, onAnalyze: (String) -> Unit) {
             contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 24.dp),
         ) {
             item {
-                ShareGuideHero(onOpenEncar = { openEncarHome(context) })
+                ShareGuidePromptCard(onClick = { showGuideSheet = true })
                 Spacer(Modifier.height(20.dp))
             }
 
@@ -154,6 +159,16 @@ fun AnalyzeScreen(modifier: Modifier = Modifier, onAnalyze: (String) -> Unit) {
             }
         }
     }
+
+    if (showGuideSheet) {
+        ShareGuideBottomSheet(
+            onDismiss = { showGuideSheet = false },
+            onOpenEncar = {
+                showGuideSheet = false
+                openEncarHome(context)
+            },
+        )
+    }
 }
 
 private fun openEncarHome(context: Context) {
@@ -163,56 +178,99 @@ private fun openEncarHome(context: Context) {
 }
 
 @Composable
-private fun ShareGuideHero(onOpenEncar: () -> Unit) {
+private fun ShareGuidePromptCard(onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = Primary.copy(alpha = 0.06f)),
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Primary.copy(alpha = 0.12f)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.IosShare,
-                        contentDescription = null,
-                        tint = Primary,
-                        modifier = Modifier.size(20.dp),
-                    )
-                }
-                Spacer(Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "엔카에서 공유하면 자동 분석",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = TextPrimary,
-                    )
-                    Text(
-                        text = "가장 빠른 사용법이에요",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary,
-                    )
-                }
+        Row(
+            modifier = Modifier.padding(18.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Primary.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.IosShare,
+                    contentDescription = null,
+                    tint = Primary,
+                    modifier = Modifier.size(20.dp),
+                )
             }
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "엔카에서 공유하면 자동 분석",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = TextPrimary,
+                )
+                Text(
+                    text = "탭해서 사용법 보기",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary,
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            Icon(
+                imageVector = Icons.Outlined.ChevronRight,
+                contentDescription = null,
+                tint = Primary,
+            )
+        }
+    }
+}
 
-            Spacer(Modifier.height(18.dp))
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ShareGuideBottomSheet(
+    onDismiss: () -> Unit,
+    onOpenEncar: () -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(start = 24.dp, end = 24.dp, bottom = 32.dp),
+        ) {
+            Text(
+                text = "엔카 공유로 분석하는 법",
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                color = TextPrimary,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "엔카 매물을 가장 빠르게 분석하는 방법이에요",
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextSecondary,
+            )
+
+            Spacer(Modifier.height(24.dp))
             ShareGuideStep(1, "브라우저로 엔카 매물 페이지 열기")
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(16.dp))
             ShareGuideStep(2, "브라우저 메뉴(⋮)에서 '공유' 선택") {
                 BrowserShareIllustration()
             }
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(16.dp))
             ShareGuideStep(3, "공유 목록에서 AutoVerdict 선택") {
                 ShareSheetIllustration()
             }
 
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(24.dp))
             Button(
                 onClick = onOpenEncar,
                 modifier = Modifier
