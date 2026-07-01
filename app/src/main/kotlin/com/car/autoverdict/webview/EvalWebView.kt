@@ -3,6 +3,7 @@ package com.car.autoverdict.webview
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
+import android.view.View
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -21,6 +22,10 @@ class EvalWebView(context: Context) {
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun setup() {
+        // Disable the Android 12+ stretch overscroll: on bounce it stretches the
+        // whole WebView (including the position:fixed 저장하기 bar), pushing it
+        // down into the native ad banner below.
+        webView.overScrollMode = View.OVER_SCROLL_NEVER
         webView.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
