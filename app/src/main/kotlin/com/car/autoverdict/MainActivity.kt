@@ -20,6 +20,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -31,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
@@ -41,7 +49,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.car.autoverdict.preferences.AppPreferences
@@ -135,10 +142,14 @@ private fun AppRouter(
     }
 }
 
-private enum class Tab(val labelRes: Int, val iconRes: Int) {
-    ANALYZE(R.string.tab_analyze, android.R.drawable.ic_menu_search),
-    SAVED(R.string.tab_saved, android.R.drawable.ic_menu_save),
-    SETTINGS(R.string.tab_settings, android.R.drawable.ic_menu_preferences),
+private enum class Tab(
+    val labelRes: Int,
+    val selectedIcon: ImageVector,
+    val unselectedIcon: ImageVector,
+) {
+    ANALYZE(R.string.tab_analyze, Icons.Filled.Search, Icons.Outlined.Search),
+    SAVED(R.string.tab_saved, Icons.Filled.Bookmark, Icons.Outlined.BookmarkBorder),
+    SETTINGS(R.string.tab_settings, Icons.Filled.Settings, Icons.Outlined.Settings),
 }
 
 @Composable
@@ -195,14 +206,17 @@ private fun MainScreen(
         bottomBar = {
           Column {
             AdBanner()
-            NavigationBar {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surface,
+                tonalElevation = 0.dp,
+            ) {
                 Tab.entries.forEach { tab ->
                     NavigationBarItem(
                         selected = selectedTab == tab,
                         onClick = { selectedTab = tab },
                         icon = {
                             Icon(
-                                painter = painterResource(id = tab.iconRes),
+                                imageVector = if (selectedTab == tab) tab.selectedIcon else tab.unselectedIcon,
                                 contentDescription = stringResource(tab.labelRes),
                             )
                         },
@@ -210,6 +224,7 @@ private fun MainScreen(
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = Primary,
                             selectedTextColor = Primary,
+                            indicatorColor = Primary.copy(alpha = 0.10f),
                             unselectedIconColor = TextSecondary,
                             unselectedTextColor = TextSecondary,
                         ),

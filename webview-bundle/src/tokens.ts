@@ -1,22 +1,26 @@
+// Aligned to DESIGN.md (Apple-style single blue accent, minimal chrome).
 export const color = {
-  background: '#f7f8fa',
+  background: '#f5f5f7', // parchment
   surface: '#ffffff',
-  primary: '#0064FF',
-  textPrimary: '#1a1a1a',
-  textSecondary: '#888888',
+  primary: '#0066CC',
+  primaryFocus: '#0071E3',
+  textPrimary: '#1d1d1f', // ink
+  textSecondary: '#6e6e73',
   danger: '#E53935',
   dangerBg: '#FFEBEE',
   warning: '#F57C00',
   warningBg: '#FFF3E0',
   success: '#2E7D32',
   successBg: '#E8F5E9',
-  unknownBg: '#F5F5F5',
-  border: '#f0f0f0',
+  unknownBg: '#F1F1F4',
+  border: '#f0f0f0', // divider soft
+  hairline: '#e0e0e0', // card outline
 } as const;
 
 export const radius = {
-  card: '12px',
-  button: '8px',
+  card: '16px',
+  button: '12px',
+  pill: '9999px',
   badge: '6px',
 } as const;
 

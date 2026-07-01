@@ -3,7 +3,29 @@ import type { RuleResult } from '@core/types/RuleTypes.js';
 import type { Category } from '../rule-meta';
 import { RULE_META } from '../rule-meta';
 import { RuleLine } from './RuleLine';
-import { color } from '../tokens';
+import { color, radius } from '../tokens';
+
+function Chevron({ open }: { open: boolean }) {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color.textSecondary}
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{
+        transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+        transition: 'transform 0.18s ease',
+      }}
+      aria-hidden="true"
+    >
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
 
 interface CategoryAccordionProps {
   category: Category;
@@ -21,10 +43,10 @@ export function CategoryAccordion({ category, results }: CategoryAccordionProps)
   return (
     <div style={{
       background: color.surface,
-      borderRadius: '12px',
+      borderRadius: radius.card,
       margin: '0 16px 8px',
-      borderLeft: `3px solid ${borderColor}`,
-      boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+      border: `1px solid ${color.hairline}`,
+      borderLeft: `3px solid ${borderColor === 'transparent' ? color.hairline : borderColor}`,
       overflow: 'hidden',
     }}>
       <button
@@ -43,9 +65,10 @@ export function CategoryAccordion({ category, results }: CategoryAccordionProps)
           color: color.textPrimary,
         }}
       >
-        <span>{category}</span>
-        <span style={{ fontSize: '13px', color: color.textSecondary }}>
-          {passCount}/{results.length} {open ? '▲' : '▼'}
+        <span style={{ letterSpacing: '-0.3px' }}>{category}</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: color.textSecondary }}>
+          <span>{passCount}/{results.length}</span>
+          <Chevron open={open} />
         </span>
       </button>
       {open && (

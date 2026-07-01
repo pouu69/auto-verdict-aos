@@ -4,7 +4,7 @@ import { ScoreCard } from './ScoreCard';
 import { SummaryRow } from './SummaryRow';
 import { CategoryAccordion, groupByCategory } from './CategoryAccordion';
 import { CATEGORY_ORDER } from '../rule-meta';
-import { color } from '../tokens';
+import { color, radius } from '../tokens';
 
 interface OverlayPageProps {
   report: RuleReport;
@@ -57,13 +57,14 @@ export function OverlayPage({ report, carBase, onClose, onSave, hideSave }: Over
             onClick={onSave}
             style={{
               width: '100%',
-              padding: '14px',
+              padding: '15px',
               background: color.primary,
               color: '#fff',
               border: 'none',
-              borderRadius: '12px',
+              borderRadius: radius.pill,
               fontSize: '16px',
               fontWeight: 600,
+              letterSpacing: '-0.2px',
               cursor: 'pointer',
             }}
           >

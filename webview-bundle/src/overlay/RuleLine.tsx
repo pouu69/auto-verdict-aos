@@ -27,11 +27,11 @@ export function RuleLine({ result }: { result: RuleResult }) {
       gap: '10px',
     }}>
       <span style={{
-        width: '28px',
-        height: '28px',
-        borderRadius: '50%',
-        background: color.primary,
-        color: '#fff',
+        width: '26px',
+        height: '26px',
+        borderRadius: '8px',
+        background: `${color.primary}14`,
+        color: color.primary,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

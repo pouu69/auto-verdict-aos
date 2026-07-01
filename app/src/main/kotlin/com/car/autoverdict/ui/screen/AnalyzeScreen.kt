@@ -3,7 +3,9 @@ package com.car.autoverdict.ui.screen
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -68,6 +70,7 @@ import com.car.autoverdict.ui.components.BrowserShareIllustration
 import com.car.autoverdict.ui.components.ShareSheetIllustration
 import com.car.autoverdict.ui.theme.Background
 import com.car.autoverdict.ui.theme.Border
+import com.car.autoverdict.ui.theme.Hairline
 import com.car.autoverdict.ui.theme.Danger
 import com.car.autoverdict.ui.theme.Primary
 import com.car.autoverdict.ui.theme.TextPrimary
@@ -277,7 +280,7 @@ private fun ShareGuideBottomSheet(
                     .fillMaxWidth()
                     .height(52.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Primary),
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(999.dp),
             ) {
                 Icon(
                     imageVector = Icons.Outlined.OpenInNew,
@@ -370,6 +373,7 @@ private fun UrlInputCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = BorderStroke(1.dp, Hairline),
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             if (fromClipboard) {
@@ -432,7 +436,7 @@ private fun UrlInputCard(
                     disabledContainerColor = Primary.copy(alpha = 0.3f),
                     disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
                 ),
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(999.dp),
                 enabled = isValid,
             ) {
                 Icon(
@@ -475,10 +479,11 @@ private fun RecentSectionHeader() {
             modifier = Modifier
                 .clip(RoundedCornerShape(999.dp))
                 .background(MaterialTheme.colorScheme.surface)
+                .border(1.dp, Hairline, RoundedCornerShape(999.dp))
                 .padding(horizontal = 10.dp, vertical = 4.dp),
         ) {
             Text(
-                text = "24시간",
+                text = "24시간 이내",
                 style = MaterialTheme.typography.labelSmall,
                 color = TextSecondary,
             )
@@ -493,6 +498,7 @@ private fun RecentItemRow(item: CacheEntity, onClick: () -> Unit) {
     ListItem(
         modifier = Modifier
             .clip(RoundedCornerShape(14.dp))
+            .border(1.dp, Hairline, RoundedCornerShape(14.dp))
             .clickable(onClick = onClick),
         leadingContent = {
             Box(

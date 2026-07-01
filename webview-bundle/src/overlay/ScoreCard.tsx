@@ -1,6 +1,6 @@
 import type { Verdict } from '@core/types/RuleTypes.js';
 import type { EncarCarBase } from '@core/types/ParsedData.js';
-import { color } from '../tokens';
+import { color, radius } from '../tokens';
 
 interface ScoreCardProps {
   score: number;
@@ -30,7 +30,7 @@ const COLOR_STOPS: [number, [number, number, number]][] = [
   [100, [21, 101, 192]],
 ];
 
-const scoreBackground = (score: number): string => {
+const scoreColor = (score: number): string => {
   const s = Math.max(0, Math.min(100, score));
   let lo = COLOR_STOPS[0]!;
   let hi = COLOR_STOPS[COLOR_STOPS.length - 1]!;
@@ -50,6 +50,8 @@ const scoreBackground = (score: number): string => {
 
 export function ScoreCard({ score, verdict, carBase }: ScoreCardProps) {
   const v = verdictDisplay[verdict];
+  const bar = scoreColor(score);
+  const pct = Math.max(0, Math.min(100, score));
   const title = carBase
     ? `${carBase.category.yearMonth?.slice(0, 4) ?? ''} ${carBase.category.manufacturerName} ${carBase.category.modelName}`
     : '차량 정보 없음';
@@ -63,34 +65,60 @@ export function ScoreCard({ score, verdict, carBase }: ScoreCardProps) {
 
   return (
     <div style={{
-      background: scoreBackground(score),
-      borderRadius: '12px',
-      padding: '20px 16px',
+      background: color.surface,
+      border: `1px solid ${color.hairline}`,
+      borderRadius: radius.card,
+      padding: '18px 16px',
       margin: '0 16px',
-      color: '#ffffff',
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <div style={{ fontSize: '16px', fontWeight: 600 }}>{title}</div>
-          <div style={{ fontSize: '12px', opacity: 0.8, marginTop: '4px' }}>{specs}</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{
+            fontSize: '16px',
+            fontWeight: 600,
+            color: color.textPrimary,
+            letterSpacing: '-0.3px',
+          }}>
+            {title}
+          </div>
+          {specs && (
+            <div style={{ fontSize: '13px', color: color.textSecondary, marginTop: '4px' }}>{specs}</div>
+          )}
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: '32px', fontWeight: 800, lineHeight: 1 }}>{score}</div>
-          <div style={{ fontSize: '11px', opacity: 0.7 }}>/ 100</div>
-        </div>
-      </div>
-      <div style={{ marginTop: '12px' }}>
         <span style={{
-          display: 'inline-block',
-          padding: '4px 12px',
-          borderRadius: '4px',
+          flexShrink: 0,
+          padding: '5px 12px',
+          borderRadius: radius.pill,
           background: v.bg,
           color: v.text,
-          fontSize: '13px',
+          fontSize: '12px',
           fontWeight: 700,
+          letterSpacing: '0.2px',
         }}>
           {v.label}
         </span>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '18px' }}>
+        <span style={{ fontSize: '40px', fontWeight: 800, lineHeight: 1, color: bar, letterSpacing: '-1px' }}>
+          {score}
+        </span>
+        <span style={{ fontSize: '13px', fontWeight: 600, color: color.textSecondary }}>/ 100</span>
+      </div>
+
+      <div style={{
+        marginTop: '12px',
+        height: '8px',
+        borderRadius: radius.pill,
+        background: '#eef0f3',
+        overflow: 'hidden',
+      }}>
+        <div style={{
+          width: `${pct}%`,
+          height: '100%',
+          borderRadius: radius.pill,
+          background: bar,
+        }} />
       </div>
     </div>
   );
