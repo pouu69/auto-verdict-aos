@@ -5,8 +5,14 @@ import { isValue } from '@core/types/FieldStatus.js';
 import { orchestrateMobile } from './orchestrate-mobile';
 import type { MobileOrchestratorInput } from './orchestrate-mobile';
 import { OverlayPage } from './overlay/OverlayPage';
+import { DeletedNotice } from './overlay/DeletedNotice';
 import { AndroidBridge } from './android-bridge';
 import { color } from './tokens';
+
+interface DeletedState {
+  carId: string;
+  isSaved: boolean;
+}
 
 interface EvalState {
   report: RuleReport;
@@ -20,12 +26,14 @@ export function App() {
   const [state, setState] = useState<EvalState | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deleted, setDeleted] = useState<DeletedState | null>(null);
   const [alreadySaved, setAlreadySaved] = useState(false);
 
   useEffect(() => {
     window.receiveEncarData = (json: string) => {
       setLoading(true);
       setError(null);
+      setDeleted(null);
       try {
         const raw: unknown = JSON.parse(json);
         if (typeof raw !== 'object' || raw === null || !('url' in raw) || !('carId' in raw)) {
@@ -49,6 +57,7 @@ export function App() {
     };
 
     window.receiveError = (json: string) => {
+      setDeleted(null);
       try {
         const raw: unknown = JSON.parse(json);
         const message = typeof raw === 'object' && raw !== null && 'message' in raw
@@ -61,9 +70,29 @@ export function App() {
       setLoading(false);
     };
 
+    window.receiveDeleted = (json: string) => {
+      setError(null);
+      try {
+        const raw: unknown = JSON.parse(json);
+        if (typeof raw === 'object' && raw !== null && 'carId' in raw) {
+          const obj = raw as Record<string, unknown>;
+          setDeleted({
+            carId: String(obj.carId),
+            isSaved: obj.isSaved === true,
+          });
+        } else {
+          setDeleted({ carId: '', isSaved: false });
+        }
+      } catch {
+        setDeleted({ carId: '', isSaved: false });
+      }
+      setLoading(false);
+    };
+
     return () => {
       window.receiveEncarData = undefined;
       window.receiveError = undefined;
+      window.receiveDeleted = undefined;
       window.setAlreadySaved = undefined;
     };
   }, []);
@@ -71,6 +100,14 @@ export function App() {
   const handleClose = useCallback(() => {
     AndroidBridge.closeOverlay();
   }, []);
+
+  const handleRemoveFromSaved = useCallback(() => {
+    if (deleted?.carId) {
+      AndroidBridge.deleteSavedCar(deleted.carId);
+      AndroidBridge.showToast('저장 목록에서 삭제했습니다');
+    }
+    AndroidBridge.closeOverlay();
+  }, [deleted]);
 
   const handleSave = useCallback(() => {
     if (!state) return;
@@ -132,6 +169,16 @@ export function App() {
         </button>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
+    );
+  }
+
+  if (deleted) {
+    return (
+      <DeletedNotice
+        isSaved={deleted.isSaved}
+        onRemoveFromSaved={handleRemoveFromSaved}
+        onClose={handleClose}
+      />
     );
   }
 

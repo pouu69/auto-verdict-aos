@@ -139,6 +139,10 @@ fun ResultScreen(
                         evalWebView.sendError(result.message)
                         isLoading = false
                     }
+                    is CollectorWebView.Result.Deleted -> {
+                        evalWebView.sendDeleted(carId, isAlreadySaved)
+                        isLoading = false
+                    }
                 }
             }
         }

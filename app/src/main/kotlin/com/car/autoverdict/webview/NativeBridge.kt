@@ -55,6 +55,20 @@ class NativeBridge(
     }
 
     @JavascriptInterface
+    fun deleteSavedCar(carId: String) {
+        if (!scope.isActive) return
+        scope.launch(Dispatchers.IO) {
+            try {
+                val id = carId.trim()
+                if (id.isBlank()) return@launch
+                database.savedCarDao().deleteByCarId(id)
+            } catch (e: Exception) {
+                Log.e(TAG, "deleteSavedCar failed", e)
+            }
+        }
+    }
+
+    @JavascriptInterface
     fun closeOverlay() {
         if (!scope.isActive) return
         scope.launch(Dispatchers.Main) { onClose() }

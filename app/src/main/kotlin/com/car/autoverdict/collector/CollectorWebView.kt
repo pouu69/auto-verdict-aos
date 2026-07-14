@@ -16,6 +16,11 @@ class CollectorWebView(context: Context) {
     sealed class Result {
         data class Success(val json: String) : Result()
         data class Error(val message: String) : Result()
+
+        // 판매 완료/삭제된 매물. 엔카는 이 경우 빈 페이지가 아니라 추천 대체
+        // 차량(다른 vehicleId, manage.dummy=true)으로 __PRELOADED_STATE__를
+        // 채워서 내려주므로, 이를 감지해 엉뚱한 차 분석을 막고 별도로 처리한다.
+        data object Deleted : Result()
     }
 
     private val webView: WebView = WebView(context.applicationContext)
@@ -103,6 +108,15 @@ class CollectorWebView(context: Context) {
                 if (!state || !state.cars || !state.cars.base || Object.keys(state.cars.base).length === 0) {
                     return JSON.stringify({ error: 'empty_state' });
                 }
+                var base = state.cars.base;
+                // 삭제/판매완료 매물이면 엔카가 추천 대체 차량으로 base를 채운다.
+                // manage.dummy 플래그, 또는 응답 vehicleId와 요청 queryCarId 불일치로 감지.
+                var isDummy = (base.manage && base.manage.dummy === true) ||
+                    (base.vehicleId != null && base.queryCarId != null &&
+                        String(base.vehicleId) !== String(base.queryCarId));
+                if (isDummy) {
+                    return JSON.stringify({ deleted: true });
+                }
                 return JSON.stringify({ ok: true, cars: state.cars });
             } catch(e) { return JSON.stringify({ error: e.message }); }
         })();
@@ -122,6 +136,11 @@ class CollectorWebView(context: Context) {
 
             try {
                 val obj = JSONObject(parsed)
+                if (obj.optBoolean("deleted", false)) {
+                    cancelTimeout()
+                    callback(Result.Deleted)
+                    return@evaluateJavascript
+                }
                 if (obj.has("error")) {
                     if (attempt < MAX_RETRIES) {
                         handler.postDelayed(

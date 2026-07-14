@@ -8,6 +8,7 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import com.car.autoverdict.util.JsEscape
+import org.json.JSONObject
 
 class EvalWebView(context: Context) {
     val webView: WebView = WebView(context.applicationContext)
@@ -15,6 +16,7 @@ class EvalWebView(context: Context) {
     private var pendingJson: String? = null
     private var pendingError: String? = null
     private var pendingAlreadySaved: Boolean? = null
+    private var pendingDeleted: Pair<String, Boolean>? = null
 
     init {
         setup()
@@ -51,6 +53,10 @@ class EvalWebView(context: Context) {
                     pendingAlreadySaved = null
                     setAlreadySaved(saved)
                 }
+                pendingDeleted?.let { (carId, isSaved) ->
+                    pendingDeleted = null
+                    sendDeleted(carId, isSaved)
+                }
             }
         }
     }
@@ -82,6 +88,20 @@ class EvalWebView(context: Context) {
         }
         val escaped = JsEscape.escapeForSingleQuotedString("""{"message":"${message.replace("\"", "\\\"")}"}""")
         webView.evaluateJavascript("window.receiveError?.('$escaped')", null)
+    }
+
+    fun sendDeleted(carId: String, isSaved: Boolean) {
+        if (!pageLoaded) {
+            Log.d(TAG, "page not loaded yet, queuing deleted: $carId")
+            pendingDeleted = carId to isSaved
+            return
+        }
+        val payload = JSONObject().apply {
+            put("carId", carId)
+            put("isSaved", isSaved)
+        }.toString()
+        val escaped = JsEscape.escapeForSingleQuotedString(payload)
+        webView.evaluateJavascript("window.receiveDeleted?.('$escaped')", null)
     }
 
     fun setAlreadySaved(saved: Boolean) {

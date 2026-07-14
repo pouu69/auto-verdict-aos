@@ -11,6 +11,10 @@ export const AndroidBridge = {
     window.Android?.closeOverlay();
   },
 
+  deleteSavedCar(carId: string): void {
+    window.Android?.deleteSavedCar(carId);
+  },
+
   showToast(message: string): void {
     window.Android?.showToast(message);
   },
