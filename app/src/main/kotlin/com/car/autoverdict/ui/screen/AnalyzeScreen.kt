@@ -3,6 +3,7 @@ package com.car.autoverdict.ui.screen
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -111,10 +112,11 @@ fun AnalyzeScreen(
     LifecycleResumeEffect(lastAnalyzedUrl) {
         if (urlText.isBlank()) {
             ClipboardUtil.getEncarUrl(context)
-                ?.takeIf { it != lastAnalyzedUrl }
+                ?.takeIf { EncarUrl.extractCarId(it) != EncarUrl.extractCarId(lastAnalyzedUrl) }
                 ?.let {
                     urlText = it
                     fromClipboard = true
+                    Toast.makeText(context, "복사한 엔카 링크를 가져왔어요", Toast.LENGTH_SHORT).show()
                 }
         }
         onPauseOrDispose { }
@@ -160,7 +162,14 @@ fun AnalyzeScreen(
                     isError = showError,
                     isValid = isValidUrl,
                     fromClipboard = fromClipboard && isValidUrl,
-                    onAnalyze = { onAnalyze(urlText) },
+                    onAnalyze = {
+                        // Clear the field as we hand the link off to analysis, so
+                        // returning from the result never shows the consumed link —
+                        // regardless of whether this screen stays in composition.
+                        onAnalyze(urlText)
+                        urlText = ""
+                        fromClipboard = false
+                    },
                 )
                 Spacer(Modifier.height(28.dp))
             }
