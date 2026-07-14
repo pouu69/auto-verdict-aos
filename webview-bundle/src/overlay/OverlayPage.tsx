@@ -1,8 +1,11 @@
-import type { RuleReport } from '@core/types/RuleTypes.js';
+import { useState } from 'react';
+import type { RuleReport, RuleResult } from '@core/types/RuleTypes.js';
 import type { EncarCarBase } from '@core/types/ParsedData.js';
 import { ScoreCard } from './ScoreCard';
 import { SummaryRow } from './SummaryRow';
 import { CategoryAccordion, groupByCategory } from './CategoryAccordion';
+import { RuleDetailSheet } from './RuleDetailSheet';
+import { VerdictDetailSheet } from './VerdictDetailSheet';
 import { CATEGORY_ORDER } from '../rule-meta';
 import { color, radius } from '../tokens';
 
@@ -15,6 +18,8 @@ interface OverlayPageProps {
 }
 
 export function OverlayPage({ report, carBase, onClose, onSave, hideSave }: OverlayPageProps) {
+  const [detailRule, setDetailRule] = useState<RuleResult | null>(null);
+  const [verdictOpen, setVerdictOpen] = useState(false);
   const groups = groupByCategory(report.results);
   const sortedGroups = [...groups].sort(
     (a, b) => CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category),
@@ -29,16 +34,19 @@ export function OverlayPage({ report, carBase, onClose, onSave, hideSave }: Over
         : 'calc(96px + env(safe-area-inset-bottom, 16px))',
     }}>
       <div style={{ paddingTop: '12px' }}>
-        <ScoreCard score={report.score} verdict={report.verdict} carBase={carBase} />
+        <ScoreCard score={report.score} verdict={report.verdict} carBase={carBase} onInfo={() => setVerdictOpen(true)} />
       </div>
 
       <SummaryRow results={report.results} />
 
       <div style={{ paddingTop: '4px' }}>
         {sortedGroups.map(({ category, results }) => (
-          <CategoryAccordion key={category} category={category} results={results} />
+          <CategoryAccordion key={category} category={category} results={results} onInfo={setDetailRule} />
         ))}
       </div>
+
+      <RuleDetailSheet result={detailRule} onClose={() => setDetailRule(null)} />
+      <VerdictDetailSheet report={verdictOpen ? report : null} onClose={() => setVerdictOpen(false)} />
 
       {!hideSave && (
         <div style={{

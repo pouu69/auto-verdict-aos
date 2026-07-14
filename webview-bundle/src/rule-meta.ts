@@ -4,21 +4,83 @@ export interface RuleMeta {
   icon: string;
   category: Category;
   shortTitle: string;
+  /** "왜 중요한가요?" — 등급과 무관한 고정 설명. 상세 바텀시트에 노출. */
+  why: string;
 }
 
 export const RULE_META: Record<string, RuleMeta> = {
-  R01: { icon: '📋', category: '투명성', shortTitle: '보험이력 공개' },
-  R02: { icon: '🔍', category: '투명성', shortTitle: '성능점검 공개' },
-  R03: { icon: '🏅', category: '차량 상태', shortTitle: '엔카진단' },
-  R04: { icon: '🛠', category: '차량 상태', shortTitle: '프레임/외판' },
-  R05: { icon: '🚕', category: '이력', shortTitle: '렌트·택시 이력' },
-  R06: { icon: '💦', category: '이력', shortTitle: '전손·침수·도난' },
-  R07: { icon: '👤', category: '이력', shortTitle: '소유자 변경' },
-  R08: { icon: '🛡', category: '이력', shortTitle: '자차보험 공백' },
-  R09: { icon: '📝', category: '사고', shortTitle: '수리비 확정' },
-  R10: { icon: '🔨', category: '사고', shortTitle: '보험처리 규모' },
-  R11: { icon: '💰', category: '가격', shortTitle: '가격 적정성' },
-  R12: { icon: '🛢', category: '차량 상태', shortTitle: '누유 여부' },
+  R01: {
+    icon: '📋',
+    category: '투명성',
+    shortTitle: '보험이력 공개',
+    why: '보험이력은 이 차가 언제 어떤 사고로 보험처리를 했는지 보여주는 가장 기본 자료예요. 정상 매물은 공개가 기본이라, 딜러가 굳이 가렸다면 숨기고 싶은 사고가 있을 수 있습니다.',
+  },
+  R02: {
+    icon: '🔍',
+    category: '투명성',
+    shortTitle: '성능점검 공개',
+    why: '성능점검은 차량 상태를 제3자가 검사한 공식 문서예요. 비공개면 엔진·미션·사고 같은 핵심 상태를 확인할 방법이 없어, 사실상 깜깜이 구매가 됩니다.',
+  },
+  R03: {
+    icon: '🏅',
+    category: '차량 상태',
+    shortTitle: '엔카진단',
+    why: '엔카가 자체 기준으로 통과시킨 차에만 붙는 인증이에요. 있으면 신뢰도가 높다는 가산점이고, 없다고 감점되진 않습니다.',
+  },
+  R04: {
+    icon: '🛠',
+    category: '차량 상태',
+    shortTitle: '프레임/외판',
+    why: '프레임은 차의 뼈대예요. 여기가 손상됐다는 건 충격이 뼈대까지 갔다는 뜻이라 주행 안정성·재판매가에 직접 타격이 큽니다. 그래서 위험으로 분류해요. (문·펜더 같은 바깥 패널 교환은 상대적으로 가벼운 편)',
+  },
+  R05: {
+    icon: '🚕',
+    category: '이력',
+    shortTitle: '렌트·택시 이력',
+    why: '렌트·영업용 차는 개인 차보다 하루 주행량과 부하가 몇 배예요. 주행거리가 같아도 실제 마모는 훨씬 커서 위험으로 봅니다. (관용차는 관리가 양호한 편이라 주의 정도)',
+  },
+  R06: {
+    icon: '💦',
+    category: '이력',
+    shortTitle: '전손·침수·도난',
+    why: '전손은 보험사가 고쳐 쓰느니 폐차가 낫다고 판정했던 차예요. 침수는 전기장치 부식이 나중에 터지고, 도난 이력은 부품 손상 가능성이 있어 모두 위험입니다.',
+  },
+  R07: {
+    icon: '👤',
+    category: '이력',
+    shortTitle: '소유자 변경',
+    why: '소유자가 자주 바뀐 차는 ①되팔림이 잦은 문제 차량이거나 ②정비 이력이 끊겨 관리 상태를 알기 어려운 경우가 많아요. 3회 이상부터 주의 신호로 봅니다.',
+  },
+  R08: {
+    icon: '🛡',
+    category: '이력',
+    shortTitle: '자차보험 공백',
+    why: '보험에 가입 안 된 기간에 난 사고는 이력에 기록되지 않아요. 즉 이력이 깨끗해 보여도 숨은 사고가 있을 수 있는 공백 구간입니다.',
+  },
+  R09: {
+    icon: '📝',
+    category: '사고',
+    shortTitle: '수리비 확정',
+    why: '사고 기록은 있는데 수리비 금액이 확정되지 않은 상태예요. 손상 규모를 숫자로 가늠할 수 없어, 실제로 얼마나 크게 다쳤는지 불확실합니다.',
+  },
+  R10: {
+    icon: '🔨',
+    category: '사고',
+    shortTitle: '보험처리 규모',
+    why: '사고가 있어도 금액이 작으면 경미한 접촉 수준이에요. 하지만 국산 200만원·수입 400만원을 넘으면 단순 접촉을 넘어선 사고일 수 있어 주의로 봅니다.',
+  },
+  R11: {
+    icon: '💰',
+    category: '가격',
+    shortTitle: '가격 적정성',
+    why: '시세보다 지나치게 싸면(신차가 45% 미만) 안 보이는 하자가 숨어 있을 수 있고, 지나치게 비싸면(115% 초과) 값을 더 주고 사는 셈이에요. 어느 쪽이든 한 번 더 따져볼 신호입니다.',
+  },
+  R12: {
+    icon: '🛢',
+    category: '차량 상태',
+    shortTitle: '누유 여부',
+    why: '엔진·미션에서 기름이 새면 방치 시 큰 수리비로 이어지는 경우가 많아요. 지금 당장 괜찮아 보여도 정비 비용을 미리 감안해야 합니다.',
+  },
 };
 
 export const CATEGORY_ORDER: Category[] = [

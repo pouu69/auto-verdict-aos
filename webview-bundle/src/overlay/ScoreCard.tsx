@@ -6,6 +6,7 @@ interface ScoreCardProps {
   score: number;
   verdict: Verdict;
   carBase: EncarCarBase | null;
+  onInfo: () => void;
 }
 
 const verdictDisplay: Record<Verdict, { label: string; bg: string; text: string }> = {
@@ -48,7 +49,7 @@ const scoreColor = (score: number): string => {
   return `rgb(${r},${g},${b})`;
 };
 
-export function ScoreCard({ score, verdict, carBase }: ScoreCardProps) {
+export function ScoreCard({ score, verdict, carBase, onInfo }: ScoreCardProps) {
   const v = verdictDisplay[verdict];
   const bar = scoreColor(score);
   const pct = Math.max(0, Math.min(100, score));
@@ -85,18 +86,42 @@ export function ScoreCard({ score, verdict, carBase }: ScoreCardProps) {
             <div style={{ fontSize: '13px', color: color.textSecondary, marginTop: '4px' }}>{specs}</div>
           )}
         </div>
-        <span style={{
-          flexShrink: 0,
-          padding: '5px 12px',
-          borderRadius: radius.pill,
-          background: v.bg,
-          color: v.text,
-          fontSize: '12px',
-          fontWeight: 700,
-          letterSpacing: '0.2px',
-        }}>
+        <button
+          onClick={onInfo}
+          aria-label={`${v.label} 등급 설명 보기`}
+          style={{
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '5px 10px 5px 12px',
+            border: 'none',
+            borderRadius: radius.pill,
+            background: v.bg,
+            color: v.text,
+            fontSize: '12px',
+            fontWeight: 700,
+            letterSpacing: '0.2px',
+            cursor: 'pointer',
+          }}
+        >
           {v.label}
-        </span>
+          <span style={{
+            width: '16px',
+            height: '16px',
+            borderRadius: '50%',
+            border: `1.4px solid ${v.text}`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '10px',
+            fontWeight: 700,
+            fontStyle: 'italic',
+            fontFamily: 'Georgia, serif',
+          }}>
+            i
+          </span>
+        </button>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '18px' }}>

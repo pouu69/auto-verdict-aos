@@ -30,9 +30,10 @@ function Chevron({ open }: { open: boolean }) {
 interface CategoryAccordionProps {
   category: Category;
   results: RuleResult[];
+  onInfo: (result: RuleResult) => void;
 }
 
-export function CategoryAccordion({ category, results }: CategoryAccordionProps) {
+export function CategoryAccordion({ category, results, onInfo }: CategoryAccordionProps) {
   const hasDanger = results.some((r) => r.severity === 'killer' || r.severity === 'fail');
   const hasWarning = results.some((r) => r.severity === 'warn');
   const [open, setOpen] = useState(hasDanger || hasWarning);
@@ -74,7 +75,7 @@ export function CategoryAccordion({ category, results }: CategoryAccordionProps)
       {open && (
         <div style={{ padding: '0 16px 8px' }}>
           {results.map((r) => (
-            <RuleLine key={r.ruleId} result={r} />
+            <RuleLine key={r.ruleId} result={r} onInfo={onInfo} />
           ))}
         </div>
       )}

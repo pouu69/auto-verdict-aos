@@ -14,18 +14,35 @@ const severityStyle: Record<Severity, SeverityStyle> = {
 
 const unknownStyle: SeverityStyle = { bg: color.unknownBg, text: color.textSecondary, label: '미확인' };
 
-export function RuleLine({ result }: { result: RuleResult }) {
+interface RuleLineProps {
+  result: RuleResult;
+  onInfo: (result: RuleResult) => void;
+}
+
+export function RuleLine({ result, onInfo }: RuleLineProps) {
   const meta = RULE_META[result.ruleId];
   const style: SeverityStyle = severityStyle[result.severity] ?? unknownStyle;
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'flex-start',
-      padding: '10px 0',
-      borderBottom: `1px solid ${color.border}`,
-      gap: '10px',
-    }}>
+    <div
+      onClick={() => onInfo(result)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onInfo(result);
+        }
+      }}
+      style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        padding: '10px 0',
+        borderBottom: `1px solid ${color.border}`,
+        gap: '10px',
+        cursor: 'pointer',
+      }}
+    >
       <span style={{
         width: '26px',
         height: '26px',
@@ -56,15 +73,36 @@ export function RuleLine({ result }: { result: RuleResult }) {
         </div>
       </div>
       <span style={{
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '5px',
         padding: '3px 8px',
         borderRadius: '4px',
         background: style.bg,
         color: style.text,
         fontSize: '11px',
         fontWeight: 600,
-        flexShrink: 0,
       }}>
         {style.label}
+        <span
+          aria-hidden="true"
+          style={{
+            width: '14px',
+            height: '14px',
+            borderRadius: '50%',
+            border: `1.3px solid ${style.text}`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '9px',
+            fontWeight: 700,
+            fontStyle: 'italic',
+            fontFamily: 'Georgia, serif',
+          }}
+        >
+          i
+        </span>
       </span>
     </div>
   );
