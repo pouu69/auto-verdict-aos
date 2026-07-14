@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.OpenInNew
@@ -40,6 +41,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -84,7 +86,11 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AnalyzeScreen(modifier: Modifier = Modifier, onAnalyze: (String) -> Unit) {
+fun AnalyzeScreen(
+    modifier: Modifier = Modifier,
+    lastAnalyzedUrl: String? = null,
+    onAnalyze: (String) -> Unit,
+) {
     val context = LocalContext.current
     var urlText by remember { mutableStateOf("") }
     var fromClipboard by remember { mutableStateOf(false) }
@@ -98,12 +104,18 @@ fun AnalyzeScreen(modifier: Modifier = Modifier, onAnalyze: (String) -> Unit) {
     // Auto-detect an Encar URL on the clipboard whenever the screen comes to the
     // foreground — e.g. the user copied a listing link in the browser, then
     // opened the app. Closes the "paste" path with zero typing.
-    LifecycleResumeEffect(Unit) {
+    //
+    // Skip the URL we just analyzed: returning from a result would otherwise
+    // re-fill the field with the same link that is still sitting on the
+    // clipboard, making the input look like it never reset.
+    LifecycleResumeEffect(lastAnalyzedUrl) {
         if (urlText.isBlank()) {
-            ClipboardUtil.getEncarUrl(context)?.let {
-                urlText = it
-                fromClipboard = true
-            }
+            ClipboardUtil.getEncarUrl(context)
+                ?.takeIf { it != lastAnalyzedUrl }
+                ?.let {
+                    urlText = it
+                    fromClipboard = true
+                }
         }
         onPauseOrDispose { }
     }
@@ -411,6 +423,17 @@ private fun UrlInputCard(
                         tint = if (isError) Danger else TextSecondary,
                     )
                 },
+                trailingIcon = if (urlText.isNotEmpty()) {
+                    {
+                        IconButton(onClick = { onUrlChange("") }) {
+                            Icon(
+                                imageVector = Icons.Outlined.Close,
+                                contentDescription = "입력 지우기",
+                                tint = TextSecondary,
+                            )
+                        }
+                    }
+                } else null,
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 isError = isError,

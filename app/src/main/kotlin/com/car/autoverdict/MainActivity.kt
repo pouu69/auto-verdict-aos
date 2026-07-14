@@ -162,6 +162,9 @@ private fun MainScreen(
     var showPrivacyPolicy by remember { mutableStateOf(false) }
     var analysisUrl by remember { mutableStateOf<String?>(null) }
     var analysisFromSaved by remember { mutableStateOf(false) }
+    // Remembers the link most recently sent to analysis so the Analyze screen can
+    // skip re-filling it from the clipboard when the user returns to it.
+    var lastAnalyzedUrl by rememberSaveable { mutableStateOf<String?>(null) }
 
     val pending = pendingUrl.value
     LaunchedEffect(pending) {
@@ -243,7 +246,12 @@ private fun MainScreen(
             when (selectedTab) {
             Tab.ANALYZE -> AnalyzeScreen(
                 modifier = modifier,
-                onAnalyze = { url -> analysisUrl = url; analysisFromSaved = false },
+                lastAnalyzedUrl = lastAnalyzedUrl,
+                onAnalyze = { url ->
+                    analysisUrl = url
+                    analysisFromSaved = false
+                    lastAnalyzedUrl = url
+                },
             )
             Tab.SAVED -> SavedListScreen(
                 modifier = modifier,
