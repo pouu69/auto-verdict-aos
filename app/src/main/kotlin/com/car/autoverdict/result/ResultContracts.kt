@@ -32,9 +32,9 @@ interface ResultRepository {
 
     /**
      * Upserts the saved row from [report]. [savedAt] keeps the original save time when
-     * refreshing an already-saved car; null means "now".
+     * refreshing an already-saved car; null means "now". Returns the savedAt actually written.
      */
-    suspend fun save(report: EvaluationReport, rawJson: String, savedAt: Long? = null)
+    suspend fun save(report: EvaluationReport, rawJson: String, savedAt: Long? = null): Long
 
     suspend fun delete(carId: String)
 }
@@ -55,6 +55,8 @@ sealed interface ResultUiState {
         val banner: ResultBanner?,
         /** True while a save/delete is in flight — the save button ignores taps. */
         val saving: Boolean = false,
+        /** True while a user retry re-collects in place; the shown report stays until it ends. */
+        val refreshing: Boolean = false,
     ) : ResultUiState
 
     data class Error(val kind: ResultErrorKind) : ResultUiState
@@ -63,5 +65,5 @@ sealed interface ResultUiState {
     data object Deleted : ResultUiState
 }
 
-/** One-off UI effects (toasts). */
-enum class ResultEvent { Saved, Unsaved, SaveFailed }
+/** One-off UI effects (toasts). [RetryFailed]: an in-place retry kept the previous report. */
+enum class ResultEvent { Saved, Unsaved, SaveFailed, RetryFailed }

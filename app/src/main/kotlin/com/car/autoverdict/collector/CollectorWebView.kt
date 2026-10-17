@@ -6,16 +6,20 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.webkit.JavascriptInterface
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import com.car.autoverdict.result.CollectErrorKind
+import com.car.autoverdict.result.CollectStage
 import com.car.autoverdict.util.EncarUrl
 import org.json.JSONObject
 
-class CollectorWebView(context: Context) {
+class CollectorWebView(context: Context) : Collector {
     sealed class Result {
         data class Success(val json: String) : Result()
-        data class Error(val message: String) : Result()
+        /** [kind] drives the error screen; [message] is for logs only. */
+        data class Error(val kind: CollectErrorKind, val message: String) : Result()
 
         // 판매 완료/삭제된 매물. 엔카는 이 경우 빈 페이지가 아니라 추천 대체
         // 차량(다른 vehicleId, manage.dummy=true)으로 __PRELOADED_STATE__를
@@ -56,7 +60,16 @@ class CollectorWebView(context: Context) {
         }
     }
 
-    fun collect(url: String, carId: String, callback: (Result) -> Unit) {
+    /**
+     * [onStage] reports progress on the main thread: [CollectStage.OpeningPage] right before the
+     * page load, [CollectStage.FetchingHistory] right before the record/diagnosis/inspection calls.
+     */
+    override fun collect(
+        url: String,
+        carId: String,
+        onStage: (CollectStage) -> Unit,
+        callback: (Result) -> Unit,
+    ) {
         cancelTimeout()
         apiResultHandler = null
         callbackFired = false
@@ -92,7 +105,7 @@ class CollectorWebView(context: Context) {
             private fun startExtraction() {
                 if (extractionStarted || callbackFired) return
                 extractionStarted = true
-                extractPreloadedState(session, carId, { pageFinished }, guardedCallback)
+                extractPreloadedState(session, carId, { pageFinished }, onStage, guardedCallback)
             }
 
             @Suppress("DEPRECATION")
@@ -102,16 +115,24 @@ class CollectorWebView(context: Context) {
                 description: String?,
                 failingUrl: String?,
             ) {
-                guardedCallback(Result.Error("페이지 로드 실패: $description"))
+                guardedCallback(Result.Error(CollectErrorKind.Network, "페이지 로드 실패: $description"))
+            }
+
+            // 렌더러 프로세스는 앱의 WebView들이 공유하므로 false를 반환하면 앱 전체가 죽는다.
+            // 이 수집은 실패로 끝내고, WebView 파기는 호출자(destroy)에게 맡긴다.
+            override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
+                guardedCallback(Result.Error(CollectErrorKind.PageUnreadable, "렌더러 종료 (crash=${detail?.didCrash()})"))
+                return true
             }
         }
 
         timeoutRunnable = Runnable {
-            guardedCallback(Result.Error("시간 초과 — 네트워크를 확인하세요"))
+            guardedCallback(Result.Error(CollectErrorKind.Timeout, "시간 초과 — 네트워크를 확인하세요"))
             webView.stopLoading()
         }
         handler.postDelayed(timeoutRunnable!!, TIMEOUT_MS)
         Log.d(TAG, "loading: $fullUrl")
+        onStage(CollectStage.OpeningPage)
         webView.loadUrl(fullUrl)
     }
 
@@ -119,6 +140,7 @@ class CollectorWebView(context: Context) {
         session: Int,
         carId: String,
         isPageFinished: () -> Boolean,
+        onStage: (CollectStage) -> Unit,
         callback: (Result) -> Unit,
         attempt: Int = 0,
     ) {
@@ -150,7 +172,7 @@ class CollectorWebView(context: Context) {
             val nextAttempt = if (isPageFinished()) attempt + 1 else attempt
             if (nextAttempt <= MAX_RETRIES) {
                 handler.postDelayed(
-                    { extractPreloadedState(session, carId, isPageFinished, callback, nextAttempt) },
+                    { extractPreloadedState(session, carId, isPageFinished, onStage, callback, nextAttempt) },
                     RETRY_DELAY_MS,
                 )
             } else {
@@ -168,11 +190,8 @@ class CollectorWebView(context: Context) {
 
             if (parsed == null || parsed == "null") {
                 // 로드 완료 후의 null은 기존대로 즉시 실패 처리
-                if (isPageFinished()) {
-                    callback(Result.Error("페이지 데이터 추출 실패"))
-                } else {
-                    retryOr(Result.Error("페이지 데이터 추출 실패"))
-                }
+                val error = Result.Error(CollectErrorKind.PageUnreadable, "페이지 데이터 추출 실패")
+                if (isPageFinished()) callback(error) else retryOr(error)
                 return@evaluateJavascript
             }
 
@@ -183,12 +202,12 @@ class CollectorWebView(context: Context) {
                     return@evaluateJavascript
                 }
                 if (obj.has("error")) {
-                    retryOr(Result.Error("매물 데이터를 찾을 수 없습니다"))
+                    retryOr(Result.Error(CollectErrorKind.PageUnreadable, "매물 데이터를 찾을 수 없습니다"))
                     return@evaluateJavascript
                 }
-                fetchApis(session, carId, obj.getJSONObject("cars"), callback)
+                fetchApis(session, carId, obj.getJSONObject("cars"), onStage, callback)
             } catch (e: Exception) {
-                callback(Result.Error("데이터 파싱 오류: ${e.message}"))
+                callback(Result.Error(CollectErrorKind.PageUnreadable, "데이터 파싱 오류: ${e.message}"))
             }
         }
     }
@@ -197,6 +216,7 @@ class CollectorWebView(context: Context) {
         session: Int,
         carId: String,
         carsJson: JSONObject,
+        onStage: (CollectStage) -> Unit,
         callback: (Result) -> Unit,
     ) {
         val base = carsJson.optJSONObject("base")
@@ -280,6 +300,7 @@ class CollectorWebView(context: Context) {
         })();
         """.trimIndent()
 
+        onStage(CollectStage.FetchingHistory)
         webView.evaluateJavascript(apiJs, null)
     }
 
@@ -307,7 +328,7 @@ class CollectorWebView(context: Context) {
         timeoutRunnable = null
     }
 
-    fun destroy() {
+    override fun destroy() {
         cancelTimeout()
         // 예약된 추출 재시도/브리지 콜백이 파괴된 WebView에 접근하지 않도록 무효화
         sessionId++
