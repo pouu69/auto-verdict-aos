@@ -6,6 +6,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
@@ -24,6 +25,7 @@ import com.car.autoverdict.engine.ReportEvaluator
 import com.car.autoverdict.ui.components.LocalAvToast
 import com.car.autoverdict.ui.navigation.MainTab
 import com.car.autoverdict.ui.navigation.ScreenHost
+import com.car.autoverdict.util.EncarUrl
 
 /**
  * Wires [ResultScreen] to a [ResultController] for [url] and to the platform: share sheet,
@@ -68,7 +70,12 @@ fun ResultRoute(
     val shareText = (state as? ResultUiState.Ready)?.report?.shareText
     val actions = ResultActions(
         onBack = host.back,
-        onOpenInEncar = { context.startSafely(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
+        // Canonical detail page: share links carry tracking query params we don't need to reopen.
+        onOpenInEncar = {
+            EncarUrl.extractCarId(url)?.let(EncarUrl::buildDetailUrl)?.let { detail ->
+                context.startSafely(Intent(Intent.ACTION_VIEW, Uri.parse(detail)))
+            }
+        },
         onRetry = controller::retry,
         onApplyUpdate = controller::applyUpdate,
         onUserScrolled = controller::onUserScrolled,
@@ -80,7 +87,10 @@ fun ResultRoute(
             shareText?.sellerQuestions?.let { text ->
                 val clipboard = context.getSystemService(ClipboardManager::class.java)
                 clipboard.setPrimaryClip(ClipData.newPlainText(context.getString(R.string.result_clip_label_questions), text))
-                toast.show(context.getString(R.string.result_toast_copied))
+                // Android 13+ shows its own copy confirmation; a second one would be noise.
+                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
+                    toast.show(context.getString(R.string.result_toast_copied))
+                }
             }
         },
     )

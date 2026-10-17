@@ -14,6 +14,10 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.test.core.app.ApplicationProvider
 import com.car.autoverdict.db.SavedCarEntity
 import com.car.autoverdict.engine.EngineResult
@@ -59,7 +63,11 @@ class ResultRouteTest {
     )
 
     /** Cached [report] is shown right away (no collector), like a second visit within 24h. */
-    private fun show(report: EvaluationReport = caution) {
+    private fun show(
+        report: EvaluationReport = caution,
+        url: String = URL,
+        lifecycleOwner: LifecycleOwner? = null,
+    ) {
         repo.cache = RAW
         val evaluator = ReportEvaluator { raw ->
             if (raw == RAW) EngineResult.Success(report) else EngineResult.Failed("unknown raw")
@@ -69,14 +77,17 @@ class ResultRouteTest {
                 val toast = rememberAvToastState()
                 CompositionLocalProvider(LocalAvToast provides toast) {
                     Box {
-                        ResultRoute(
-                            url = URL,
-                            host = host,
-                            repository = repo,
-                            evaluator = evaluator,
-                            bannerAd = { Text("banner-ad") },
-                            loadingAd = { Text("loading-ad") },
-                        )
+                        val owner = lifecycleOwner ?: LocalLifecycleOwner.current
+                        CompositionLocalProvider(LocalLifecycleOwner provides owner) {
+                            ResultRoute(
+                                url = url,
+                                host = host,
+                                repository = repo,
+                                evaluator = evaluator,
+                                bannerAd = { Text("banner-ad") },
+                                loadingAd = { Text("loading-ad") },
+                            )
+                        }
                         AvToastHost(state = toast, modifier = Modifier.align(Alignment.BottomCenter))
                     }
                 }
@@ -135,23 +146,58 @@ class ResultRouteTest {
         assertSharedText(caution.shareText.summary)
     }
 
-    @Test fun `seller questions can be shared and copied`() {
+    @Test fun `seller questions can be shared`() {
         show()
         rule.onNodeWithText("공유").performScrollTo().performClick()
         assertSharedText(requireNotNull(caution.shareText.sellerQuestions))
+    }
 
+    @Config(sdk = [32])
+    @Test fun `copying seller questions toasts up to API 32`() {
+        show()
         rule.onNodeWithText("복사").performScrollTo().performClick()
         waitForText("복사했어요")
+        assertClipboardHoldsQuestions()
+    }
+
+    @Test fun `copying seller questions leaves the confirmation to the system on API 33+`() {
+        show()
+        rule.onNodeWithText("복사").performScrollTo().performClick()
+        rule.waitForIdle()
+        assertClipboardHoldsQuestions()
+        rule.onNodeWithText("복사했어요").assertDoesNotExist()
+    }
+
+    private fun assertClipboardHoldsQuestions() {
         val clip = requireNotNull(app.getSystemService(ClipboardManager::class.java).primaryClip)
         assertEquals(caution.shareText.sellerQuestions, clip.getItemAt(0).text.toString())
     }
 
-    @Test fun `open in Encar views the listing`() {
-        show()
+    @Test fun `open in Encar views the canonical listing url`() {
+        show(url = "$URL?pageid=dc_carsearch&listAdvType=pic&carid=$CAR_ID&view_type=normal")
         rule.onNodeWithText("엔카에서 보기").performClick()
         val intent = requireNotNull(shadowOf(app).nextStartedActivity) { "nothing started" }
         assertEquals(Intent.ACTION_VIEW, intent.action)
         assertEquals(URL, intent.dataString)
+    }
+
+    @Test fun `an event sent while stopped toasts once the screen is started again`() {
+        val owner = ManualLifecycleOwner()
+        show(lifecycleOwner = owner)
+        rule.runOnIdle { owner.registry.currentState = Lifecycle.State.CREATED }
+        rule.onNodeWithText("저장하기").performClick()
+        rule.waitUntil(timeoutMillis = 3_000) { repo.saves == 1 }
+        rule.waitForIdle()
+        rule.onNodeWithText("저장했어요").assertDoesNotExist()
+
+        rule.runOnIdle { owner.registry.currentState = Lifecycle.State.RESUMED }
+        waitForText("저장했어요")
+    }
+
+    /** Lifecycle the test moves by hand (starts RESUMED, like a visible screen). */
+    private class ManualLifecycleOwner : LifecycleOwner {
+        val registry = LifecycleRegistry(this).apply { currentState = Lifecycle.State.RESUMED }
+        override val lifecycle: Lifecycle get() = registry
     }
 
     private fun assertSharedText(expected: String) {
