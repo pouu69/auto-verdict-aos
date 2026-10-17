@@ -2,6 +2,9 @@
 -keepclassmembers class com.car.autoverdict.webview.NativeBridge {
     @android.webkit.JavascriptInterface <methods>;
 }
+-keepclassmembers class com.car.autoverdict.engine.EngineBridge {
+    @android.webkit.JavascriptInterface <methods>;
+}
 -keepclassmembers class com.car.autoverdict.collector.CollectorWebView$ApiBridge {
     @android.webkit.JavascriptInterface <methods>;
 }
