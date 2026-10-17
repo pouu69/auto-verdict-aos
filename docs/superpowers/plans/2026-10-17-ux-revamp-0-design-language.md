@@ -4450,7 +4450,7 @@ Expected: `BUILD SUCCESSFUL`.
 3. 저장한 차 탭 → 시스템 뒤로(`"$ADB" shell input keyevent BACK`) → 홈 탭. 홈에서 다시 뒤로 → 앱이 백그라운드로.
 4. **onCreate 경로:** 앱을 종료(`"$ADB" shell am force-stop com.kcurve.autoverdict`)한 뒤
    `"$ADB" shell am start -a android.intent.action.SEND -t text/plain --es android.intent.extra.TEXT "[엔카] 그랜저 https://fem.encar.com/cars/detail/41623743" -n com.kcurve.autoverdict/com.car.autoverdict.MainActivity` → 결과 화면, 뒤로 → 홈 탭.
-5. **onNewIntent 경로:** 앱이 떠 있는 상태에서 같은 명령에 `-f 0x20000000`(FLAG_ACTIVITY_SINGLE_TOP)을 붙여 실행 → 결과 화면. 같은 방식으로 `--es android.intent.extra.TEXT "hello"` → 홈 + 토스트 "엔카 매물 링크만 확인할 수 있어요".
+5. **onNewIntent 경로:** 앱이 떠 있는 상태에서 같은 명령에 `-f 0x20000000`(FLAG_ACTIVITY_SINGLE_TOP)을 붙여 실행 → 결과 화면. 같은 방식으로 `--es android.intent.extra.TEXT "hello"` → 현재 화면은 그대로 유지되고 토스트 "엔카 매물 링크만 확인할 수 있어요"가 뜬다.
 6. 결과 화면에서 회전: `"$ADB" shell settings put system accelerometer_rotation 0` 후 `"$ADB" shell settings put system user_rotation 1` → 결과 화면 유지(원복: `user_rotation 0`).
 
 실패 항목이 있으면 `systematic-debugging` 스킬로 원인을 찾고 고친 뒤 다시 확인한다.
@@ -4672,7 +4672,6 @@ Spacing: 4 · 8 · 12 · 16 · 20 · 24 · 32; screen side padding 20.
 L/M only) · `AvBottomCta` · `AvListRow` · `AvTextField` · `AvBadge` · `AvFactTile` ·
 `AvSectionHeader` · `AvSectionDivider` · `AvEmptyState` · `AvEmoji` (Tossface) ·
 `AvBottomSheet` · `AvDialog` · `AvToastHost`/`LocalAvToast` · `AvTabBar` · `AvLoadingSteps`.
-(If Task 2/6A replaced Tossface, write `AvIllustrationIcon` instead of `AvEmoji (Tossface)` above and drop Tossface mentions.)
 Debug builds show all of them under Settings → 컴포넌트 갤러리.
 
 Insets: `AvTopBar` owns the status bar, `AvTabBar`/`AvBottomCta` own the navigation bar
@@ -4692,6 +4691,8 @@ Insets: `AvTopBar` owns the status bar, `AvTabBar`/`AvBottomCta` own the navigat
 - New UI strings (components, navigation, new screens) go in `res/values/strings.xml`.
   Existing screen copy moves there when that screen is redesigned (sub-projects 1–4).
 ````
+
+(Task 2 또는 6A에서 토스페이스를 대체했다면 위 문서의 `AvEmoji (Tossface)`를 `AvIllustrationIcon`으로 쓰고 토스페이스 언급을 뺀다.)
 
 - [ ] **Step 2: `CLAUDE.md`의 Key Conventions 교체**
 
