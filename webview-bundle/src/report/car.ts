@@ -14,8 +14,19 @@ const formatMileage = (km: number): string => {
 const positive = (n: unknown): number | null => (typeof n === 'number' && Number.isFinite(n) && n > 0 ? n : null);
 const text = (s: unknown): string | null => (typeof s === 'string' && s.trim().length > 0 ? s : null);
 
+/** Longest display name that still takes the grade detail ("일반형"). */
+const MAX_NAME_LENGTH = 30;
+
+/** Joins the known parts with single spaces; inner runs of spaces are collapsed. */
+const joinParts = (parts: unknown[]): string =>
+  parts
+    .map((p) => (typeof p === 'string' ? p.replace(/\s+/g, ' ').trim() : ''))
+    .filter((p) => p.length > 0)
+    .join(' ');
+
 export const EMPTY_CAR: ReportCar = {
   title: NO_CAR_TITLE,
+  name: NO_CAR_TITLE,
   year: null,
   mileageKm: null,
   priceWon: null,
@@ -43,6 +54,11 @@ export function buildCar(out: MobileOrchestratorResult): ReportCar {
     `${yearMonth?.slice(0, 4) ?? ''} ${text(category.manufacturerName) ?? ''} ${text(category.modelName) ?? ''}`.trim() ||
     NO_CAR_TITLE;
 
+  const shortName = joinParts([category.manufacturerName, category.modelName, category.gradeName]);
+  // The grade detail alone ("일반형") names nothing, so it only ever follows a name.
+  const fullName = shortName ? joinParts([shortName, category.gradeDetailName]) : '';
+  const name = (fullName.length <= MAX_NAME_LENGTH ? fullName : shortName) || NO_CAR_TITLE;
+
   const summary = [
     year !== null ? `${year}년` : null,
     mileageKm !== null ? formatMileage(mileageKm) : null,
@@ -52,5 +68,5 @@ export function buildCar(out: MobileOrchestratorResult): ReportCar {
     .filter((s): s is string => s !== null)
     .join(' · ');
 
-  return { title, year, mileageKm, priceWon: priceMan !== null ? priceMan * 10_000 : null, fuel, summary };
+  return { title, name, year, mileageKm, priceWon: priceMan !== null ? priceMan * 10_000 : null, fuel, summary };
 }

@@ -40,6 +40,12 @@ export interface DetailSheet {
 export interface ReportCar {
   /** Saved-list format: "{year} {manufacturer} {model}", or "차량 정보 없음". */
   title: string;
+  /**
+   * Display name: "{manufacturer} {model} {grade}" without the year, plus the
+   * grade detail while it fits ~30 characters, e.g. "BMW 3시리즈 (F30) 320d";
+   * "차량 정보 없음" when none is known.
+   */
+  name: string;
   year: number | null;
   mileageKm: number | null;
   priceWon: number | null;
