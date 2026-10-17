@@ -34,13 +34,15 @@ fun SettingsRoute(host: ScreenHost) {
     val context = LocalContext.current
     val toast = LocalAvToast.current
     val scope = rememberCoroutineScope()
-    val database = (context.applicationContext as AutoVerdictApp).database
-    val cacheDao = database.cacheDao()
-    val savedCarDao = database.savedCarDao()
+    val app = context.applicationContext as AutoVerdictApp
+    val cacheDao = app.database.cacheDao()
+    val savedCarDao = app.database.savedCarDao()
+    val savedCars = app.savedCarsRepository
     // Same query as the home list, so the count matches what the user sees there (expired rows excluded).
     val recentCount by remember(cacheDao) { cacheDao.recentViewItems().map { it.size } }
         .collectAsStateWithLifecycle(initialValue = null)
-    val savedCount by remember(savedCarDao) { savedCarDao.countFlow() }
+    // Grouped like the saved tab and its badge, so one car's duplicate rows count once.
+    val savedCount by remember(savedCars) { savedCars.itemCount }
         .collectAsStateWithLifecycle(initialValue = null)
 
     fun clear(@StringRes doneMessage: Int, block: suspend () -> Unit) {
