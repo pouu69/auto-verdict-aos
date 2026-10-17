@@ -8,7 +8,7 @@ import type { RuleResult } from '@core/types/RuleTypes.js';
 import type { MobileOrchestratorResult } from '../orchestrate-mobile';
 import type { FrameSource } from './frame-source';
 import { formatMan, partName } from './format';
-import { damagesOf, evidenceOf, gapDuration, lossHits, ownerCount, ratioOf, unknownStatus, usageKinds } from './rule-copy';
+import { damagesOf, evidenceOf, gapDuration, leakItems, lossHits, ownerCount, ratioOf, unknownStatus, usageKinds } from './rule-copy';
 import { reasonShort } from './reasons';
 
 const FRAME_KILLER: Record<FrameSource, string> = {
@@ -75,7 +75,7 @@ export function ruleSummary(result: RuleResult, out: MobileOrchestratorResult, f
     }
     case 'R12': {
       if (!problem) return '누유 없음';
-      const items = evidenceOf(result, 'oilLeak', facts.oilLeak)?.items ?? [];
+      const items = leakItems(result, facts);
       const first = items[0];
       if (!first) return '누유 있음';
       const head = `${partName(first.part)} ${first.status}`;

@@ -103,6 +103,15 @@ export const damagesOf = (
   return own !== null && other !== null ? { ownDamageWon: own, otherDamageWon: other } : undefined;
 };
 
+/**
+ * R12 leak items that can be named. Core copies `type.title` and
+ * `statusType.title` unchecked, so either may be missing.
+ */
+export const leakItems = (result: RuleResult, facts: ChecklistFacts): Array<{ part: string; status: string }> =>
+  (evidenceOf(result, 'oilLeak', facts.oilLeak)?.items ?? []).filter(
+    (i) => typeof i?.part === 'string' && i.part.trim() !== '' && typeof i.status === 'string' && i.status.trim() !== '',
+  );
+
 /** R11 price ratio, or undefined when missing, zero or not a sane number. */
 export const ratioOf = (result: RuleResult, facts: ChecklistFacts): number | undefined => {
   const ratio =
@@ -213,7 +222,7 @@ export function ruleCopy(result: RuleResult, facts: ChecklistFacts, frameSource:
     }
     case 'R12': {
       if (!problem) return ok('누유가 없어요');
-      const items = evidenceOf(result, 'oilLeak', facts.oilLeak)?.items ?? [];
+      const items = leakItems(result, facts);
       const last = items[items.length - 1];
       if (!last) return issue('누유가 있어요', '누유 부위는 수리했나요?');
       const list = items.map((i) => `${partName(i.part)}에 ${i.status}`).join(', ');

@@ -70,3 +70,24 @@ describe('unreadable numbers', () => {
     expect(r.car.summary).toBe('2010년 · 가솔린');
   });
 });
+
+describe('oil-leak items without names', () => {
+  it('keeps the report when a leak item has no status title', () => {
+    const r = reportWith('39339524', (raw) => {
+      (raw.inspectionJson as Obj).inners = [
+        { type: { code: 'a', title: '오일팬' }, statusType: { code: '7' } },
+        { type: { code: 'b', title: '실린더 헤드' }, statusType: { code: '6', title: '미세누유' } },
+      ];
+    });
+    expect(rule(r, 'R12').message).toBe('실린더 헤드에 미세누유가 있어요');
+    expect(rule(r, 'R12').summary).toBe('실린더 헤드 미세누유');
+  });
+
+  it('falls back to the plain sentence when no leak item can be named', () => {
+    const r = reportWith('39339524', (raw) => {
+      (raw.inspectionJson as Obj).inners = [{ type: { code: 'a', title: '오일팬' }, statusType: { code: '7' } }];
+    });
+    expect(rule(r, 'R12').message).toBe('누유가 있어요');
+    expect(rule(r, 'R12').summary).toBe('누유 있음');
+  });
+});

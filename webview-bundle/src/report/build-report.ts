@@ -7,7 +7,7 @@ import type { MobileOrchestratorInput, MobileOrchestratorResult } from '../orche
 import type { EvaluationReport, ExcludedItem, ReportCounts, RuleItem } from './types';
 import { SCHEMA_VERSION } from './types';
 import { CATEGORY_ORDER, RULE_IDS, RULE_META, ruleNo } from './rule-meta';
-import { excludedReason, labelFor, ruleCopy, toneFor, unknownMessage } from './rule-copy';
+import { excludedReason, labelFor, ruleCopy, toneFor, unknownMessage, type RuleCopy } from './rule-copy';
 import { buildFacts } from './facts';
 import { buildRepairs } from './repairs';
 import { buildTimeline } from './timeline';
@@ -24,10 +24,15 @@ import { buildInspectionSheet } from './details/inspection';
 /** Issue order: 위험 → 비공개 → 주의 → 미확인. */
 const ISSUE_RANK: Record<Severity, number> = { killer: 0, fail: 1, warn: 2, unknown: 3, pass: 4 };
 
+/** Row copy when the evidence behind a decided rule cannot be read; the label still carries the result. */
+const FALLBACK_COPY: RuleCopy = { message: '자세한 내용을 표시하지 못했어요', sellerQuestion: null };
+const FALLBACK_UNKNOWN = '정보를 확인하지 못했어요';
+
 const toItem = (r: RuleResult, out: MobileOrchestratorResult, frameSource: FrameSource): RuleItem => {
   const meta = RULE_META[r.ruleId];
   const tone = toneFor(r.severity);
-  const copy = r.severity === 'unknown' ? null : ruleCopy(r, out.facts, frameSource);
+  // A row whose copy throws keeps its result: the rest of the report must not be lost with it.
+  const copy = r.severity === 'unknown' ? null : safe(() => ruleCopy(r, out.facts, frameSource), FALLBACK_COPY);
   const issue = tone !== 'success';
   return {
     ruleId: r.ruleId,
@@ -35,7 +40,7 @@ const toItem = (r: RuleResult, out: MobileOrchestratorResult, frameSource: Frame
     title: meta?.title ?? r.title,
     tone,
     label: labelFor(r.severity),
-    message: copy ? copy.message : unknownMessage(r, out),
+    message: copy ? copy.message : safe(() => unknownMessage(r, out), FALLBACK_UNKNOWN),
     summary: safe(
       () => (copy ? ruleSummary(r, out, frameSource) : unknownSummary(r, out)),
       copy?.message ?? labelFor(r.severity),
