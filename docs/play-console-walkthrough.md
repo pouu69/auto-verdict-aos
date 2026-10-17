@@ -114,7 +114,7 @@ adb exec-out screencap -p > docs/assets/screenshots/01.png
 
 | 입력 | 값 |
 |---|---|
-| 앱 이름 | AutoVerdict — 엔카 매물 평가 |
+| 앱 이름 | AutoVerdict — 중고차 매물 평가 |
 | 기본 언어 | 한국어 (대한민국) |
 | 앱 / 게임 | 앱 |
 | 무료 / 유료 | 무료 |
@@ -160,7 +160,7 @@ adb exec-out screencap -p > docs/assets/screenshots/01.png
 
 | 칸 | 넣을 것 |
 |---|---|
-| 앱 이름 | AutoVerdict — 엔카 매물 평가 |
+| 앱 이름 | AutoVerdict — 중고차 매물 평가 |
 | 간단한 설명 (80자) | store-listing의 짧은 설명 |
 | 자세한 설명 (4000자) | store-listing의 긴 설명 |
 | 앱 아이콘 | `docs/assets/play-icon-512.png` |

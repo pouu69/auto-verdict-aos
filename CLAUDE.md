@@ -39,13 +39,16 @@ User shares Encar URL (or pastes in app)
     → source: saved car (then silent background refresh) → 24h cache → CollectorWebView
       (CollectorWebView loads the Encar page, extracts __PRELOADED_STATE__, fetches record/diagnosis/inspection APIs)
     → RuleEngine.evaluate(rawJson) → window.avEvaluate(requestId, rawJson)
-      → orchestrateMobile() (vendored core) + buildReport() (src/report adapter)
+      → normalizeInput() (src/normalize-input.ts) → orchestrateMobile() (vendored core) + buildReport() (src/report adapter)
       → Android.onReport(requestId, json) → ReportParser → EvaluationReport
     → Compose ResultScreen (result/sections/*)
-    → save/unsave via ResultRepository (DefaultResultRepository) → Room
+    → save/unsave via ResultRepository (DefaultResultRepository) → Room, keyed by SavedCarKey
 ```
 
 `ResultController` is a plain main-confined class (not a ViewModel) created by `ResultRoute`; it owns `ResultUiState` (Loading/Ready/Error/Deleted) and one-off `ResultEvent`s. The cache is written only when the report has no `dataGaps`.
+
+- **Deleted listings**: `ListingAvailability` treats SOLD and wrong-car pages as gone. A page whose base fetch failed (`pender.failure["cars/GET_BASE"]`, empty `cars.base`) is only a suspect: the collector re-requests the base API from the page and reports `Deleted` on HTTP 404 only; other statuses, network errors and the probe timeout are a retryable `PageUnreadable`.
+- **Input repair**: `normalize-input.ts` fixes the few malformed Encar shapes the core throws on (missing `base.category`/`advertisement`/`spec`, non-array inspection lists, …). Well-formed input passes through unchanged — the contract JSON guards it. Repair shapes there, never in the core.
 
 ### Headless Engine Bridge
 
@@ -65,14 +68,28 @@ This is a vendored subset (the transitive closure aos actually uses) of the shar
 
 Two entities: `SavedCarEntity` (user-saved evaluations with score/verdict/counts + collector `rawJson`) and `CacheEntity` (24h TTL cache; `rawInputJson` is re-evaluated on open). Both use `carId` as primary key with `@Upsert` for insert-or-update. Reports are never stored — saved and cached rows are re-run through the engine.
 
+- **Saved-car identity**: Encar can serve one car under its original vehicle id and a dummy-ad id. `SavedCarKey.of(rawJson, urlId)` = `preloadedState.cars.base.vehicleId` (else the URL id); new saves always use it. Legacy rows saved under a dummy-ad id are never migrated. `savedIdentity` (`saved/SavedIdentity.kt`) delegates to the same rule, so `SavedCarsRepository` (app-scoped) shows rows with the same identity as one item — in the list, the tab count and compare — and deletes/restores the whole group. The cache stays keyed by the URL id.
+- Add DAO queries freely (no schema change); `CacheDao.recentViewsFlow` selects list columns only (`RecentViewRow`, no `rawInputJson`).
+
+### Screens
+
+- **Home** (`home/`): stateless `HomeScreen` + `HomeRoute` (DB, clipboard, Encar intent, navigation). Pure `HomeInput` normalizes links via `EncarUrl`; the clipboard is read only when the user taps 붙여넣기 (no auto-read). Recent views come from the cache (`recentViewItems()`, re-queried every minute while resumed so expired rows drop out). `ShareGuideSheet` explains sharing from Encar.
+- **Onboarding** (`onboarding/`): two pages, `OnboardingMode.FirstRun` (skip, no back) vs `Replay` from Settings (back, "닫기").
+- **Saved** (`ui/screen/SavedListScreen`, `ui/saved/`, `saved/SavedListModel`): grouped items from `SavedCarsRepository`, sort persisted in `AppPreferences`, swipe-to-delete + undo toast, compare selection (2–3 cars). The list reads saved columns only and never runs the engine.
+- **Compare** (`compare/`): `CompareController` observes the chosen rows and re-evaluates each saved `rawJson` (per `carId`+`updatedAt`); a failed evaluation falls back to the saved columns. `buildCompareTable` is the pure table model.
+- **Settings** (`ui/screen/SettingsRoute` + stateless `SettingsScreen`): clear recent views / all saved cars, privacy summary, licenses, mailto contact.
+- **Licenses** (`licenses/`, `LicensesScreen`, `LicenseDetailScreen`): read generated `res/raw/oss_notices.json` and `oss_google_notices.json`.
+
 ## Key Conventions
 
 - UI follows the Toss-style design system in `DESIGN.md`: tokens via `AvTheme.colors/typography/shapes/spacing` (`ui/theme`), shared `Av*` components in `ui/components`. Screens never use raw colors.
 - Navigation is a small saveable back stack, not a navigation library: `ui/navigation/Route` destinations, the pure `AppNavigator` reducer (unit-tested), and the `AppRoot` shell. Screens receive a `ScreenHost` and hold no navigation state.
-- `MainActivity` only parses share intents (`ShareIntentParser`, skipped on restore) and hosts `AppRoot`; app-level state (back stack, plus a share link held while first-run onboarding is open) lives in `AppRoot` via `rememberSaveable`.
+- `MainActivity` only parses share intents (`ShareIntentParser`, skipped on restore) and hosts `AppRoot`; app-level state (back stack, plus a share link held while first-run onboarding is open) lives in `AppRoot` via `rememberSaveable`. Screens split into a stateless `*Screen` and a `*Route` that wires DB, intents and toasts.
 - Two tabs (홈, 저장한 차); Settings is a sub-screen opened from the home top bar. The tab bar and banner render only on tab roots.
 - Copy split: domain copy (verdict headline, rule messages/why, seller questions, timeline labels, share text) is built by the TS adapter (`webview-bundle/src/report/*`) and tested with vitest; screen chrome copy (section titles, buttons, banners, errors) lives in `strings.xml`. Compose renders report strings as-is.
 - Verdict/score logic is off-limits: do not modify the vendored core (`webview-bundle/src/core/`); fix wording in the adapter instead.
 - Do not change the Room schema without a real migration — `AppDatabase` uses `fallbackToDestructiveMigration()`, so a version bump wipes saved cars.
+- Chrome copy lives in `res/values/strings*.xml` (`strings.xml` plus per-screen `strings_settings/licenses/privacy.xml`).
+- Open-source notices are generated, not hand-edited: after any dependency change, re-run `scripts/oss-notices/generate.py` (see its README; offline, reads the Gradle cache) and commit the regenerated `res/raw/oss_*.json`. `OssNoticesTest` fails if a direct dependency is missing.
 - `EncarUrl` utility validates and extracts car IDs from multiple Encar URL formats
 - ProGuard keeps `@JavascriptInterface` methods (`EngineBridge`, `CollectorWebView$ApiBridge`), the `report.**` serializers and Room classes — update `proguard-rules.pro` when adding new bridge methods, `@Serializable` report types outside `report/`, or entities

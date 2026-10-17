@@ -18,7 +18,9 @@
 | 개인정보처리방침 작성 | ✅ 완료 — `docs/privacy-policy.md` |
 | 스토어 카피 작성 | ✅ 완료 — `docs/store-listing.md` |
 | 개인정보처리방침 호스팅 | ✅ 완료 — https://pouu69.github.io/auto-verdict-aos/ |
-| 스크린샷 캡처 | ✅ 완료 — `docs/assets/screenshots/` |
+| 스크린샷 캡처 | ⚠️ 새 디자인으로 다시 촬영 필요 — 기존 `docs/assets/screenshots/`는 옛 화면. 목록·캡션은 `docs/assets-guide.md`, 결과는 `screenshots/raw`·`play` |
+| 오픈소스 고지 | 의존성을 바꿨으면 `scripts/oss-notices/README.md` 절차로 다시 생성 |
+| EEA·영국 광고 동의(UMP) | ⛔ 미구현 — 해당 지역 배포 전 동의 흐름 필요 |
 | targetSdk 36 대응 | ✅ 완료 — compileSdk/targetSdk 36, Robolectric 4.16 |
 | **Keystore 외부 백업** | ⛔ **사용자 진행 필요** |
 | **Play Console 등록·업로드** | ⛔ **사용자 진행 필요** |
@@ -193,7 +195,7 @@ adb exec-out screencap -p > docs/assets/screenshots/02.png
 
 | 입력 항목 | 값 |
 |---|---|
-| 앱 이름 | AutoVerdict — 엔카 매물 평가 |
+| 앱 이름 | AutoVerdict — 중고차 매물 평가 (`store-listing.md`와 동일, 상표 '엔카' 제외) |
 | 기본 언어 | 한국어 (대한민국) |
 | 앱 또는 게임 | 앱 |
 | 무료 또는 유료 | 무료 |

@@ -63,6 +63,8 @@ secrets/
 
 ## 4. Release AAB 빌드
 
+의존성(`app/build.gradle.kts`)을 바꿨다면 빌드 전에 오픈소스 고지를 다시 생성하고 커밋한다(`scripts/oss-notices/README.md`).
+
 ```bash
 export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 
