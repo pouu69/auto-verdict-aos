@@ -6,8 +6,11 @@
  * shapes; well-formed input comes out with equal values, so its results are
  * unchanged (the fixtures' contract JSON guards that):
  *
- * - `cars.base` without an object `category` / `advertisement` / `spec` → `{}`
- *   (facts that need them become unknown instead of throwing)
+ * - `cars.base` without an object `advertisement` / `spec` → `{}`, without an
+ *   object `category` → `{ domestic: true }` (the core's own default when base is
+ *   missing: domestic thresholds). The core then reads the absent values as
+ *   missing — e.g. price/new price 0, so the price ratio has nothing to compare —
+ *   and the car summary leaves year/price empty, instead of throwing.
  * - record `notJoinDate1..5` that is not a string → `null`
  * - inspection `outers` / `inners` / nested `children` that are not arrays → `[]`,
  *   and their entries that are not objects are dropped
@@ -21,12 +24,14 @@ type Obj = Record<string, unknown>;
 
 const isObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !Array.isArray(v);
 
-const BASE_OBJECT_KEYS = ['category', 'advertisement', 'spec'] as const;
 const NOT_JOIN_DATE_KEYS = ['notJoinDate1', 'notJoinDate2', 'notJoinDate3', 'notJoinDate4', 'notJoinDate5'] as const;
 
 const normalizeBase = (base: Obj): Obj => {
   const out: Obj = { ...base };
-  for (const k of BASE_OBJECT_KEYS) if (!isObj(out[k])) out[k] = {};
+  // Matches encar-to-facts' `domestic` default for a missing base.
+  if (!isObj(out.category)) out.category = { domestic: true };
+  if (!isObj(out.advertisement)) out.advertisement = {};
+  if (!isObj(out.spec)) out.spec = {};
   return out;
 };
 
