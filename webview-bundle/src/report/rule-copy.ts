@@ -42,7 +42,7 @@ export const evidenceOf = <T>(result: RuleResult, field: string, fallback?: Fiel
   return fallback?.kind === 'value' ? fallback.value : undefined;
 };
 
-const gapDuration = (months: number): string => {
+export const gapDuration = (months: number): string => {
   if (months < 12) return `${months}개월`;
   const y = Math.floor(months / 12);
   const m = months % 12;
@@ -50,7 +50,7 @@ const gapDuration = (months: number): string => {
 };
 
 /** "실린더 블록 / 오일팬" -> "실린더 블록·오일팬". */
-const leakPart = (part: string): string => part.trim().replace(/\s*\/\s*/g, '·');
+export const leakPart = (part: string): string => part.trim().replace(/\s*\/\s*/g, '·');
 
 /** Strip the trailing "(상태)" group that the core appends to outer panel names. */
 const panelName = (part: string): string =>
@@ -257,7 +257,14 @@ const statusMessage = (status: FieldStatus<unknown>, source: RuleSource): string
  */
 export function unknownMessage(result: RuleResult, out: MobileOrchestratorResult): string {
   const meta = RULE_META[result.ruleId];
-  if (!meta) return '정보를 확인하지 못했어요';
+  const status = unknownStatus(result, out);
+  return meta && status ? statusMessage(status, meta.source) : '정보를 확인하지 못했어요';
+}
+
+/** The status behind a 미확인 rule (see [unknownMessage]); null if none can be named. */
+export function unknownStatus(result: RuleResult, out: MobileOrchestratorResult): FieldStatus<unknown> | null {
+  const meta = RULE_META[result.ruleId];
+  if (!meta) return null;
   const raw = out.parsed.raw;
   const apis: FieldStatus<unknown>[] =
     meta.source === 'record'
@@ -269,9 +276,9 @@ export function unknownMessage(result: RuleResult, out: MobileOrchestratorResult
           : [];
   const failedApis = apis.filter((a) => a.kind !== 'value').sort((a, b) => reasonRank(a) - reasonRank(b));
   const top = failedApis[0];
-  if (top) return statusMessage(top, meta.source);
+  if (top) return top;
   const field = FACT_FIELD[result.ruleId];
-  return field ? statusMessage(out.facts[field] as FieldStatus<unknown>, meta.source) : '정보를 확인하지 못했어요';
+  return field ? (out.facts[field] as FieldStatus<unknown>) : null;
 }
 
 const EXCLUDED_REASON: Record<string, string> = {

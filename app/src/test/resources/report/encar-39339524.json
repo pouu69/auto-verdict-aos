@@ -367,6 +367,7 @@
       "tone": "danger",
       "label": "위험",
       "message": "성능점검에 사고 이력이 있어요",
+      "summary": "성능점검 사고 이력 있음",
       "why": "프레임은 차의 뼈대예요. 여기가 손상됐다는 건 충격이 뼈대까지 갔다는 뜻이라 주행 안정성과 되팔 때 가격에 큰 영향을 줘요. 그래서 위험으로 분류해요. 성능점검의 사고 이력은 주요 골격이나 쿼터 패널 같은 일부 외판을 용접·교환했다는 뜻이에요. 문·펜더 같은 바깥 패널 교환은 상대적으로 가벼운 편이에요.",
       "sellerQuestion": "성능점검 사고 부위의 수리 내역과 사진을 볼 수 있을까요?",
       "detail": {
@@ -525,6 +526,7 @@
       "tone": "warning",
       "label": "주의",
       "message": "수리비가 많이 나온 편이에요 · 내차 1,126만원 · 타차 589만원",
+      "summary": "수리비 큼 · 내차 1,126만원 · 타차 589만원",
       "why": "사고가 있어도 금액이 작으면 가벼운 접촉 수준이에요. 하지만 국산 200만원, 수입 400만원을 넘으면 단순 접촉을 넘어선 사고일 수 있어 주의로 봐요.",
       "sellerQuestion": "보험 처리한 사고는 어느 부위를 어떻게 수리했나요?",
       "detail": {
@@ -875,6 +877,7 @@
       "tone": "success",
       "label": "통과",
       "message": "엔카진단을 통과한 차예요",
+      "summary": "엔카진단 통과 차량",
       "why": null,
       "sellerQuestion": null,
       "detail": {
@@ -996,6 +999,7 @@
       "tone": "danger",
       "label": "위험",
       "message": "성능점검에 사고 이력이 있어요",
+      "summary": "성능점검 사고 이력 있음",
       "why": "프레임은 차의 뼈대예요. 여기가 손상됐다는 건 충격이 뼈대까지 갔다는 뜻이라 주행 안정성과 되팔 때 가격에 큰 영향을 줘요. 그래서 위험으로 분류해요. 성능점검의 사고 이력은 주요 골격이나 쿼터 패널 같은 일부 외판을 용접·교환했다는 뜻이에요. 문·펜더 같은 바깥 패널 교환은 상대적으로 가벼운 편이에요.",
       "sellerQuestion": "성능점검 사고 부위의 수리 내역과 사진을 볼 수 있을까요?",
       "detail": {
@@ -1154,6 +1158,7 @@
       "tone": "success",
       "label": "통과",
       "message": "누유가 없어요",
+      "summary": "누유 없음",
       "why": null,
       "sellerQuestion": null,
       "detail": {
@@ -1213,6 +1218,7 @@
       "tone": "success",
       "label": "통과",
       "message": "렌트·영업용 이력이 없어요",
+      "summary": "렌트·택시·영업용 이력 없음",
       "why": null,
       "sellerQuestion": null,
       "detail": {
@@ -1292,6 +1298,7 @@
       "tone": "success",
       "label": "통과",
       "message": "전손·침수·도난 이력이 없어요",
+      "summary": "전손·침수·도난 없음",
       "why": null,
       "sellerQuestion": null,
       "detail": {
@@ -1361,6 +1368,7 @@
       "tone": "success",
       "label": "통과",
       "message": "소유자 변경 1회로 정상 범위예요",
+      "summary": "소유자 변경 1회",
       "why": null,
       "sellerQuestion": null,
       "detail": {
@@ -1426,6 +1434,7 @@
       "tone": "success",
       "label": "통과",
       "message": "자차보험 공백이 없어요",
+      "summary": "자차보험 공백 없음",
       "why": null,
       "sellerQuestion": null,
       "detail": {
@@ -1480,6 +1489,7 @@
       "tone": "success",
       "label": "통과",
       "message": "수리비가 확정되지 않은 사고는 없어요",
+      "summary": "수리비 미확정 없음",
       "why": null,
       "sellerQuestion": null,
       "detail": {
@@ -1534,6 +1544,7 @@
       "tone": "warning",
       "label": "주의",
       "message": "수리비가 많이 나온 편이에요 · 내차 1,126만원 · 타차 589만원",
+      "summary": "수리비 큼 · 내차 1,126만원 · 타차 589만원",
       "why": "사고가 있어도 금액이 작으면 가벼운 접촉 수준이에요. 하지만 국산 200만원, 수입 400만원을 넘으면 단순 접촉을 넘어선 사고일 수 있어 주의로 봐요.",
       "sellerQuestion": "보험 처리한 사고는 어느 부위를 어떻게 수리했나요?",
       "detail": {
@@ -1882,6 +1893,7 @@
       "tone": "success",
       "label": "통과",
       "message": "딜러가 보험이력을 공개했어요",
+      "summary": "보험이력 공개",
       "why": null,
       "sellerQuestion": null,
       "detail": {
@@ -1941,6 +1953,7 @@
       "tone": "success",
       "label": "통과",
       "message": "성능점검 기록이 공개돼 있어요",
+      "summary": "성능점검 공개",
       "why": null,
       "sellerQuestion": null,
       "detail": {

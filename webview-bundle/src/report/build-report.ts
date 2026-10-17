@@ -15,6 +15,7 @@ import { buildDataGaps } from './data-gaps';
 import { buildHeadline } from './headline';
 import { EMPTY_CAR, buildCar } from './car';
 import { buildShareText } from './share-text';
+import { ruleSummary, unknownSummary } from './rule-summary';
 import { frameDamageSource, type FrameSource } from './frame-source';
 import { safe } from './safe';
 import { buildRuleDetail } from './details/rules';
@@ -35,6 +36,7 @@ const toItem = (r: RuleResult, out: MobileOrchestratorResult, frameSource: Frame
     tone,
     label: labelFor(r.severity),
     message: copy ? copy.message : unknownMessage(r, out),
+    summary: copy ? ruleSummary(r, out, frameSource) : unknownSummary(r, out),
     why: issue ? (meta?.why ?? null) : null,
     sellerQuestion: issue && (tone === 'danger' || tone === 'warning') ? (copy?.sellerQuestion ?? null) : null,
     detail: safe(() => buildRuleDetail(r, out, frameSource), null),
