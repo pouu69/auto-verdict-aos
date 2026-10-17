@@ -61,6 +61,7 @@ class MainActivity : ComponentActivity() {
             action = intent?.action,
             type = intent?.type,
             text = intent?.getStringExtra(Intent.EXTRA_TEXT),
+            flags = intent?.flags ?: 0,
             isRestored = isRestored,
         )
 }

@@ -18,9 +18,12 @@
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-5353705048338468~6253564104" />
 
+        <!-- singleTask: every share reaches the one MainActivity through onNewIntent, even when
+             the share sheet launches into the sender's task or the intent matches our root intent. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.AutoVerdict.Splash">
             <intent-filter>
