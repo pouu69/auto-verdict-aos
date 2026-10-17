@@ -4,89 +4,53 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.BookmarkBorder
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.car.autoverdict.preferences.AppPreferences
 import com.car.autoverdict.ui.AdBanner
-import com.car.autoverdict.ui.screen.AnalyzeScreen
-import com.car.autoverdict.ui.screen.CompareScreen
-import com.car.autoverdict.ui.screen.OnboardingScreen
-import com.car.autoverdict.ui.screen.PrivacyPolicyScreen
-import com.car.autoverdict.ui.screen.ResultScreen
-import com.car.autoverdict.ui.screen.SavedListScreen
-import com.car.autoverdict.ui.screen.SettingsScreen
+import com.car.autoverdict.ui.navigation.AppRoot
+import com.car.autoverdict.ui.navigation.AppScreenContent
+import com.car.autoverdict.ui.navigation.NavEvent
+import com.car.autoverdict.ui.navigation.ShareIntentParser
 import com.car.autoverdict.ui.theme.AvTheme
-import com.car.autoverdict.ui.theme.Primary
-import com.car.autoverdict.ui.theme.TextSecondary
-import com.car.autoverdict.util.EncarUrl
+import kotlinx.coroutines.flow.map
 
 class MainActivity : ComponentActivity() {
 
-    private lateinit var appPreferences: AppPreferences
-    private val pendingAnalysisUrl = mutableStateOf<String?>(null)
+    /** One-shot event from a share intent, consumed by AppRoot once composed. */
+    private val pendingNavEvent = mutableStateOf<NavEvent?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // The only splash: onboarding state is a synchronous SharedPreferences read,
+        // so no keep-on-screen condition is needed (spec 7.2).
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        // Let the bottom NavigationBar color draw all the way to the screen edge
-        // instead of the system adding a translucent scrim on 3-button navigation.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.isNavigationBarContrastEnforced = false
         }
-        appPreferences = AppPreferences(this)
-        handleShareIntent(intent)
+        val preferences = AppPreferences(this)
+        val app = application as AutoVerdictApp
+        pendingNavEvent.value = parseShare(intent, isRestored = savedInstanceState != null)
+
         setContent {
             AvTheme {
-                AppRouter(
-                    isOnboardingComplete = appPreferences.isOnboardingComplete,
-                    onOnboardingComplete = { appPreferences.setOnboardingComplete() },
-                    pendingUrl = pendingAnalysisUrl,
+                val savedCount by remember {
+                    app.database.savedCarDao().getAllFlow().map { it.size }
+                }.collectAsState(initial = 0)
+                AppRoot(
+                    onboardingComplete = preferences.isOnboardingComplete,
+                    onOnboardingComplete = preferences::setOnboardingComplete,
+                    pendingNavEvent = pendingNavEvent.value,
+                    onPendingNavEventConsumed = { pendingNavEvent.value = null },
+                    savedCount = savedCount,
+                    adBanner = { AdBanner() },
+                    screenContent = { route, host -> AppScreenContent(route, host) },
                 )
             }
         }
@@ -94,224 +58,15 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        handleShareIntent(intent)
+        setIntent(intent)
+        pendingNavEvent.value = parseShare(intent, isRestored = false)
     }
 
-    private fun handleShareIntent(intent: Intent?) {
-        if (intent?.action == Intent.ACTION_SEND && intent.type == "text/plain") {
-            val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT) ?: return
-            if (EncarUrl.isEncarDetail(sharedText)) {
-                pendingAnalysisUrl.value = sharedText
-            }
-        }
-    }
-}
-
-private enum class AppScreen {
-    SPLASH,
-    ONBOARDING,
-    MAIN,
-}
-
-@Composable
-private fun AppRouter(
-    isOnboardingComplete: Boolean,
-    onOnboardingComplete: () -> Unit,
-    pendingUrl: MutableState<String?>,
-) {
-    var screen by rememberSaveable {
-        mutableStateOf(AppScreen.SPLASH)
-    }
-
-    when (screen) {
-        AppScreen.SPLASH -> BrandSplashScreen(
-            onFinished = {
-                screen = if (isOnboardingComplete) AppScreen.MAIN else AppScreen.ONBOARDING
-            },
+    private fun parseShare(intent: Intent?, isRestored: Boolean): NavEvent? =
+        ShareIntentParser.parse(
+            action = intent?.action,
+            type = intent?.type,
+            text = intent?.getStringExtra(Intent.EXTRA_TEXT),
+            isRestored = isRestored,
         )
-        AppScreen.ONBOARDING -> OnboardingScreen(
-            onComplete = {
-                onOnboardingComplete()
-                screen = AppScreen.MAIN
-            },
-        )
-        AppScreen.MAIN -> MainScreen(
-            pendingUrl = pendingUrl,
-            onReplayOnboarding = { screen = AppScreen.ONBOARDING },
-        )
-    }
-}
-
-private enum class Tab(
-    val labelRes: Int,
-    val selectedIcon: ImageVector,
-    val unselectedIcon: ImageVector,
-) {
-    ANALYZE(R.string.tab_analyze, Icons.Filled.Search, Icons.Outlined.Search),
-    SAVED(R.string.tab_saved, Icons.Filled.Bookmark, Icons.Outlined.BookmarkBorder),
-    SETTINGS(R.string.tab_settings, Icons.Filled.Settings, Icons.Outlined.Settings),
-}
-
-@Composable
-private fun MainScreen(
-    pendingUrl: MutableState<String?>,
-    onReplayOnboarding: () -> Unit,
-) {
-    var selectedTab by rememberSaveable { mutableStateOf(Tab.ANALYZE) }
-    var compareCarIds by remember { mutableStateOf<List<String>?>(null) }
-    var showPrivacyPolicy by remember { mutableStateOf(false) }
-    var analysisUrl by remember { mutableStateOf<String?>(null) }
-    var analysisFromSaved by remember { mutableStateOf(false) }
-    // Remembers the link most recently sent to analysis so the Analyze screen can
-    // skip re-filling it from the clipboard when the user returns to it.
-    var lastAnalyzedUrl by rememberSaveable { mutableStateOf<String?>(null) }
-
-    val pending = pendingUrl.value
-    LaunchedEffect(pending) {
-        if (pending != null) {
-            analysisUrl = pending
-            analysisFromSaved = false
-            pendingUrl.value = null
-        }
-    }
-
-    if (showPrivacyPolicy) {
-        BackHandler { showPrivacyPolicy = false }
-        PrivacyPolicyScreen(onBack = { showPrivacyPolicy = false })
-        return
-    }
-
-    val currentAnalysisUrl = analysisUrl
-    if (currentAnalysisUrl != null) {
-        BackHandler { analysisUrl = null; analysisFromSaved = false }
-        ResultScreen(
-            url = currentAnalysisUrl,
-            onBack = { analysisUrl = null; analysisFromSaved = false },
-            isAlreadySaved = analysisFromSaved,
-        )
-        return
-    }
-
-    val currentCompareIds = compareCarIds
-    if (currentCompareIds != null) {
-        BackHandler { compareCarIds = null }
-        CompareScreen(
-            carIds = currentCompareIds,
-            onBack = { compareCarIds = null },
-        )
-        return
-    }
-
-    Scaffold(
-        // safeDrawing includes the IME inset, so the content lambda's innerPadding
-        // lifts the URL text field above the soft keyboard when it opens.
-        contentWindowInsets = WindowInsets.safeDrawing,
-        bottomBar = {
-          Column {
-            AdBanner()
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 0.dp,
-            ) {
-                Tab.entries.forEach { tab ->
-                    NavigationBarItem(
-                        selected = selectedTab == tab,
-                        onClick = { selectedTab = tab },
-                        icon = {
-                            Icon(
-                                imageVector = if (selectedTab == tab) tab.selectedIcon else tab.unselectedIcon,
-                                contentDescription = stringResource(tab.labelRes),
-                            )
-                        },
-                        label = { Text(stringResource(tab.labelRes)) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Primary,
-                            selectedTextColor = Primary,
-                            indicatorColor = Primary.copy(alpha = 0.10f),
-                            unselectedIconColor = TextSecondary,
-                            unselectedTextColor = TextSecondary,
-                        ),
-                    )
-                }
-            }
-          }
-        },
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .consumeWindowInsets(innerPadding),
-        ) {
-            val modifier = Modifier.weight(1f)
-            when (selectedTab) {
-            Tab.ANALYZE -> AnalyzeScreen(
-                modifier = modifier,
-                lastAnalyzedUrl = lastAnalyzedUrl,
-                onAnalyze = { url ->
-                    analysisUrl = url
-                    analysisFromSaved = false
-                    lastAnalyzedUrl = url
-                },
-            )
-            Tab.SAVED -> SavedListScreen(
-                modifier = modifier,
-                onCarClick = { url -> analysisUrl = url; analysisFromSaved = true },
-                onCompare = { carIds -> compareCarIds = carIds },
-            )
-            Tab.SETTINGS -> SettingsScreen(
-                modifier = modifier,
-                onPrivacyPolicy = { showPrivacyPolicy = true },
-                onReplayGuide = onReplayOnboarding,
-            )
-            }
-        }
-    }
-}
-
-@Composable
-private fun BrandSplashScreen(onFinished: () -> Unit) {
-    LaunchedEffect(Unit) {
-        delay(1500L)
-        onFinished()
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Primary),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(MaterialTheme.colorScheme.onPrimary),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = "AV",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = Primary,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-            Spacer(modifier = Modifier.height(20.dp))
-            Text(
-                text = "AutoVerdict",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onPrimary,
-                fontWeight = FontWeight.Bold,
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = "엔카 중고차 종합 평가",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
-            )
-        }
-    }
 }

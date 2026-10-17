@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">AutoVerdict</string>
-    <string name="tab_analyze">분석</string>
     <string name="tab_saved">저장한 차</string>
-    <string name="tab_settings">설정</string>
     <string name="verdict_never">피하세요</string>
     <string name="verdict_caution">주의</string>
     <string name="verdict_ok">괜찮아요</string>

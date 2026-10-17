@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -50,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import com.car.autoverdict.AutoVerdictApp
 import com.car.autoverdict.BuildConfig
 import com.car.autoverdict.R
+import com.car.autoverdict.ui.AdBanner
 import com.car.autoverdict.ui.components.AvTopBar
 import com.car.autoverdict.ui.theme.Background
 import com.car.autoverdict.ui.theme.Border
@@ -63,8 +65,8 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun SettingsScreen(
+    onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    onBack: () -> Unit = {},
     onPrivacyPolicy: () -> Unit = {},
     onLicenses: () -> Unit = {},
     onReplayGuide: () -> Unit = {},
@@ -88,7 +90,7 @@ fun SettingsScreen(
         AvTopBar(onBack = onBack, title = "설정")
 
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.weight(1f).fillMaxWidth(),
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
         ) {
             item { SectionHeader("저장공간") }
@@ -252,6 +254,10 @@ fun SettingsScreen(
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 )
             }
+        }
+        // Settings used to be a tab with the shared banner; keep that exposure (spec 10).
+        Box(modifier = Modifier.fillMaxWidth().navigationBarsPadding()) {
+            AdBanner()
         }
     }
 
