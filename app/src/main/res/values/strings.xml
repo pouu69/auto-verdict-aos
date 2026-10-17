@@ -188,4 +188,21 @@
     <string name="illus_app_messenger">메신저</string>
     <string name="illus_app_message">메시지</string>
     <string name="illus_browser_note">크롬은 오른쪽 위, 삼성 인터넷은 아래쪽 메뉴에 있어요</string>
+
+    <!-- Onboarding (UX revamp 2, T6) -->
+    <string name="onboarding_skip">건너뛰기</string>
+    <string name="onboarding_next">다음</string>
+    <string name="onboarding_start">시작하기</string>
+    <string name="onboarding_close">닫기</string>
+    <string name="onboarding_value_title">엔카 매물, 사기 전에 확인해 보세요</string>
+    <string name="onboarding_value_body">12가지 기준으로 살펴보고 결론부터 알려 드려요</string>
+    <string name="onboarding_value_point_history">사고·침수·전손 이력</string>
+    <string name="onboarding_value_point_owner">소유자 변경·자차보험 공백</string>
+    <string name="onboarding_value_point_inspection">성능점검 교환·수리 부위</string>
+    <string name="onboarding_share_title">엔카에서 공유하면 바로 분석해요</string>
+    <string name="onboarding_share_step_open">엔카 앱이나 브라우저에서 매물을 열어요</string>
+    <string name="onboarding_share_step_pick">공유를 누르고 AutoVerdict를 골라요</string>
+    <string name="onboarding_share_tip">링크를 복사해 홈에 붙여 넣어도 돼요</string>
+    <string name="onboarding_pending_share">공유한 매물은 시작하면 바로 분석해요</string>
+    <string name="onboarding_page_cd">%2$d쪽 중 %1$d쪽</string>
 </resources>
