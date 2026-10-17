@@ -6,13 +6,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.car.autoverdict.AutoVerdictApp
 import com.car.autoverdict.BuildConfig
+import com.car.autoverdict.home.HomeRoute
 import com.car.autoverdict.onboarding.OnboardingMode
 import com.car.autoverdict.onboarding.OnboardingScreen
 import com.car.autoverdict.result.ResultRoute
 import com.car.autoverdict.ui.AdBanner
 import com.car.autoverdict.ui.AdMediumRectangle
 import com.car.autoverdict.ui.gallery.ComponentGalleryScreen
-import com.car.autoverdict.ui.screen.AnalyzeScreen
 import com.car.autoverdict.ui.screen.CompareScreen
 import com.car.autoverdict.ui.screen.LicensesScreen
 import com.car.autoverdict.ui.screen.PrivacyPolicyScreen
@@ -32,10 +32,7 @@ fun AppScreenContent(route: Route, host: ScreenHost) {
                 onBack = host.back.takeIf { mode == OnboardingMode.Replay },
             )
         }
-        Route.Home -> AnalyzeScreen(
-            onOpenSettings = { host.navigate(Route.Settings) },
-            onAnalyze = { url -> host.navigate(Route.Result(url, fromSaved = false)) },
-        )
+        Route.Home -> HomeRoute(host)
         Route.Saved -> SavedListScreen(
             onCarClick = { url -> host.navigate(Route.Result(url, fromSaved = true)) },
             onCompare = { ids -> host.navigate(Route.Compare(ids)) },
