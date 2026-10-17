@@ -22,6 +22,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.test.swipeUp
@@ -133,10 +134,10 @@ class ResultSectionsTest {
     @Test fun `seller question buttons copy and share`() {
         show(caution)
         // The last section can sit partly under the bottom CTA even on the tall screen.
-        // performScrollTo is a programmatic scroll, so it must not count as the user scrolling.
+        // performScrollTo uses the semantics scroll action (like TalkBack), so it leaves the top.
         rule.onNodeWithText("복사").performScrollTo().performClick()
         rule.onNodeWithText("공유").performScrollTo().performClick()
-        assertEquals(listOf("copyQuestions", "shareQuestions"), recorder.calls)
+        assertEquals(listOf("userScrolled", "copyQuestions", "shareQuestions"), recorder.calls)
     }
 
     @Test fun `minimal report hides empty sections and shows the login banner`() {
@@ -227,16 +228,25 @@ class ResultScreenScrollTest {
         rule.waitForIdle()
     }
 
-    @Test fun `only a user drag counts as the first scroll, and only once`() {
+    @Test fun `leaving the top is reported once and scrolling to the top is not`() {
         show()
-        rule.runOnIdle { scope.launch { listState.animateScrollToItem(3) } }
+        rule.runOnIdle { scope.launch { listState.animateScrollToItem(0) } }
         rule.waitForIdle()
-        assertEquals(3, listState.firstVisibleItemIndex)
         assertEquals(emptyList<String>(), recorder.calls)
 
         rule.onNode(hasScrollAction()).performTouchInput { swipeUp() }
         rule.waitForIdle()
         rule.onNode(hasScrollAction()).performTouchInput { swipeDown() }
+        rule.waitForIdle()
+        rule.onNode(hasScrollAction()).performTouchInput { swipeUp() }
+        rule.waitForIdle()
+        assertEquals(listOf("userScrolled"), recorder.calls)
+    }
+
+    @Test fun `accessibility scroll action counts as the first scroll`() {
+        show()
+        // TalkBack (and keyboard/mouse wheel) scroll without a drag gesture.
+        rule.onNode(hasScrollAction()).performScrollToIndex(3)
         rule.waitForIdle()
         assertEquals(listOf("userScrolled"), recorder.calls)
     }
@@ -250,7 +260,8 @@ class ResultScreenScrollTest {
         rule.onNodeWithText("보기").performClick()
         rule.waitForIdle()
 
-        assertEquals(listOf("applyUpdate"), recorder.calls)
+        // Leaving the top counted once; returning to it doesn't count again.
+        assertEquals(listOf("userScrolled", "applyUpdate"), recorder.calls)
         assertEquals(0, listState.firstVisibleItemIndex)
     }
 }

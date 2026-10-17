@@ -191,6 +191,25 @@ class ResultScreenTest {
         rule.onNodeWithText("저장을 취소할까요?").assertExists()
     }
 
+    @Test fun `unsave dialog closes for good when the car is unsaved elsewhere`() {
+        var saved by mutableStateOf(true)
+        rule.setContent {
+            AvTheme { ResultScreen(state = ResultUiState.Ready(caution, saved = saved, banner = null), actions = recorder.actions) }
+        }
+        rule.onNodeWithText("저장됨").performClick()
+        rule.onNodeWithText("저장을 취소할까요?").assertExists()
+
+        saved = false
+        rule.waitForIdle()
+        rule.onNodeWithText("저장을 취소할까요?").assertDoesNotExist()
+
+        // Saving again must not bring back the stale dialog.
+        saved = true
+        rule.waitForIdle()
+        rule.onNodeWithText("저장을 취소할까요?").assertDoesNotExist()
+        assertEquals(emptyList<String>(), recorder.calls)
+    }
+
     @Test fun `save button ignores taps while saving`() {
         show(ResultUiState.Ready(caution, saved = false, banner = null, saving = true))
         rule.onNodeWithText("저장하기").performClick()

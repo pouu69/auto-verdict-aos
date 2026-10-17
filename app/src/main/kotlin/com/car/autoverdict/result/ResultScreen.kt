@@ -2,7 +2,6 @@ package com.car.autoverdict.result
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,6 +40,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -241,10 +241,11 @@ private fun ReadyBody(
     modifier: Modifier,
 ) {
     val onUserScrolled by rememberUpdatedState(actions.onUserScrolled)
-    // Report the first user drag only: after that the controller turns refreshes into a banner.
-    // Programmatic scrolls (e.g. back to the top after "보기") emit no drag and don't count.
+    // Report the first time the list leaves the top: after that the controller turns refreshes
+    // into a banner. Position, not drag gestures, so TalkBack scroll actions, mouse wheels and
+    // keyboard scrolling count too; scrolling back to the top (after "보기") never fires it.
     LaunchedEffect(listState) {
-        listState.interactionSource.interactions.first { it is DragInteraction.Start }
+        snapshotFlow { listState.canScrollBackward }.first { it }
         onUserScrolled()
     }
     val scope = rememberCoroutineScope()
@@ -307,6 +308,8 @@ private fun LazyListScope.section(key: String, content: @Composable () -> Unit) 
 @Composable
 private fun ReadyCta(state: ResultUiState.Ready, actions: ResultActions) {
     var confirmUnsave by rememberSaveable { mutableStateOf(false) }
+    // Unsaved elsewhere (or by a refresh): drop the pending confirm so re-saving doesn't revive it.
+    LaunchedEffect(state.saved) { if (!state.saved) confirmUnsave = false }
     AvBottomCta(windowInsets = WindowInsets(0)) {
         CtaIconButton(
             icon = Icons.Rounded.Share,
