@@ -55,11 +55,7 @@ import com.car.autoverdict.ui.AdBanner
 import com.car.autoverdict.ui.AdMediumRectangle
 import com.car.autoverdict.ui.components.AvTopBar
 import com.car.autoverdict.ui.components.avPressable
-import com.car.autoverdict.ui.theme.Background
-import com.car.autoverdict.ui.theme.Border
-import com.car.autoverdict.ui.theme.Primary
-import com.car.autoverdict.ui.theme.TextPrimary
-import com.car.autoverdict.ui.theme.TextSecondary
+import com.car.autoverdict.ui.theme.AvTheme
 import com.car.autoverdict.util.EncarUrl
 import com.car.autoverdict.webview.EvalWebView
 import com.car.autoverdict.webview.NativeBridge
@@ -80,6 +76,7 @@ fun ResultScreen(
     // The bridge is created once inside remember{}; read onBack through updated state so
     // "close" always pops the current back stack (spec 7.2).
     val currentOnBack by rememberUpdatedState(onBack)
+    val colors = AvTheme.colors
 
     var isLoading by remember { mutableStateOf(true) }
     var statusText by remember { mutableStateOf("매물 데이터 수집 중") }
@@ -152,7 +149,7 @@ fun ResultScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Background)
+            .background(colors.surfaceMuted)
             .navigationBarsPadding(),
     ) {
         AvTopBar(
@@ -201,6 +198,7 @@ fun ResultScreen(
 
 @Composable
 private fun OpenInEncarChip(onClick: () -> Unit) {
+    val colors = AvTheme.colors
     Box(
         modifier = Modifier
             .avPressable(onClick = onClick)
@@ -210,21 +208,21 @@ private fun OpenInEncarChip(onClick: () -> Unit) {
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(999.dp))
-                .background(Primary.copy(alpha = 0.1f))
+                .background(colors.accentWeak)
                 .padding(horizontal = 12.dp, vertical = 7.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
                 contentDescription = null,
-                tint = Primary,
+                tint = colors.accentText,
                 modifier = Modifier.size(14.dp),
             )
             Spacer(Modifier.width(6.dp))
             Text(
                 text = "엔카에서 보기",
                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = Primary,
+                color = colors.accentText,
             )
         }
     }
@@ -232,6 +230,7 @@ private fun OpenInEncarChip(onClick: () -> Unit) {
 
 @Composable
 private fun LoadingOverlay(statusText: String) {
+    val colors = AvTheme.colors
     val infinite = rememberInfiniteTransition(label = "loadingPulse")
     val pulse by infinite.animateFloat(
         initialValue = 0.85f,
@@ -246,7 +245,7 @@ private fun LoadingOverlay(statusText: String) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Background),
+            .background(colors.surfaceMuted),
         contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -255,7 +254,7 @@ private fun LoadingOverlay(statusText: String) {
                     .size(112.dp)
                     .graphicsLayer { scaleX = pulse; scaleY = pulse }
                     .clip(RoundedCornerShape(28.dp))
-                    .background(Primary.copy(alpha = 0.1f)),
+                    .background(colors.accentWeak),
                 contentAlignment = Alignment.Center,
             ) {
                 Box(
@@ -268,14 +267,14 @@ private fun LoadingOverlay(statusText: String) {
                     Icon(
                         imageVector = Icons.Outlined.AutoAwesome,
                         contentDescription = null,
-                        tint = Primary,
+                        tint = colors.accentText,
                         modifier = Modifier.size(32.dp),
                     )
                 }
             }
             Spacer(Modifier.height(28.dp))
             CircularProgressIndicator(
-                color = Primary,
+                color = colors.accent,
                 strokeWidth = 2.5.dp,
                 modifier = Modifier.size(20.dp),
             )
@@ -283,13 +282,13 @@ private fun LoadingOverlay(statusText: String) {
             Text(
                 text = statusText,
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = TextPrimary,
+                color = colors.textPrimary,
             )
             Spacer(Modifier.height(6.dp))
             Text(
                 text = "잠시만 기다려주세요",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary,
+                color = colors.textSecondary,
             )
             Spacer(Modifier.height(32.dp))
             Box(
@@ -297,7 +296,7 @@ private fun LoadingOverlay(statusText: String) {
                     .width(160.dp)
                     .height(2.dp)
                     .clip(RoundedCornerShape(1.dp))
-                    .background(Border),
+                    .background(colors.border),
             ) {
                 val progress by infinite.animateFloat(
                     initialValue = 0f,
@@ -312,7 +311,7 @@ private fun LoadingOverlay(statusText: String) {
                         .fillMaxHeight()
                         .width(64.dp)
                         .graphicsLayer { translationX = progress * 96.dp.toPx() }
-                        .background(Primary),
+                        .background(colors.accent),
                 )
             }
 
