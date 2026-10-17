@@ -132,19 +132,31 @@ class AppDatabaseTest {
 
         cacheDao.clearAll()
 
-        val recent = cacheDao.getRecentFlow(now).first()
+        val recent = cacheDao.recentViewsFlow(now, 20).first()
         assertEquals(0, recent.size)
     }
 
     @Test
-    fun `getRecentFlow excludes expired`() = runTest {
+    fun `recentViewsFlow excludes expired`() = runTest {
         val now = System.currentTimeMillis()
         cacheDao.upsert(makeCache("expired", cachedAt = now - 100000, expiresAt = now - 1))
         cacheDao.upsert(makeCache("valid", cachedAt = now, expiresAt = now + 86400000))
 
-        val recent = cacheDao.getRecentFlow(now).first()
-        assertEquals(1, recent.size)
-        assertEquals("valid", recent[0].carId)
+        val recent = cacheDao.recentViewsFlow(now, 20).first()
+        assertEquals(listOf("valid"), recent.map { it.carId })
+        assertEquals(
+            RecentViewRow("valid", "https://fem.encar.com/cars/detail/valid", "Test Car", 80, "OK", now),
+            recent[0],
+        )
+    }
+
+    @Test
+    fun `recentViewsFlow returns newest first up to the limit`() = runTest {
+        val now = System.currentTimeMillis()
+        (1..3).forEach { cacheDao.upsert(makeCache("$it", cachedAt = now - it * 1000L)) }
+
+        val recent = cacheDao.recentViewsFlow(now, 2).first()
+        assertEquals(listOf("1", "2"), recent.map { it.carId })
     }
 
     // --- Helpers ---

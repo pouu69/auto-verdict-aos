@@ -8,8 +8,12 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CacheDao {
-    @Query("SELECT * FROM cache WHERE expiresAt > :now ORDER BY cachedAt DESC")
-    fun getRecentFlow(now: Long = System.currentTimeMillis()): Flow<List<CacheEntity>>
+    /** Non-expired rows, newest first, with only the columns the home list needs. */
+    @Query(
+        "SELECT carId, url, title, score, verdict, cachedAt FROM cache " +
+            "WHERE expiresAt > :now ORDER BY cachedAt DESC LIMIT :limit",
+    )
+    fun recentViewsFlow(now: Long, limit: Int): Flow<List<RecentViewRow>>
 
     @Query("SELECT * FROM cache WHERE carId = :carId AND expiresAt > :now")
     suspend fun getValid(carId: String, now: Long = System.currentTimeMillis()): CacheEntity?

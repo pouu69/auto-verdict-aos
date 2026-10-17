@@ -24,12 +24,8 @@ fun AppScreenContent(route: Route, host: ScreenHost) {
     when (route) {
         Route.Onboarding -> OnboardingScreen(onComplete = host.finishOnboarding)
         Route.Home -> AnalyzeScreen(
-            lastAnalyzedUrl = host.lastAnalyzedUrl,
             onOpenSettings = { host.navigate(Route.Settings) },
-            onAnalyze = { url ->
-                host.onAnalyzed(url)
-                host.navigate(Route.Result(url, fromSaved = false))
-            },
+            onAnalyze = { url -> host.navigate(Route.Result(url, fromSaved = false)) },
         )
         Route.Saved -> SavedListScreen(
             onCarClick = { url -> host.navigate(Route.Result(url, fromSaved = true)) },

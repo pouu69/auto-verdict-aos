@@ -62,8 +62,8 @@ class ResultRouteTest {
         navigate = { calls += "navigate" },
         back = { calls += "back" },
         finishOnboarding = {},
-        lastAnalyzedUrl = null,
-        onAnalyzed = {},
+        isFirstRunOnboarding = false,
+        hasPendingShare = false,
         selectTab = { calls += "tab:$it" },
     )
 

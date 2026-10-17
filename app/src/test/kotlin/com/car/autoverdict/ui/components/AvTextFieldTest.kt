@@ -1,6 +1,9 @@
 package com.car.autoverdict.ui.components
 
 import android.app.Application
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
@@ -54,5 +57,28 @@ class AvTextFieldTest {
         }
         rule.onNodeWithContentDescription("지우기").performClick()
         assertEquals(1, cleared)
+    }
+
+    @Test fun `action button shows only while empty and calls onAction`() {
+        var value by mutableStateOf("")
+        var pasted = 0
+        rule.setContent {
+            AvTheme {
+                AvTextField(
+                    value = value,
+                    onValueChange = {},
+                    placeholder = "p",
+                    onClear = {},
+                    actionLabel = "붙여넣기",
+                    onAction = { pasted++ },
+                )
+            }
+        }
+        rule.onNodeWithText("붙여넣기").performClick()
+        assertEquals(1, pasted)
+
+        value = "abc"
+        rule.onNodeWithText("붙여넣기").assertDoesNotExist()
+        rule.onNodeWithContentDescription("지우기").assertIsDisplayed()
     }
 }

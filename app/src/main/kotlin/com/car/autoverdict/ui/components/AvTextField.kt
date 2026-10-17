@@ -35,6 +35,9 @@ import com.car.autoverdict.ui.theme.AvTheme
 /**
  * Filled single-line field. Placeholder uses textTertiary on surfaceMuted — the one
  * allowed exception in the spec's contrast table (4.2).
+ *
+ * With [actionLabel] and [onAction] an empty field shows a Weak S button on the right
+ * (e.g. paste); once there is text, the clear icon takes that spot as before.
  */
 @Composable
 fun AvTextField(
@@ -45,6 +48,8 @@ fun AvTextField(
     leadingIcon: ImageVector? = null,
     errorText: String? = null,
     onClear: (() -> Unit)? = null,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
 ) {
@@ -87,6 +92,14 @@ fun AvTextField(
                             )
                         }
                         innerTextField()
+                    }
+                    if (actionLabel != null && onAction != null && value.isEmpty()) {
+                        AvButton(
+                            text = actionLabel,
+                            onClick = onAction,
+                            style = AvButtonStyle.Weak,
+                            size = AvButtonSize.Small,
+                        )
                     }
                     if (onClear != null && value.isNotEmpty()) {
                         AvIconButton(
