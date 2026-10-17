@@ -27,11 +27,28 @@ internal object ListingAvailability {
         if (vehicleId == null || queryCarId == null || vehicleId == queryCarId) return false
 
         // Defensive branch (never observed live): a different car without a dummy link.
+        return originalOfDummyAd(base) == null
+    }
+
+    private fun originalOfDummyAd(base: JSONObject): String? {
         val manage = base.optJSONObject("manage")
-        val isDummyAliasOfQuery = manage != null &&
-            manage.optBoolean("dummy", false) &&
-            idOf(manage, "dummyVehicleId") == queryCarId
-        return !isDummyAliasOfQuery
+        return originalOfDummyAd(
+            vehicleId = idOf(base, "vehicleId"),
+            queryCarId = idOf(base, "queryCarId"),
+            dummy = manage?.optBoolean("dummy", false) ?: false,
+            dummyVehicleId = manage?.let { idOf(it, "dummyVehicleId") },
+        )
+    }
+
+    /**
+     * The original vehicle id when a base is a dummy ad served for its `queryCarId`
+     * (`vehicleId != queryCarId`, `manage.dummy`, `manage.dummyVehicleId == queryCarId`); null
+     * for any other base, including the original listing itself. Ids are compared as normalized
+     * strings ("123" for both 123 and "123").
+     */
+    fun originalOfDummyAd(vehicleId: String?, queryCarId: String?, dummy: Boolean, dummyVehicleId: String?): String? {
+        if (vehicleId == null || queryCarId == null || vehicleId == queryCarId) return null
+        return vehicleId.takeIf { dummy && dummyVehicleId == queryCarId }
     }
 
     /**

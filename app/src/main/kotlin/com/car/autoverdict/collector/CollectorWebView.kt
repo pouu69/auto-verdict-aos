@@ -218,7 +218,8 @@ class CollectorWebView(context: Context) : Collector {
                     return@evaluateJavascript
                 }
                 // A dummy-ad URL resolves to the original vehicle: the APIs use base.vehicleId,
-                // while carId (DB/cache key, saved URL) stays the id the user opened.
+                // while the payload's carId (cache key) stays the id the user opened. Saved rows
+                // key on the original id instead (SavedCarKey).
                 fetchApis(session, carId, cars, onStage, callback)
             } catch (e: Exception) {
                 callback(Result.Error(CollectErrorKind.PageUnreadable, "데이터 파싱 오류: ${e.message}"))

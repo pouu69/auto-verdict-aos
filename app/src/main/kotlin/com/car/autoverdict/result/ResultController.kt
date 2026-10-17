@@ -27,6 +27,10 @@ import kotlinx.coroutines.withContext
  * Result screen state machine (spec 5.1). Data source order: saved row (then a silent
  * background refresh) → 24h cache → collector. Saved status always comes from the DB.
  *
+ * Saved rows are keyed by [SavedCarKey]: a dummy-ad URL is first looked up under its own id
+ * (legacy rows), then — once a payload names the original vehicle — under the original id.
+ * New saves use the original id; an existing row is refreshed and deleted under its own id.
+ *
  * Plain class, not a ViewModel: the screen creates it with `remember(route)` and a composition
  * scope. [scope] must be main-confined — all fields are touched without locking.
  */
@@ -44,7 +48,10 @@ class ResultController(
     val events: Flow<ResultEvent> = _events.receiveAsFlow()
 
     /** A report and the raw collector payload it was built from (what save/cache store). */
-    private data class Evaluated(val report: EvaluationReport, val rawJson: String)
+    private data class Evaluated(val report: EvaluationReport, val rawJson: String) {
+        /** Where a new save of this car goes (the original vehicle id for a dummy ad). */
+        val savedKey: String by lazy { SavedCarKey.of(rawJson, fallback = report.carId) }
+    }
 
     private val carId: String? = carIdOf(url)
     private var started = false
@@ -57,6 +64,9 @@ class ResultController(
     private var pendingUpdate: Evaluated? = null
     private var saved = false
     private var savedAt: Long? = null
+
+    /** `carId` of the saved row behind [saved]; may be a legacy dummy-ad id. */
+    private var savedRowId: String? = null
     private var saving = false
     private var refreshing = false
     private var soldOut = false
@@ -77,6 +87,7 @@ class ResultController(
             val entity = readOrNull { repository.savedCar(id) }
             saved = entity != null
             savedAt = entity?.savedAt
+            savedRowId = entity?.carId
             if (entity != null) {
                 val report = evaluate(entity.rawJson)
                 if (report != null) {
@@ -92,7 +103,9 @@ class ResultController(
             if (cached != null) {
                 val report = evaluate(cached)
                 if (report != null) {
-                    display(Evaluated(report, cached))
+                    val evaluated = Evaluated(report, cached)
+                    adoptSavedRow(evaluated)
+                    display(evaluated)
                     return@launch
                 }
             }
@@ -145,7 +158,8 @@ class ResultController(
                 savedRowLock.withLock {
                     // Read under the lock: an update may have swapped the report since the tap.
                     val current = checkNotNull(shown)
-                    savedAt = repository.save(current.report, current.rawJson)
+                    savedAt = repository.save(current.report, current.rawJson, carId = current.savedKey)
+                    savedRowId = current.savedKey
                     saved = true
                 }
             }
@@ -165,9 +179,11 @@ class ResultController(
         scope.launch {
             val ok = write {
                 savedRowLock.withLock {
-                    repository.delete(id)
+                    // The row found plus the current key: both stand for this car.
+                    for (rowId in setOfNotNull(savedRowId ?: id, shown?.savedKey)) repository.delete(rowId)
                     saved = false
                     savedAt = null
+                    savedRowId = null
                 }
             }
             saving = false
@@ -217,6 +233,7 @@ class ResultController(
                     _state.value = ResultUiState.Error(ResultErrorKind.EngineFailed)
                 } else {
                     val fresh = Evaluated(report, outcome.rawJson)
+                    adoptSavedRow(fresh)
                     // Write before the hold, so leaving the screen during it still keeps the result.
                     persist(fresh)
                     minimumHold.join()
@@ -314,10 +331,25 @@ class ResultController(
             }
             tryWrite {
                 savedRowLock.withLock {
-                    if (saved) savedAt = repository.save(fresh.report, fresh.rawJson, savedAt = savedAt)
+                    if (saved) {
+                        val rowId = savedRowId ?: fresh.savedKey
+                        savedAt = repository.save(fresh.report, fresh.rawJson, savedAt = savedAt, carId = rowId)
+                    }
                 }
             }
         }
+    }
+
+    /**
+     * Not saved under the URL id, but [evaluated] names a different [Evaluated.savedKey] (a
+     * dummy-ad URL): the car may be saved under its original id.
+     */
+    private suspend fun adoptSavedRow(evaluated: Evaluated) {
+        if (saved || evaluated.savedKey == carId) return
+        val entity = readOrNull { repository.savedCar(evaluated.savedKey) } ?: return
+        saved = true
+        savedAt = entity.savedAt
+        savedRowId = entity.carId
     }
 
     // --- state ---

@@ -266,7 +266,7 @@ class ResultRouteTest {
 
         override suspend fun writeCache(report: EvaluationReport, rawJson: String) = Unit
 
-        override suspend fun save(report: EvaluationReport, rawJson: String, savedAt: Long?): Long {
+        override suspend fun save(report: EvaluationReport, rawJson: String, savedAt: Long?, carId: String): Long {
             if (failWrites) throw IOException("disk full")
             saves++
             saved = savedEntity()
