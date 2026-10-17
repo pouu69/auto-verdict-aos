@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,11 +35,8 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -58,6 +54,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.car.autoverdict.AutoVerdictApp
 import com.car.autoverdict.db.SavedCarEntity
+import com.car.autoverdict.ui.components.AvIconButton
+import com.car.autoverdict.ui.components.AvTopBar
 import com.car.autoverdict.ui.theme.Background
 import com.car.autoverdict.ui.theme.Border
 import com.car.autoverdict.ui.theme.Danger
@@ -108,32 +106,22 @@ fun SavedListScreen(
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "저장된 매물",
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    )
-                },
+            AvTopBar(
+                onBack = null,
+                title = "저장한 차",
                 actions = {
                     if (savedCars.size >= 2) {
-                        IconButton(onClick = {
-                            compareMode = !compareMode
-                            if (!compareMode) selectedCarIds = emptySet()
-                        }) {
-                            Icon(
-                                imageVector = if (compareMode) Icons.Outlined.Close else Icons.AutoMirrored.Outlined.CompareArrows,
-                                contentDescription = if (compareMode) "비교 취소" else "비교 모드",
-                                tint = if (compareMode) Danger else Primary,
-                            )
-                        }
+                        AvIconButton(
+                            icon = if (compareMode) Icons.Outlined.Close else Icons.AutoMirrored.Outlined.CompareArrows,
+                            contentDescription = if (compareMode) "비교 취소" else "비교 모드",
+                            onClick = {
+                                compareMode = !compareMode
+                                if (!compareMode) selectedCarIds = emptySet()
+                            },
+                            tint = if (compareMode) Danger else Primary,
+                        )
                     }
                 },
-                windowInsets = WindowInsets(0, 0, 0, 0),
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Background,
-                    titleContentColor = TextPrimary,
-                ),
             )
 
             // Compare mode banner
