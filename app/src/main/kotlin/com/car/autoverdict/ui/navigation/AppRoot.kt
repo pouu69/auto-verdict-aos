@@ -17,13 +17,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,8 +38,7 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -74,11 +79,9 @@ fun AppRoot(
     }
     var transition by remember { mutableStateOf(NavTransition.None) }
     var lastAnalyzedUrl by rememberSaveable { mutableStateOf<String?>(null) }
-    var bottomChromeHeight by remember { mutableStateOf(0.dp) }
     val toast = rememberAvToastState()
     // Keeps each stacked screen's rememberSaveable state while it is covered (spec 7.2).
     val saveableStateHolder = rememberSaveableStateHolder()
-    val density = LocalDensity.current
     val invalidShareMessage = stringResource(R.string.toast_invalid_share)
 
     fun dispatch(event: NavEvent) {
@@ -120,8 +123,13 @@ fun AppRoot(
     val currentTab = top.tabOrNull()
     // While the chrome animates out with a tab page it keeps showing that tab as selected.
     var lastTab by remember { mutableStateOf(currentTab ?: MainTab.Home) }
-    if (currentTab != null) lastTab = currentTab
+    SideEffect { if (currentTab != null) lastTab = currentTab }
     val animateChrome = transition == NavTransition.Push || transition == NavTransition.Pop
+    // Computed, not measured: a tab page first composed while the chrome is hidden (share at cold
+    // start, restored sub-screen) must already stop at the right height, or its first pop jumps.
+    val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val tabBarHeight = TabBarDividerHeight + TabBarRowHeight + navBarBottom
+    val bottomChromeHeight = BannerSlotHeight + tabBarHeight
 
     CompositionLocalProvider(LocalAvToast provides toast) {
         Box(modifier = Modifier.fillMaxSize().background(AvTheme.colors.background)) {
@@ -132,12 +140,14 @@ fun AppRoot(
                 transitionSpec = { transitionFor(transition) },
                 label = "route",
             ) { route ->
-                // Opaque, so a page sliding in hides whatever is under it (the chrome included).
+                // Opaque and a hit target, so a page sliding in hides the chrome under it and
+                // keeps taps (e.g. on the leaving banner) from reaching it.
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .then(pageInsets(route, bottomChromeHeight))
-                        .background(AvTheme.colors.background),
+                        .background(AvTheme.colors.background)
+                        .pointerInput(Unit) { awaitPointerEventScope { while (true) awaitPointerEvent() } },
                 ) {
                     saveableStateHolder.SaveableStateProvider(RouteCodec.encode(route)) {
                         screenContent(route, hostFor(route))
@@ -154,18 +164,16 @@ fun AppRoot(
                 exit = if (animateChrome) chromeExit else ExitTransition.None,
                 label = "tabChrome",
             ) {
-                Column(
-                    modifier = Modifier.onSizeChanged {
-                        // Keep the last real height so tab pages never jump while the chrome is gone.
-                        if (it.height > 0) bottomChromeHeight = with(density) { it.height.toDp() }
-                    },
-                ) {
-                    adBanner()
+                // Fixed heights keep the chrome exactly bottomChromeHeight tall, whether or not
+                // the ad has loaded.
+                Column {
+                    Box(modifier = Modifier.fillMaxWidth().height(BannerSlotHeight)) { adBanner() }
                     AvTabBar(
-                        selected = lastTab,
+                        selected = currentTab ?: lastTab,
                         // Taps on the chrome while it leaves belong to a screen that is no longer on top.
                         onSelect = { if (navState.top.tabOrNull() != null) dispatch(NavEvent.SelectTab(it)) },
                         savedCount = savedCount,
+                        modifier = Modifier.height(tabBarHeight),
                     )
                 }
             }
@@ -191,6 +199,13 @@ private fun pageInsets(route: Route, bottomChromeHeight: Dp): Modifier =
     } else {
         Modifier
     }
+
+// AdSize.BANNER is 320x50; the slot keeps that height before the ad loads (and in tests).
+private val BannerSlotHeight = 50.dp
+
+// AvTabBar: 1dp divider over a 56dp row, plus the navigation bar inset below it.
+private val TabBarDividerHeight = 1.dp
+private val TabBarRowHeight = 56.dp
 
 // Matches the outgoing tab page's slide on push (and the incoming one's on pop).
 private val chromeEnter = slideInHorizontally(tween(250)) { -it / 4 } + fadeIn(tween(250))

@@ -3,23 +3,33 @@ package com.car.autoverdict.ui.navigation
 import android.app.Application
 import android.content.Context
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import com.car.autoverdict.R
 import com.car.autoverdict.ui.theme.AvTheme
@@ -65,6 +75,7 @@ class AppRootTest {
         pending: NavEvent?,
         onConsumed: () -> Unit,
         onOnboardingComplete: () -> Unit = {},
+        adBanner: @Composable () -> Unit = {},
     ) {
         AvTheme {
             AppRoot(
@@ -73,7 +84,7 @@ class AppRootTest {
                 pendingNavEvent = pending,
                 onPendingNavEventConsumed = onConsumed,
                 savedCount = 0,
-                adBanner = {},
+                adBanner = adBanner,
                 screenContent = { route, host -> FakeScreen(route, host) },
             )
         }
@@ -148,6 +159,87 @@ class AppRootTest {
         rule.onNodeWithText("route:home").assertExists()
         assertEquals(listOf(homeHeight), pageHeights["home"])
         assertEquals(emptyList<Int>(), pageHeights["settings"].orEmpty())
+    }
+
+    /** Pops the result opened by a share and asserts Home appears at one steady height. */
+    private fun assertHomeHeightSteadyOnFirstPop() {
+        rule.onNodeWithText("route:result|0|$url").assertExists()
+        val resultHeight = pageHeights.getValue("result|0|$url").last()
+        pageHeights.clear()
+
+        rule.mainClock.autoAdvance = false
+        rule.onNodeWithText("go-back").performClick()
+        repeat(30) { rule.mainClock.advanceTimeByFrame() }
+        rule.mainClock.autoAdvance = true
+        rule.waitForIdle()
+
+        rule.onNodeWithText("route:home").assertExists()
+        val homeHeights = pageHeights.getValue("home")
+        assertEquals(1, homeHeights.size)
+        assertTrue(homeHeights.single() < resultHeight)
+    }
+
+    @Test fun `home keeps its height on the first pop after a cold-start share`() {
+        rule.setContent { Root(onboardingComplete = true, pending = NavEvent.OpenShared(url), onConsumed = {}) }
+        rule.waitForIdle()
+        assertHomeHeightSteadyOnFirstPop()
+    }
+
+    @Test fun `home keeps its height on the first pop after a share during first-run onboarding`() {
+        var pending: NavEvent? by mutableStateOf(NavEvent.OpenShared(url))
+        rule.setContent { Root(onboardingComplete = false, pending = pending, onConsumed = { pending = null }) }
+        rule.onNodeWithText("finish-onboarding").performClick()
+        rule.waitForIdle()
+        assertHomeHeightSteadyOnFirstPop()
+    }
+
+    @Test fun `exiting banner takes no taps through the incoming page`() {
+        var bannerTaps = 0
+        rule.setContent {
+            Root(
+                onboardingComplete = true,
+                pending = null,
+                onConsumed = {},
+                adBanner = { Box(Modifier.fillMaxWidth().height(50.dp).clickable { bannerTaps++ }) },
+            )
+        }
+        rule.waitForIdle()
+        val root = rule.onRoot().fetchSemanticsNode().size
+        val tabBarPx = with(rule.density) { (57.dp + 25.dp).toPx() }
+        val bannerPoint = Offset(root.width * 0.6f, root.height - tabBarPx)
+        rule.onRoot().performTouchInput { click(bannerPoint) }
+        rule.waitForIdle()
+        assertEquals(1, bannerTaps)
+
+        rule.mainClock.autoAdvance = false
+        rule.onNodeWithText("open-settings").performClick()
+        rule.mainClock.advanceTimeByFrame()
+        rule.mainClock.advanceTimeBy(100)
+        // The incoming page already covers this point, though the banner is still composed under it.
+        rule.onNodeWithText("홈").assertExists()
+        rule.onRoot().performTouchInput { click(bannerPoint) }
+        rule.mainClock.autoAdvance = true
+        rule.waitForIdle()
+
+        rule.onNodeWithText("route:settings").assertExists()
+        assertEquals(1, bannerTaps)
+    }
+
+    @Test fun `switching tabs keeps the same banner`() {
+        var bannerCreations = 0
+        rule.setContent {
+            Root(
+                onboardingComplete = true,
+                pending = null,
+                onConsumed = {},
+                adBanner = { DisposableEffect(Unit) { bannerCreations++; onDispose {} } },
+            )
+        }
+        rule.onNodeWithText("저장한 차").performClick()
+        rule.onNodeWithText("route:saved").assertExists()
+        rule.onNodeWithText("홈").performClick()
+        rule.onNodeWithText("route:home").assertExists()
+        assertEquals(1, bannerCreations)
     }
 
     @Test fun `invalid share shows a toast`() {
