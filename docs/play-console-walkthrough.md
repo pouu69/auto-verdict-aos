@@ -1,6 +1,6 @@
 # Google Play Console 등록 — 처음부터 따라하기 (친절판)
 
-> AutoVerdict v1.0.0를 Play Store에 올리기 위한 **클릭 단위 가이드**.
+> AutoVerdict v1.0.2 (versionCode 3, targetSdk 36)를 Play Store에 올리기 위한 **클릭 단위 가이드** (첫 출시).
 > 메뉴를 못 찾을 때 이 문서의 "📍 메뉴 위치"를 보고 그대로 따라가면 됩니다.
 > 입력값 모음·체크리스트는 [play-store-checklist.md](./play-store-checklist.md) 참고.
 
@@ -34,14 +34,14 @@ Play Console은 **2단계**로 나뉩니다. 헷갈리는 이유가 이 구조 �
 
 | 준비물 | 상태 | 위치 |
 |---|---|---|
-| Release AAB | ✅ | `app/build/outputs/bundle/release/app-release.aab` |
+| Release AAB | ✅ | `app/build/outputs/bundle/release/app-release.aab` (v1.0.2, 약 7.1MB) |
 | 앱 아이콘 512×512 | ✅ | `docs/assets/play-icon-512.png` |
 | 피처 그래픽 1024×500 | ✅ | `docs/assets/feature-graphic-1024x500.png` |
 | 스토어 문구 | ✅ | `docs/store-listing.md` |
 | 개인정보처리방침 글 | ✅ | `docs/privacy-policy.md` |
-| **개인정보처리방침 공개 URL** | ⛔ 직접 | STEP 1 |
-| **스크린샷 2~8장** | ⛔ 직접 | STEP 2 |
-| **Keystore 백업** | ⛔ 직접 | STEP 0 |
+| 개인정보처리방침 공개 URL | ✅ | https://pouu69.github.io/auto-verdict-aos/ |
+| 스크린샷 | ✅ | `docs/assets/screenshots/` |
+| **Keystore 백업** | ⛔ 직접 | STEP 0 (`secrets/autoverdict-upload.jks`, 2026-10-17 재발급) |
 
 ---
 
@@ -59,7 +59,10 @@ Play Console은 **2단계**로 나뉩니다. 헷갈리는 이유가 이 구조 �
 
 ---
 
-## STEP 1 — 개인정보처리방침 공개 URL 만들기 (30분)
+## STEP 1 — 개인정보처리방침 공개 URL 만들기 ✅ 완료
+
+> ✅ 이미 GitHub Pages로 공개됨: **https://pouu69.github.io/auto-verdict-aos/**
+> STEP 4 "앱 콘텐츠 → 개인정보처리방침"에 이 URL을 입력하세요. 아래 방법은 참고용.
 
 Play Console은 앱 내 화면이 아니라 **인터넷에 공개된 URL**을 요구합니다.
 
@@ -77,7 +80,9 @@ Play Console은 앱 내 화면이 아니라 **인터넷에 공개된 URL**을 �
 
 ---
 
-## STEP 2 — 스크린샷 캡처 (1~2시간, 최소 2장)
+## STEP 2 — 스크린샷 캡처 ✅ 완료
+
+> ✅ 캡처 완료: `docs/assets/screenshots/` (`01.png` …) — 아래 명령은 재촬영 시 참고용.
 
 휴대폰 스크린샷이 있어야 스토어 등록이 완료됩니다.
 
@@ -129,7 +134,7 @@ adb exec-out screencap -p > docs/assets/screenshots/01.png
 | 설문 항목 | 응답 |
 |---|---|
 | 앱 액세스 권한 | "모든 기능을 제한 없이 사용 가능" |
-| 광고 | **예, 광고 포함** (AdMob 사용) |
+| 광고 | **예, 광고 포함** (AdMob 배너) |
 | 콘텐츠 등급 | 설문 시작 → 이메일 입력 → 카테고리 "유틸리티" → 질문 **모두 아니오** → 제출 (전체이용가) |
 | 타겟층 및 콘텐츠 | 만 13세 이상 선택 / 아동 대상 아님 |
 | 데이터 보안 | 아래 4-1 참고 |
@@ -160,7 +165,7 @@ adb exec-out screencap -p > docs/assets/screenshots/01.png
 | 자세한 설명 (4000자) | store-listing의 긴 설명 |
 | 앱 아이콘 | `docs/assets/play-icon-512.png` |
 | 그래픽 이미지(피처) | `docs/assets/feature-graphic-1024x500.png` |
-| 휴대전화 스크린샷 | STEP 2에서 만든 `docs/assets/screenshots/*.png` |
+| 휴대전화 스크린샷 | `docs/assets/screenshots/*.png` |
 
 📍 **카테고리 설정**: 같은 "성장 → 스토어 현황 → **스토어 설정**" 에서
 앱 카테고리 = **자동차**, 연락처 이메일 = pouu69@gmail.com

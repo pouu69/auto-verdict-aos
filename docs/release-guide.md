@@ -4,8 +4,10 @@
 
 업로드 키스토어를 생성합니다. **반드시 안전한 곳에 별도 백업** — 분실하면 동일 앱 업데이트가 불가능합니다.
 
+> 현재 키스토어: `secrets/autoverdict-upload.jks` (별칭 `autoverdict-upload`, 2026-10-17 생성, 유효기간 25년). 이전 PC의 키스토어는 분실되어 새로 발급함.
+
 ```bash
-cd <repo>
+# 저장소 루트에서 실행
 
 # 1. keystore 디렉터리 생성 (git에 커밋하지 말 것)
 mkdir -p secrets
@@ -34,7 +36,7 @@ keytool -genkey -v \
 프로젝트 루트에 `keystore.properties` 파일을 만듭니다 (이미 `.gitignore`에 포함됨).
 
 ```properties
-# <repo>/keystore.properties
+# <저장소 루트>/keystore.properties
 storeFile=secrets/autoverdict-upload.jks
 storePassword=<your_store_password>
 keyAlias=autoverdict-upload
@@ -123,7 +125,7 @@ bundletool install-apks --apks=app/build/outputs/bundle/release/app-release.apks
 |---|---|
 | 개인정보처리방침 URL 누락 또는 접근 불가 | GitHub Pages 등 정적 호스팅으로 공개 |
 | 광고 ID 권한 누락 (AdMob 사용시) | `AD_ID` 권한 명시 ✅ |
-| target SDK 미달 | targetSdk=35 ✅ |
+| target SDK 미달 | targetSdk=36 ✅ (2026-08-31부터 신규 앱·업데이트는 API 36 필수) |
 | 데이터 안전성 양식 미작성 | Play Console에서 필수 작성 |
 | 콘텐츠 등급 누락 | IARC 설문 완료 |
 | 광고 노출 미선언 | 스토어 등록정보에서 "광고 포함" 체크 |

@@ -66,13 +66,13 @@ URL 한 번이면 위험·주의·양호 항목을 한눈에 정리해 드립니
 
 
 개발자: AutoVerdict (pouu69@gmail.com)
-개인정보처리방침: [개인정보 처리방침 URL 입력]
+개인정보처리방침: https://pouu69.github.io/auto-verdict-aos/
 ```
 
 ## 무엇이 새로운가요? (출시 노트)
 
 ```
-v1.0.0 첫 출시
+v1.0.2 첫 출시
 
 · 엔카 매물 URL 자동 분석
 · 12가지 규칙 기반 종합 점수
@@ -89,7 +89,7 @@ v1.0.0 첫 출시
 ## 콘텐츠 등급
 
 - **대상 연령:** 만 13세 이상
-- **광고 포함:** 예 (AdMob 배너·전면)
+- **광고 포함:** 예 (AdMob 배너)
 - **인앱 결제:** 아니오
 - **사용자 생성 콘텐츠:** 아니오
 - **민감 권한:** 없음 (INTERNET, AD_ID만 사용)
@@ -113,12 +113,12 @@ v1.0.0 첫 출시
 
 - **타겟 기기:** 휴대전화, 태블릿
 - **타겟 국가/지역:** 대한민국 (이후 확대 가능)
-- **타겟 SDK:** API 35 (Android 15)
+- **타겟 SDK:** API 36 (Android 16)
 - **최소 SDK:** API 26 (Android 8.0)
 
 ## 광고 정책 (Ad Policy)
 
-본 앱은 Google AdMob을 사용하여 배너 및 전면 광고를 표시합니다.
+본 앱은 Google AdMob을 사용하여 배너 광고를 표시합니다. (전면 광고 없음)
 모든 광고는 Google AdMob의 정책에 따라 게재되며, 어린이 대상 콘텐츠는 포함하지 않습니다.
 
 - **AdMob 앱 ID:** ca-app-pub-5353705048338468~6253564104
@@ -128,11 +128,11 @@ v1.0.0 첫 출시
 
 - **개발자명:** AutoVerdict
 - **이메일:** pouu69@gmail.com
-- **개인정보처리방침 URL:** [GitHub Pages 등에 호스팅 후 URL 입력]
+- **개인정보처리방침 URL:** https://pouu69.github.io/auto-verdict-aos/
 
 ## 스크린샷 가이드 (촬영 권장 화면)
 
-권장 8장 (320~3840px, 9:16 또는 16:9 비율):
+권장 8장 (320~3840px, 9:16 또는 16:9 비율) — 캡처 결과: `docs/assets/screenshots/` (`01.png` …)
 
 1. **AnalyzeScreen** — URL 입력 + 공유 가이드 펼침
 2. **ResultScreen** — 점수와 판정 결과 (가상의 매물 분석)
@@ -152,12 +152,12 @@ v1.0.0 첫 출시
 
 ## 제출 전 최종 체크리스트
 
-- [ ] keystore.properties 생성 및 keystore 파일 준비
-- [ ] `./gradlew :app:bundleRelease` 실행 → AAB 빌드 성공 확인
-- [ ] 개인정보처리방침 공개 URL 발급 (GitHub Pages 등)
-- [ ] 스크린샷 8장 캡처 (실기기 또는 에뮬레이터)
-- [ ] 피처 그래픽 1024×500 PNG 제작
-- [ ] 앱 아이콘 512×512 PNG (Android Studio → Image Asset Studio)
+- [x] keystore.properties 생성 및 keystore 파일 준비 (`secrets/autoverdict-upload.jks`, 2026-10-17 재발급)
+- [x] `./gradlew :app:bundleRelease` 실행 → AAB 빌드 성공 확인 (`app/build/outputs/bundle/release/app-release.aab`, 약 7.1MB)
+- [x] 개인정보처리방침 공개 URL 발급 — https://pouu69.github.io/auto-verdict-aos/
+- [x] 스크린샷 캡처 (`docs/assets/screenshots/`)
+- [x] 피처 그래픽 1024×500 PNG 제작 (`docs/assets/feature-graphic-1024x500.png`)
+- [x] 앱 아이콘 512×512 PNG (`docs/assets/play-icon-512.png`)
 - [ ] Play Console에서 AdMob 사용 선언
 - [ ] 데이터 안전성 양식 작성 (위 가이드 참고)
 - [ ] 콘텐츠 등급 설문 완료 (IARC)

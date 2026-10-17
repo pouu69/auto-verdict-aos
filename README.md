@@ -5,7 +5,7 @@
 [![Platform](https://img.shields.io/badge/Platform-Android-3DDC84?logo=android)](https://www.android.com/)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.x-7F52FF?logo=kotlin)](https://kotlinlang.org/)
 [![Min SDK](https://img.shields.io/badge/minSdk-26-blue)]()
-[![Target SDK](https://img.shields.io/badge/targetSdk-35-blue)]()
+[![Target SDK](https://img.shields.io/badge/targetSdk-36-blue)]()
 
 ## 핵심 기능
 
@@ -25,7 +25,7 @@
 | Web 평가 엔진 | React + TypeScript (WebView 번들) |
 | 빌드 | Gradle 8 + Kotlin DSL, KSP |
 | 광고 | Google AdMob (Play Services Ads 23.6) |
-| 최소/타겟 SDK | API 26 / API 35 |
+| 최소/타겟 SDK | API 26 / API 36 |
 
 ## 아키텍처
 
@@ -82,7 +82,7 @@ JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./build-
 ```bash
 # 1) WebView 번들 (React/TS)
 cd webview-bundle
-npm install
+npm install             # .npmrc가 공식 npm 레지스트리(registry.npmjs.org)로 고정
 npm run build           # 빌드
 npm run copy-to-assets  # dist/ → app/src/main/assets/eval-ui/
 

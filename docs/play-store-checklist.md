@@ -1,6 +1,6 @@
 # Google Play 출시 체크리스트
 
-> AutoVerdict v1.0.0를 Play Store에 출시하기 위한 사용자 액션 가이드.
+> AutoVerdict v1.0.2를 Play Store에 출시하기 위한 사용자 액션 가이드 (첫 Play Store 출시).
 > 모든 자동화 가능한 작업은 이미 완료됨 — 아래 단계만 진행하면 출시 가능.
 
 ---
@@ -9,16 +9,17 @@
 
 | 항목 | 상태 |
 |---|---|
-| Release AAB 빌드 | ✅ 완료 — `app/build/outputs/bundle/release/app-release.aab` (6.5MB) |
-| Upload Keystore 생성 | ✅ 완료 — `secrets/autoverdict-upload.jks` |
+| Release AAB 빌드 | ✅ 완료 — `app/build/outputs/bundle/release/app-release.aab` (약 7.1MB, v1.0.2 / versionCode 3) |
+| Upload Keystore 생성 | ✅ 완료 — `secrets/autoverdict-upload.jks` (2026-10-17 재발급, 기존 키는 분실) |
 | 서명 설정 | ✅ 완료 — `keystore.properties` |
 | AD_ID 권한 명시 | ✅ 완료 |
 | 앱 아이콘 (512×512) | ✅ 완료 — `docs/assets/play-icon-512.png` |
 | 피처 그래픽 (1024×500) | ✅ 완료 — `docs/assets/feature-graphic-1024x500.png` |
 | 개인정보처리방침 작성 | ✅ 완료 — `docs/privacy-policy.md` |
 | 스토어 카피 작성 | ✅ 완료 — `docs/store-listing.md` |
-| **개인정보처리방침 호스팅** | ⛔ **사용자 진행 필요** |
-| **스크린샷 캡처 (2~8장)** | ⛔ **사용자 진행 필요** |
+| 개인정보처리방침 호스팅 | ✅ 완료 — https://pouu69.github.io/auto-verdict-aos/ |
+| 스크린샷 캡처 | ✅ 완료 — `docs/assets/screenshots/` |
+| targetSdk 36 대응 | ✅ 완료 — compileSdk/targetSdk 36, Robolectric 4.16 |
 | **Keystore 외부 백업** | ⛔ **사용자 진행 필요** |
 | **Play Console 등록·업로드** | ⛔ **사용자 진행 필요** |
 
@@ -32,11 +33,11 @@
 |---|---|---|
 | **패키지 이름 (applicationId)** | `com.car.autoverdict` | ⚠️ 한번 등록하면 변경 불가 — 모든 향후 업데이트의 영구 식별자 |
 | namespace | `com.car.autoverdict` | applicationId와 동일 |
-| **버전 코드 (versionCode)** | `1` | 업로드마다 +1 필수 |
-| **버전 이름 (versionName)** | `1.0.0` | 사용자에게 표시되는 버전 |
+| **버전 코드 (versionCode)** | `3` | 업로드마다 +1 필수 |
+| **버전 이름 (versionName)** | `1.0.2` | 사용자에게 표시되는 버전 |
 | 최소 SDK (minSdk) | API 26 (Android 8.0 Oreo) | 지원 최저 기기 |
-| 타겟 SDK (targetSdk) | API 35 (Android 15) | Play 정책 충족 |
-| 컴파일 SDK (compileSdk) | API 35 | — |
+| 타겟 SDK (targetSdk) | API 36 (Android 16) | Play 정책 충족 (2026-08-31부터 신규 앱·업데이트는 API 36 필수) |
+| 컴파일 SDK (compileSdk) | API 36 | — |
 | 빌드 산출물 | AAB (Android App Bundle) | `app/build/outputs/bundle/release/app-release.aab` |
 | 코드 난독화 | R8 활성화 (`isMinifyEnabled = true`, `isShrinkResources = true`) | ProGuard 규칙: `app/proguard-rules.pro` |
 | 백업 허용 | `allowBackup="false"` | — |
@@ -60,7 +61,7 @@
 | 항목 | 값 |
 |---|---|
 | AdMob 앱 ID | `ca-app-pub-5353705048338468~6253564104` |
-| 광고 형식 | 배너 · 전면 (`play-services-ads:23.6.0`) |
+| 광고 형식 | 배너만 (`play-services-ads:23.6.0`, 전면 광고 없음) |
 
 > AdMob 앱 ID는 `AndroidManifest.xml`의 `<meta-data>`에 명시되어 있으며, Play Console **데이터 안전성** 및 **광고 선언** 항목과 일치시켜야 합니다.
 
@@ -83,10 +84,10 @@
 백업할 항목:
 
 ```
-파일:       <repo>/secrets/autoverdict-upload.jks
+파일:       secrets/autoverdict-upload.jks  (저장소 루트 기준)
 별칭:       autoverdict-upload
 비밀번호:    <비공개 — keystore.properties 파일 참조 또는 별도 보관>
-유효기간:   2026-05-28 ~ 약 25년
+유효기간:   2026-10-17 ~ 약 25년
 ```
 
 > 실제 비밀번호와 SHA-256 지문은 git에 절대 커밋하지 마세요.
@@ -106,7 +107,9 @@
 
 ---
 
-## STEP 1 — 개인정보처리방침 공개 호스팅
+## STEP 1 — 개인정보처리방침 공개 호스팅 ✅ 완료
+
+> ✅ 호스팅 완료: **https://pouu69.github.io/auto-verdict-aos/** — 아래 옵션은 참고용.
 
 Play Console은 **공개 URL**을 요구합니다. 앱 내 정책 화면만으로는 부족합니다.
 
@@ -136,12 +139,14 @@ Play Console은 **공개 URL**을 요구합니다. 앱 내 정책 화면만으�
 
 ---
 
-## STEP 2 — 스크린샷 캡처 (최소 2장, 권장 8장)
+## STEP 2 — 스크린샷 캡처 (최소 2장, 권장 8장) ✅ 완료
+
+> ✅ 캡처 완료: `docs/assets/screenshots/` (`01.png` …) — 아래 절차는 재촬영 시 참고용.
 
 ### 디바이스 준비
 
 ```bash
-# 에뮬레이터 (Pixel 6, API 35) 또는 실기기 연결
+# 에뮬레이터 (Pixel 6, API 36) 또는 실기기 연결
 adb devices
 
 # Debug 빌드 설치
@@ -215,8 +220,8 @@ adb exec-out screencap -p > docs/assets/screenshots/02.png
 
 | 양식 | 응답 |
 |---|---|
-| 개인정보처리방침 | Step 1에서 발급한 공개 URL |
-| 광고 | **예** — AdMob 사용 |
+| 개인정보처리방침 | https://pouu69.github.io/auto-verdict-aos/ |
+| 광고 | **예** — AdMob 배너 광고 |
 | 인앱 결제 | 아니오 |
 | 대상 연령 | 만 13세 이상 |
 | 콘텐츠 등급 | IARC 설문 진행 (모두 "아니오" 응답 → 전체이용가) |
@@ -286,13 +291,13 @@ Closed Testing 14일 + 12명 충족 후:
 - Play Console → 품질 → 크래시 및 ANR
 - AdMob → 노출/수익
 
-### 1.0.1 패치를 위한 준비
+### 1.0.3 패치를 위한 준비
 - 버그 제보·평점·리뷰 수집
 - 다음 버전 작업 시:
   ```kotlin
   // app/build.gradle.kts
-  versionCode = 2          // 매번 +1
-  versionName = "1.0.1"    // semver
+  versionCode = 4          // 매번 +1
+  versionName = "1.0.3"    // semver
   ```
 
 ---

@@ -8,12 +8,14 @@ plugins {
 
 android {
     namespace = "com.car.autoverdict"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.car.autoverdict"
+        // com.car.autoverdict is taken on Play by another account; the code
+        // namespace stays com.car.autoverdict.
+        applicationId = "com.kcurve.autoverdict"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 3
         versionName = "1.0.2"
     }
@@ -86,7 +88,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-ads:23.6.0")
     // Test
     testImplementation("junit:junit:4.13.2")
-    testImplementation("org.robolectric:robolectric:4.14.1")
+    testImplementation("org.robolectric:robolectric:4.16")
     testImplementation("androidx.test:core-ktx:1.6.1")
     testImplementation("androidx.room:room-testing:2.8.4")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
@@ -115,7 +117,12 @@ val npmExecutable: String by lazy {
         File(System.getProperty("user.home"), ".nvm/versions/node")
             .takeIf { it.isDirectory }
             ?.listFiles { f -> f.isDirectory }
-            ?.maxByOrNull { it.name }
+            // Compare numerically — a plain name sort ranks "v8.17.0" above "v24.x".
+            ?.maxWithOrNull(compareBy<File>(
+                { it.name.removePrefix("v").split(".").getOrNull(0)?.toIntOrNull() ?: 0 },
+                { it.name.removePrefix("v").split(".").getOrNull(1)?.toIntOrNull() ?: 0 },
+                { it.name.removePrefix("v").split(".").getOrNull(2)?.toIntOrNull() ?: 0 },
+            ))
             ?.let { "${it.absolutePath}/bin/npm" },
         "/opt/homebrew/bin/npm",
         "/usr/local/bin/npm",
