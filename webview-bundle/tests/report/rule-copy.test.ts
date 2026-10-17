@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import type { RuleResult, Severity } from '@core/types/RuleTypes.js';
 import type { ChecklistFacts } from '@core/types/ChecklistFacts.js';
 import { failed, hidden, value } from '@core/types/FieldStatus.js';
+import { ALL_RULES } from '@core/rules/index.js';
 import { CATEGORY_ORDER, RULE_IDS, RULE_META } from '../../src/report/rule-meta';
 import {
   excludedReason,
@@ -30,6 +31,7 @@ const result = (ruleId: string, severity: Severity, evidence: RuleResult['eviden
 
 describe('rule meta', () => {
   it('covers R01..R12 with a category, title, why and source', () => {
+    expect(RULE_IDS.length).toBe(ALL_RULES.length);
     expect(RULE_IDS).toEqual(['R01', 'R02', 'R03', 'R04', 'R05', 'R06', 'R07', 'R08', 'R09', 'R10', 'R11', 'R12']);
     expect(CATEGORY_ORDER).toEqual(['차량 상태', '이력', '사고', '가격', '투명성']);
     for (const id of RULE_IDS) {
@@ -177,6 +179,30 @@ describe('ruleCopy on synthetic results', () => {
     expect(ruleCopy(result('R11', 'warn', [{ field: 'ratio', value: 1.2 }]), facts).message).toBe(
       '신차 가격의 120%로 비싼 편이에요',
     );
+  });
+});
+
+describe('ruleCopy without numbers', () => {
+  const blank = load('41623744').out.facts; // R05..R10 facts are not values here
+  const noRatio = { ...blank, priceVsMarket: failed<{ priceWon: number; newPriceWon: number; ratio: number }>('x') };
+
+  it('falls back to general sentences instead of 0번 / 0%', () => {
+    expect(ruleCopy(result('R07', 'warn', []), blank)).toEqual({
+      message: '주인이 자주 바뀌었어요',
+      sellerQuestion: '주인이 자주 바뀐 이유를 알 수 있을까요?',
+    });
+    expect(ruleCopy(result('R07', 'pass', []), blank).message).toBe('소유자 변경이 정상 범위예요');
+    expect(ruleCopy(result('R08', 'warn', []), blank)).toEqual({
+      message: '자차보험 없이 운행한 기간이 있어요',
+      sellerQuestion: '보험 없이 운행한 기간이 있었나요?',
+    });
+    expect(ruleCopy(result('R10', 'warn', []), blank).message).toBe('보험 처리 금액이 커요');
+    expect(ruleCopy(result('R10', 'pass', []), blank).message).toBe('경미한 수준이에요');
+    expect(ruleCopy(result('R11', 'warn', []), noRatio)).toEqual({
+      message: '신차 가격과 차이가 커요',
+      sellerQuestion: '가격이 시세와 다른 이유가 있나요?',
+    });
+    expect(ruleCopy(result('R11', 'pass', []), noRatio).message).toBe('가격이 적정한 편이에요');
   });
 });
 

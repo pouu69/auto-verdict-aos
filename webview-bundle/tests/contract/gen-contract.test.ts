@@ -5,13 +5,14 @@
  */
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { buildReport } from '../../src/report/build-report';
 import { FIXTURE_IDS, load } from '../report/fixtures';
 
 // Kept in a variable: Vite rewrites the literal `new URL(…, import.meta.url)` form as an asset import.
 const here = import.meta.url;
 const contractPath = (id: string): string =>
-  decodeURIComponent(new URL(`../../../app/src/test/resources/report/encar-${id}.json`, here).pathname);
+  fileURLToPath(new URL(`../../../app/src/test/resources/report/encar-${id}.json`, here));
 
 const generate = process.env.GEN_CONTRACT === '1';
 

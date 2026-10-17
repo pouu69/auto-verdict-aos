@@ -4,4 +4,7 @@ declare module 'node:fs' {
   export function writeFileSync(path: string, data: string): void;
   export function existsSync(path: string): boolean;
 }
+declare module 'node:url' {
+  export function fileURLToPath(url: string | URL): string;
+}
 declare const process: { env: Record<string, string | undefined> };

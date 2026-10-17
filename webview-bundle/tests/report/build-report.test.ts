@@ -4,6 +4,7 @@ import { SCHEMA_VERSION } from '../../src/report/types';
 import { buildReport } from '../../src/report/build-report';
 import { buildCar } from '../../src/report/car';
 import { buildShareText } from '../../src/report/share-text';
+import { orchestrateMobile } from '../../src/orchestrate-mobile';
 import { CATEGORY_ORDER, RULE_IDS } from '../../src/report/rule-meta';
 import { FIXTURE_IDS, FORBIDDEN, load, rawOf } from './fixtures';
 
@@ -141,7 +142,7 @@ describe('buildCar', () => {
   it('missing base -> placeholder title, nulls', () => {
     const raw = rawOf('41878112');
     raw.preloadedState = {};
-    expect(buildCar(raw)).toEqual({
+    expect(buildCar(orchestrateMobile(raw))).toEqual({
       title: '차량 정보 없음',
       year: null,
       mileageKm: null,
@@ -157,9 +158,9 @@ describe('buildCar', () => {
     base.spec.mileage = 9500;
     delete base.spec.fuelName;
     base.advertisement.price = 12900;
-    expect(buildCar(raw).summary).toBe('2015년 · 9,500km · 12,900만원');
+    expect(buildCar(orchestrateMobile(raw)).summary).toBe('2015년 · 9,500km · 12,900만원');
     base.spec.mileage = 98_000;
-    expect(buildCar(raw).summary).toBe('2015년 · 9.8만km · 12,900만원');
+    expect(buildCar(orchestrateMobile(raw)).summary).toBe('2015년 · 9.8만km · 12,900만원');
   });
 });
 

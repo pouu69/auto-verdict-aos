@@ -2,7 +2,7 @@
  * 교환·수리 부위 (성능점검 `outers`) and 주요 장치 상태 (`inners`). Display only:
  * the verdict keeps using R04 (`master.accdient`) and R12.
  */
-import type { MobileOrchestratorInput } from '../orchestrate-mobile';
+import type { MobileOrchestratorResult } from '../orchestrate-mobile';
 import type { RepairPanel, Repairs, SystemItem, Tone } from './types';
 import { arr, isObj, str } from './raw';
 
@@ -18,7 +18,7 @@ const NO_RANK_ORDER = 3;
 /** "교환(교체)" -> "교환", "판금/용접" -> "판금·용접", "용접,절단" -> "용접·절단". */
 const cleanStatus = (title: string): string =>
   title
-    .replace(/\(.*$/, '')
+    .replace(/\([^)]*\)/g, '')
     .split(/[/,]/)
     .map((s) => s.trim())
     .filter((s) => s.length > 0)
@@ -82,10 +82,12 @@ export function walkSystems(inners: unknown): Array<SystemItem & { code: string 
   return out;
 }
 
-/** null when the 성능점검 was not collected or is not an object. */
-export function buildRepairs(raw: MobileOrchestratorInput): Repairs | null {
-  const ins = raw.inspectionJson;
-  if (!isObj(ins)) return null;
+/** null unless the 성능점검 was read and carries an `outers` or `inners` list. */
+export function buildRepairs(out: MobileOrchestratorResult): Repairs | null {
+  const api = out.parsed.raw.inspectionApi;
+  if (api.kind !== 'value') return null;
+  const ins: unknown = api.value;
+  if (!isObj(ins) || (!Array.isArray(ins.outers) && !Array.isArray(ins.inners))) return null;
 
   const panels = arr(ins.outers)
     .map(toPanel)

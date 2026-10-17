@@ -35,7 +35,7 @@ export const labelFor = (severity: Severity): RuleLabel => LABELS[severity];
 export const toneFor = (severity: Severity): Tone => TONES[severity];
 
 /** Evidence value by field name, falling back to the matching facts value. */
-const pick = <T>(result: RuleResult, field: string, fallback?: FieldStatus<T>): T | undefined => {
+export const evidenceOf = <T>(result: RuleResult, field: string, fallback?: FieldStatus<T>): T | undefined => {
   const hit = result.evidence.find((e) => e.field === field);
   if (hit) return hit.value as T;
   return fallback?.kind === 'value' ? fallback.value : undefined;
@@ -52,8 +52,8 @@ const gapDuration = (months: number): string => {
 const panelName = (part: string): string =>
   part.replace(/\((?:[^()]|\([^()]*\))*\)$/, '').trim() || part;
 
-type UsageFlags = { rental: boolean; taxi: boolean };
-type LossCounts = { totalLoss: number; floodTotal: number; floodPart: number; robber: number };
+export type UsageFlags = { rental: boolean; taxi: boolean };
+export type LossCounts = { totalLoss: number; floodTotal: number; floodPart: number; robber: number };
 
 /** Usage tags behind an R05 killer, e.g. ["렌트", "영업용"]. */
 export const usageKinds = (u: UsageFlags): string[] => {
@@ -105,13 +105,13 @@ export function ruleCopy(result: RuleResult, facts: ChecklistFacts): RuleCopy {
       return ok('엔카진단을 통과한 차예요');
     case 'R04': {
       if (problem) return issue('프레임까지 손상된 사고 이력이 있어요', '프레임 수리 내역과 사진을 볼 수 있을까요?');
-      const frame = pick(result, 'frameDamage', facts.frameDamage);
+      const frame = evidenceOf(result, 'frameDamage', facts.frameDamage);
       const parts = (frame?.parts ?? []).map(panelName);
       return ok(parts.length > 0 ? `프레임 손상은 없어요 · 외판 ${parts.join(', ')} 교환·수리` : '프레임 손상은 없어요');
     }
     case 'R05': {
       if (s === 'killer') {
-        const u = pick(result, 'usageHistory', facts.usageHistory);
+        const u = evidenceOf(result, 'usageHistory', facts.usageHistory);
         const tags = (u ? usageKinds(u) : []).join('·') || '렌트·영업용';
         return issue(`${tags} 이력이 있어요`, `${tags}${josa(tags, '으로', '로')} 얼마나 쓰였나요?`);
       }
@@ -120,7 +120,7 @@ export function ruleCopy(result: RuleResult, facts: ChecklistFacts): RuleCopy {
     }
     case 'R06': {
       if (!problem) return ok('전손·침수·도난 이력이 없어요');
-      const l = pick(result, 'totalLoss', facts.totalLossHistory);
+      const l = evidenceOf(result, 'totalLoss', facts.totalLossHistory);
       const hits = l ? lossHits(l) : [];
       const kinds = l ? lossKinds(l) : [];
       return issue(
@@ -129,18 +129,24 @@ export function ruleCopy(result: RuleResult, facts: ChecklistFacts): RuleCopy {
       );
     }
     case 'R07': {
-      const n = pick(result, 'ownerChangeCount', facts.ownerChangeCount) ?? 0;
-      if (problem) return issue(`주인이 ${n}번 바뀌었어요`, `주인이 ${n}번 바뀐 이유를 알 수 있을까요?`);
+      const n = evidenceOf(result, 'ownerChangeCount', facts.ownerChangeCount);
+      if (problem) {
+        return n === undefined
+          ? issue('주인이 자주 바뀌었어요', '주인이 자주 바뀐 이유를 알 수 있을까요?')
+          : issue(`주인이 ${n}번 바뀌었어요`, `주인이 ${n}번 바뀐 이유를 알 수 있을까요?`);
+      }
+      if (n === undefined) return ok('소유자 변경이 정상 범위예요');
       return ok(n === 0 ? '소유자 변경이 없어요' : `소유자 변경 ${n}회로 정상 범위예요`);
     }
     case 'R08': {
       if (!problem) return ok('자차보험 공백이 없어요');
-      const g = pick(result, 'insuranceGap', facts.insuranceGap);
+      const g = evidenceOf(result, 'insuranceGap', facts.insuranceGap);
       const periods = g?.periods ?? [];
       const suffix = periods.length > 1 ? ` (${periods.length}개 구간)` : '';
       const ranges = periods.map((p) => `${koreanMonth(p.from)}~${koreanMonth(p.to)}`).join(', ');
+      const months = g?.totalMonths ?? 0;
       return issue(
-        `자차보험 없이 운행한 기간이 ${gapDuration(g?.totalMonths ?? 0)} 있어요${suffix}`,
+        months > 0 ? `자차보험 없이 운행한 기간이 ${gapDuration(months)} 있어요${suffix}` : '자차보험 없이 운행한 기간이 있어요',
         ranges ? `${ranges}에 보험 없이 운행했나요?` : '보험 없이 운행한 기간이 있었나요?',
       );
     }
@@ -149,28 +155,25 @@ export function ruleCopy(result: RuleResult, facts: ChecklistFacts): RuleCopy {
         ? issue('수리비가 확정되지 않은 사고가 있어요', '미확정 수리비 건은 어떻게 처리됐나요?')
         : ok('수리비가 확정되지 않은 사고는 없어요');
     case 'R10': {
-      const d = pick(result, 'damages', facts.minorAccidents);
-      const own = d?.ownDamageWon ?? 0;
-      const other = d?.otherDamageWon ?? 0;
-      const breakdown = `내차 ${formatMan(own)} · 타차 ${formatMan(other)}`;
-      if (problem) return issue(`보험 처리 금액이 커요 · ${breakdown}`, '보험 처리한 사고는 어느 부위를 어떻게 수리했나요?');
-      if (own === 0 && other === 0) return ok('보험 처리 기록이 없어요');
-      return ok(`경미한 수준이에요 · ${breakdown}`);
+      const d = evidenceOf(result, 'damages', facts.minorAccidents);
+      const breakdown = d ? ` · 내차 ${formatMan(d.ownDamageWon)} · 타차 ${formatMan(d.otherDamageWon)}` : '';
+      if (problem) return issue(`보험 처리 금액이 커요${breakdown}`, '보험 처리한 사고는 어느 부위를 어떻게 수리했나요?');
+      if (d && d.ownDamageWon === 0 && d.otherDamageWon === 0) return ok('보험 처리 기록이 없어요');
+      return ok(`경미한 수준이에요${breakdown}`);
     }
     case 'R11': {
       const ratio =
-        pick<number>(result, 'ratio') ??
-        (facts.priceVsMarket.kind === 'value' ? facts.priceVsMarket.value.ratio : 0);
+        evidenceOf<number>(result, 'ratio') ??
+        (facts.priceVsMarket.kind === 'value' ? facts.priceVsMarket.value.ratio : undefined);
+      const question = '가격이 시세와 다른 이유가 있나요?';
+      if (!ratio) return problem ? issue('신차 가격과 차이가 커요', question) : ok('가격이 적정한 편이에요');
       const p = Math.round(ratio * 100);
       if (!problem) return ok(`신차 가격의 ${p}%로 적정한 편이에요`);
-      return issue(
-        ratio < 1 ? `신차 가격의 ${p}%로 지나치게 싸요` : `신차 가격의 ${p}%로 비싼 편이에요`,
-        '가격이 시세와 다른 이유가 있나요?',
-      );
+      return issue(ratio < 1 ? `신차 가격의 ${p}%로 지나치게 싸요` : `신차 가격의 ${p}%로 비싼 편이에요`, question);
     }
     case 'R12': {
       if (!problem) return ok('누유가 없어요');
-      const items = pick(result, 'oilLeak', facts.oilLeak)?.items ?? [];
+      const items = evidenceOf(result, 'oilLeak', facts.oilLeak)?.items ?? [];
       const last = items[items.length - 1];
       if (!last) return issue('누유가 있어요', '누유 부위는 수리했나요?');
       const list = items.map((i) => `${i.part}(${i.status})`).join(', ');

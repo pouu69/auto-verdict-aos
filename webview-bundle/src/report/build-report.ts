@@ -6,20 +6,30 @@ import type { RuleResult, Severity } from '@core/types/RuleTypes.js';
 import type { MobileOrchestratorInput, MobileOrchestratorResult } from '../orchestrate-mobile';
 import type { EvaluationReport, ExcludedItem, ReportCounts, RuleItem } from './types';
 import { SCHEMA_VERSION } from './types';
-import { CATEGORY_ORDER, RULE_IDS, RULE_META } from './rule-meta';
+import { CATEGORY_ORDER, RULE_IDS, RULE_META, ruleNo } from './rule-meta';
 import { excludedReason, labelFor, ruleCopy, toneFor, unknownMessage } from './rule-copy';
 import { buildFacts } from './facts';
 import { buildRepairs } from './repairs';
 import { buildTimeline } from './timeline';
 import { buildDataGaps } from './data-gaps';
 import { buildHeadline } from './headline';
-import { buildCar } from './car';
+import { EMPTY_CAR, buildCar } from './car';
 import { buildShareText } from './share-text';
-
-const ruleNo = (id: string): number => Number(id.slice(1));
 
 /** Issue order: 위험 → 비공개 → 주의 → 미확인. */
 const ISSUE_RANK: Record<Severity, number> = { killer: 0, fail: 1, warn: 2, unknown: 3, pass: 4 };
+
+/**
+ * Display sections read loosely-typed listing data; one that throws must not
+ * cost the user the verdict, so it falls back to its empty form instead.
+ */
+const safe = <T>(build: () => T, fallback: T): T => {
+  try {
+    return build();
+  } catch {
+    return fallback;
+  }
+};
 
 const toItem = (r: RuleResult, out: MobileOrchestratorResult): RuleItem => {
   const meta = RULE_META[r.ruleId];
@@ -40,21 +50,17 @@ const toItem = (r: RuleResult, out: MobileOrchestratorResult): RuleItem => {
 
 export function buildReport(raw: MobileOrchestratorInput, out: MobileOrchestratorResult): EvaluationReport {
   const results = out.report.results;
-  const severityOf = new Map(results.map((r) => [r.ruleId, r.severity]));
-
   const catIndex = (r: RuleResult) => CATEGORY_ORDER.indexOf(RULE_META[r.ruleId]?.category ?? '투명성');
   const sorted = [...results].sort((a, b) => catIndex(a) - catIndex(b) || ruleNo(a.ruleId) - ruleNo(b.ruleId));
   const rules = sorted.map((r) => toItem(r, out));
 
-  const issues = rules
-    .filter((i) => i.tone !== 'success')
-    .sort(
-      (a, b) =>
-        ISSUE_RANK[severityOf.get(a.ruleId)!] - ISSUE_RANK[severityOf.get(b.ruleId)!] ||
-        ruleNo(a.ruleId) - ruleNo(b.ruleId),
-    );
+  const issues = sorted
+    .filter((r) => toneFor(r.severity) !== 'success')
+    .sort((a, b) => ISSUE_RANK[a.severity] - ISSUE_RANK[b.severity] || ruleNo(a.ruleId) - ruleNo(b.ruleId))
+    .map((r) => toItem(r, out));
 
-  const excluded: ExcludedItem[] = RULE_IDS.filter((id) => !severityOf.has(id)).map((id) => ({
+  const present = new Set(results.map((r) => r.ruleId));
+  const excluded: ExcludedItem[] = RULE_IDS.filter((id) => !present.has(id)).map((id) => ({
     ruleId: id,
     title: RULE_META[id]?.title ?? id,
     reason: excludedReason(id),
@@ -74,18 +80,22 @@ export function buildReport(raw: MobileOrchestratorInput, out: MobileOrchestrato
     schemaVersion: SCHEMA_VERSION,
     carId: raw.carId,
     url: raw.url,
-    car: buildCar(raw),
+    car: safe(() => buildCar(out), EMPTY_CAR),
     verdict: out.report.verdict,
     score: out.report.score,
     headline: buildHeadline(out.report, out.facts),
     counts,
-    dataGaps: buildDataGaps(raw, out),
-    facts: buildFacts(raw, out),
-    repairs: buildRepairs(raw),
+    dataGaps: safe(() => buildDataGaps(raw, out), []),
+    facts: safe(() => buildFacts(out), []),
+    repairs: safe(() => buildRepairs(out), null),
     issues,
     rules,
     excluded,
-    timeline: buildTimeline(raw),
+    timeline: safe(() => buildTimeline(raw, out), []),
   };
-  return { ...report, shareText: buildShareText(report) };
+  const shareText = safe(() => buildShareText(report), {
+    summary: [report.car.title, report.headline, report.url].join('\n'),
+    sellerQuestions: null,
+  });
+  return { ...report, shareText };
 }

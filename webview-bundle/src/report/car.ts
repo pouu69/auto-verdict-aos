@@ -1,15 +1,8 @@
-import type { MobileOrchestratorInput } from '../orchestrate-mobile';
+import type { MobileOrchestratorResult } from '../orchestrate-mobile';
 import type { ReportCar } from './types';
 import { groupDigits } from './format';
-import { isObj, num, str } from './raw';
 
-/** Reads `cars.base` the same way the orchestrator does (plain or wrapped state). */
-const baseOf = (preloadedState: unknown): Record<string, unknown> | null => {
-  if (!isObj(preloadedState)) return null;
-  const root = isObj(preloadedState.__PRELOADED_STATE__) ? preloadedState.__PRELOADED_STATE__ : preloadedState;
-  const cars = isObj(root.cars) ? root.cars : null;
-  return cars && isObj(cars.base) ? cars.base : null;
-};
+export const NO_CAR_TITLE = '차량 정보 없음';
 
 /** 9500 -> "9,500km", 98000 -> "9.8만km", 120000 -> "12만km". */
 const formatMileage = (km: number): string => {
@@ -18,34 +11,46 @@ const formatMileage = (km: number): string => {
   return `${Number.isInteger(man) ? man : man.toFixed(1)}만km`;
 };
 
-export function buildCar(raw: MobileOrchestratorInput): ReportCar {
-  const base = baseOf(raw.preloadedState);
-  const category = base && isObj(base.category) ? base.category : {};
-  const spec = base && isObj(base.spec) ? base.spec : {};
-  const ad = base && isObj(base.advertisement) ? base.advertisement : {};
+const positive = (n: unknown): number | null => (typeof n === 'number' && Number.isFinite(n) && n > 0 ? n : null);
+const text = (s: unknown): string | null => (typeof s === 'string' && s.trim().length > 0 ? s : null);
 
-  const yearMonth = str(category, 'yearMonth');
+export const EMPTY_CAR: ReportCar = {
+  title: NO_CAR_TITLE,
+  year: null,
+  mileageKm: null,
+  priceWon: null,
+  fuel: null,
+  summary: '',
+};
+
+export function buildCar(out: MobileOrchestratorResult): ReportCar {
+  const base = out.parsed.raw.base;
+  if (base.kind !== 'value') return EMPTY_CAR;
+  // Typed as EncarCarBase but read defensively: listings omit fields.
+  const category = base.value.category ?? {};
+  const spec = base.value.spec ?? {};
+  const ad = base.value.advertisement ?? {};
+
+  const yearMonth = text(category.yearMonth);
   const yearNum = yearMonth ? Number.parseInt(yearMonth.slice(0, 4), 10) : NaN;
   const year = Number.isFinite(yearNum) ? yearNum : null;
-  const mileageKm = num(spec, 'mileage');
-  const priceMan = num(ad, 'price');
-  const priceWon = priceMan !== null && priceMan > 0 ? priceMan * 10_000 : null;
-  const fuel = str(spec, 'fuelName');
+  const mileageKm = typeof spec.mileage === 'number' && Number.isFinite(spec.mileage) ? spec.mileage : null;
+  const priceMan = positive(ad.price);
+  const fuel = text(spec.fuelName);
 
   // Same format as the saved-car title written by the old screen.
   const title =
-    (base
-      ? `${yearMonth?.slice(0, 4) ?? ''} ${str(category, 'manufacturerName') ?? ''} ${str(category, 'modelName') ?? ''}`.trim()
-      : '') || '차량 정보 없음';
+    `${yearMonth?.slice(0, 4) ?? ''} ${text(category.manufacturerName) ?? ''} ${text(category.modelName) ?? ''}`.trim() ||
+    NO_CAR_TITLE;
 
   const summary = [
     year !== null ? `${year}년` : null,
     mileageKm !== null ? formatMileage(mileageKm) : null,
     fuel,
-    priceMan !== null && priceMan > 0 ? `${groupDigits(priceMan)}만원` : null,
+    priceMan !== null ? `${groupDigits(priceMan)}만원` : null,
   ]
     .filter((s): s is string => s !== null)
     .join(' · ');
 
-  return { title, year, mileageKm, priceWon, fuel, summary };
+  return { title, year, mileageKm, priceWon: priceMan !== null ? priceMan * 10_000 : null, fuel, summary };
 }

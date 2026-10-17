@@ -1,11 +1,7 @@
 import type { RuleReport, RuleResult } from '@core/types/RuleTypes.js';
 import type { ChecklistFacts } from '@core/types/ChecklistFacts.js';
-import { lossKinds, usageKinds } from './rule-copy';
-
-const ruleNo = (r: RuleResult): number => Number(r.ruleId.slice(1));
-
-const evidence = <T>(r: RuleResult, field: string): T | undefined =>
-  r.evidence.find((e) => e.field === field)?.value as T | undefined;
+import { evidenceOf, lossKinds, usageKinds } from './rule-copy';
+import { ruleNo } from './rule-meta';
 
 const avoid = (what: string): string => `${what} 이력이 있어 사지 않는 게 좋아요`;
 
@@ -14,13 +10,11 @@ const killerHeadline = (killer: RuleResult, facts: ChecklistFacts): string => {
     case 'R04':
       return avoid('사고(프레임 손상)');
     case 'R05': {
-      const u = evidence<{ rental: boolean; taxi: boolean }>(killer, 'usageHistory') ??
-        (facts.usageHistory.kind === 'value' ? facts.usageHistory.value : undefined);
+      const u = evidenceOf(killer, 'usageHistory', facts.usageHistory);
       return avoid((u ? usageKinds(u) : []).join('·') || '렌트·영업용');
     }
     case 'R06': {
-      const l = evidence<{ totalLoss: number; floodTotal: number; floodPart: number; robber: number }>(killer, 'totalLoss') ??
-        (facts.totalLossHistory.kind === 'value' ? facts.totalLossHistory.value : undefined);
+      const l = evidenceOf(killer, 'totalLoss', facts.totalLossHistory);
       return avoid((l ? lossKinds(l) : []).join('·') || '전손·침수·도난');
     }
     default:
@@ -33,7 +27,9 @@ export function buildHeadline(report: RuleReport, facts: ChecklistFacts): string
   const count = (s: RuleResult['severity']) => report.results.filter((r) => r.severity === s).length;
   switch (report.verdict) {
     case 'NEVER': {
-      const killer = [...report.results].filter((r) => r.severity === 'killer').sort((a, b) => ruleNo(a) - ruleNo(b))[0];
+      const killer = report.results
+        .filter((r) => r.severity === 'killer')
+        .sort((a, b) => ruleNo(a.ruleId) - ruleNo(b.ruleId))[0];
       return killer ? killerHeadline(killer, facts) : '위험한 이력이 있어 사지 않는 게 좋아요';
     }
     case 'CAUTION':

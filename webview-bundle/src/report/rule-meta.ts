@@ -12,9 +12,12 @@ export interface RuleMeta {
   source: RuleSource;
 }
 
-export const RULE_IDS: readonly string[] = [
+export const RULE_IDS = [
   'R01', 'R02', 'R03', 'R04', 'R05', 'R06', 'R07', 'R08', 'R09', 'R10', 'R11', 'R12',
-];
+] as const;
+
+/** "R07" -> 7. */
+export const ruleNo = (ruleId: string): number => Number(ruleId.slice(1));
 
 export const CATEGORY_ORDER: readonly Category[] = ['차량 상태', '이력', '사고', '가격', '투명성'];
 
