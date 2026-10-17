@@ -7,6 +7,7 @@ import type { MobileOrchestratorInput } from '../../src/orchestrate-mobile';
 import { orchestrateMobile } from '../../src/orchestrate-mobile';
 import { buildReport } from '../../src/report/build-report';
 import type { DetailSheet, EvaluationReport } from '../../src/report/types';
+import { RULE_META } from '../../src/report/rule-meta';
 import { FIXTURE_IDS, FORBIDDEN, rawOf } from './fixtures';
 
 const PLATE = /\d{2,3}[가-힣]\s?\d{4}/;
@@ -69,4 +70,19 @@ describe('detail sheet copy', () => {
       }
     });
   }
+});
+
+describe('part spelling', () => {
+  it('our copy spells 휀더 the way the 성능점검·엔카진단 data does', () => {
+    for (const meta of Object.values(RULE_META)) expect(meta.why).not.toContain('펜더');
+    for (const id of FIXTURE_IDS) {
+      const raw = rawOf(id);
+      const report = buildReport(raw, orchestrateMobile(raw));
+      const texts = [
+        ...report.rules.flatMap((r) => [r.message, r.summary, r.why ?? '', r.sellerQuestion ?? '']),
+        ...sheetsOf(report).flatMap(stringsOf),
+      ];
+      for (const t of texts) expect(t, id).not.toContain('펜더');
+    }
+  });
 });

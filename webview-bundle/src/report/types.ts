@@ -109,7 +109,7 @@ export interface RuleItem {
   tone: Tone;
   label: RuleLabel;
   message: string;
-  /** One-line noun phrase for the "전체 항목" rows, e.g. "소유자 변경 5회" (spec 4.0). */
+  /** One-line noun phrase for the "전체 항목" rows, shown under the title, e.g. "5회" (spec 4.0). */
   summary: string;
   /** Filled for issues (non-pass); null for pass rows. */
   why: string | null;

@@ -363,7 +363,7 @@
       "tone": "warning",
       "label": "주의",
       "message": "주인이 5번 바뀌었어요",
-      "summary": "소유자 변경 5회",
+      "summary": "5회",
       "why": "소유자가 자주 바뀐 차는 문제가 있어 자주 되팔렸거나, 정비 이력이 끊겨 관리 상태를 알기 어려운 경우가 많아요. 3회 이상부터 주의 신호로 봐요.",
       "sellerQuestion": "주인이 5번 바뀐 이유를 알 수 있을까요?",
       "detail": {
@@ -449,7 +449,7 @@
       "tone": "warning",
       "label": "주의",
       "message": "자차보험 없이 운행한 기간이 2개 구간, 총 7개월 있어요",
-      "summary": "자차보험 공백 7개월 · 2구간",
+      "summary": "7개월 · 2구간",
       "why": "보험에 가입하지 않은 기간에 난 사고는 이력에 남지 않아요. 이력이 깨끗해 보여도 숨은 사고가 있을 수 있는 공백 구간이에요.",
       "sellerQuestion": "2023년 11월~2024년 1월, 2026년 4월~2026년 7월에 보험 없이 운행했나요?",
       "detail": {
@@ -460,13 +460,13 @@
             "title": "보험 미가입 기간",
             "rows": [
               {
-                "label": "2023년 11월~2024년 1월",
-                "value": "3개월",
+                "label": "2026년 4월~2026년 7월",
+                "value": "4개월",
                 "tone": "warning"
               },
               {
-                "label": "2026년 4월~2026년 7월",
-                "value": "4개월",
+                "label": "2023년 11월~2024년 1월",
+                "value": "3개월",
                 "tone": "warning"
               },
               {
@@ -744,12 +744,12 @@
             "rows": [
               {
                 "label": "위험",
-                "value": "엔카진단 프레임 손상 또는 성능점검 사고 이력",
+                "value": "엔카진단에서 프레임 손상 판정 또는 성능점검 사고 이력 있음",
                 "tone": "danger"
               },
               {
                 "label": "통과",
-                "value": "프레임 손상 없음(외판 교환·수리는 감점 없음)",
+                "value": "둘 다 없음(외판 단순 교환·수리만 있으면 감점 없음)",
                 "tone": "success"
               }
             ],
@@ -786,7 +786,7 @@
       "tone": "success",
       "label": "통과",
       "message": "누유가 없어요",
-      "summary": "누유 없음",
+      "summary": "없음",
       "why": null,
       "sellerQuestion": null,
       "detail": {
@@ -794,10 +794,10 @@
         "subtitle": null,
         "blocks": [
           {
-            "title": "누유 항목",
+            "title": "누유 부위",
             "rows": [
               {
-                "label": "누유 항목",
+                "label": "미세누유·누유",
                 "value": "없음",
                 "tone": "success"
               }
@@ -921,7 +921,7 @@
       "tone": "success",
       "label": "통과",
       "message": "전손·침수·도난 이력이 없어요",
-      "summary": "전손·침수·도난 없음",
+      "summary": "없음",
       "why": null,
       "sellerQuestion": null,
       "detail": {
@@ -991,7 +991,7 @@
       "tone": "warning",
       "label": "주의",
       "message": "주인이 5번 바뀌었어요",
-      "summary": "소유자 변경 5회",
+      "summary": "5회",
       "why": "소유자가 자주 바뀐 차는 문제가 있어 자주 되팔렸거나, 정비 이력이 끊겨 관리 상태를 알기 어려운 경우가 많아요. 3회 이상부터 주의 신호로 봐요.",
       "sellerQuestion": "주인이 5번 바뀐 이유를 알 수 있을까요?",
       "detail": {
@@ -1077,7 +1077,7 @@
       "tone": "warning",
       "label": "주의",
       "message": "자차보험 없이 운행한 기간이 2개 구간, 총 7개월 있어요",
-      "summary": "자차보험 공백 7개월 · 2구간",
+      "summary": "7개월 · 2구간",
       "why": "보험에 가입하지 않은 기간에 난 사고는 이력에 남지 않아요. 이력이 깨끗해 보여도 숨은 사고가 있을 수 있는 공백 구간이에요.",
       "sellerQuestion": "2023년 11월~2024년 1월, 2026년 4월~2026년 7월에 보험 없이 운행했나요?",
       "detail": {
@@ -1088,13 +1088,13 @@
             "title": "보험 미가입 기간",
             "rows": [
               {
-                "label": "2023년 11월~2024년 1월",
-                "value": "3개월",
+                "label": "2026년 4월~2026년 7월",
+                "value": "4개월",
                 "tone": "warning"
               },
               {
-                "label": "2026년 4월~2026년 7월",
-                "value": "4개월",
+                "label": "2023년 11월~2024년 1월",
+                "value": "3개월",
                 "tone": "warning"
               },
               {
@@ -1142,7 +1142,7 @@
       "tone": "success",
       "label": "통과",
       "message": "수리비가 확정되지 않은 사고는 없어요",
-      "summary": "수리비 미확정 없음",
+      "summary": "미확정 사고 없음",
       "why": null,
       "sellerQuestion": null,
       "detail": {
@@ -1334,7 +1334,7 @@
       "tone": "success",
       "label": "통과",
       "message": "딜러가 보험이력을 공개했어요",
-      "summary": "보험이력 공개",
+      "summary": "공개",
       "why": null,
       "sellerQuestion": null,
       "detail": {
@@ -1394,7 +1394,7 @@
       "tone": "success",
       "label": "통과",
       "message": "성능점검 기록이 공개돼 있어요",
-      "summary": "성능점검 공개",
+      "summary": "공개",
       "why": null,
       "sellerQuestion": null,
       "detail": {

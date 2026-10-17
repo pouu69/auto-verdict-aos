@@ -45,31 +45,40 @@ describe('rule summary (전체 항목 rows)', () => {
       R03: '엔카진단 통과 차량',
       R04: '성능점검 사고 이력 있음',
       R05: '렌트·택시·영업용 이력 없음',
-      R06: '전손·침수·도난 없음',
-      R07: '소유자 변경 1회',
+      R06: '없음',
+      R07: '1회',
       R10: '수리비 큼 · 내차 1,126만원 · 타차 589만원',
-      R01: '보험이력 공개',
-      R02: '성능점검 공개',
+      R01: '공개',
+      R02: '공개',
     });
     expect(summaries(reportOf('41878112'))).toMatchObject({
       R04: '프레임 무사고',
-      R07: '소유자 변경 5회',
-      R08: '자차보험 공백 7개월 · 2구간',
-      R09: '수리비 미확정 없음',
+      R07: '5회',
+      R08: '7개월 · 2구간',
+      R09: '미확정 사고 없음',
       R10: '경미 · 내차 209만원 · 타차 0원',
-      R12: '누유 없음',
+      R12: '없음',
     });
     expect(summaries(reportOf('42264483'))).toMatchObject({
-      R08: '자차보험 공백 9개월',
+      R08: '9개월',
       R12: '실린더 블록·오일팬 누유',
     });
     expect(summaries(reportOf('41623744')).R07).toBe('확인 불가 · 자료 없음');
   });
 
+  it('never repeats the row title (the row shows it above); R03 keeps its wording', () => {
+    for (const id of FIXTURE_IDS) {
+      for (const item of reportOf(id).rules) {
+        if (item.ruleId === 'R03' || item.label === '미확인') continue;
+        expect(item.summary.startsWith(item.title), `${id} ${item.ruleId} "${item.summary}"`).toBe(false);
+      }
+    }
+  });
+
   it('message keeps the 해요체 sentence', () => {
     const r07 = reportOf('41878112').rules.find((x) => x.ruleId === 'R07')!;
     expect(r07.message).toBe('주인이 5번 바뀌었어요');
-    expect(r07.summary).toBe('소유자 변경 5회');
+    expect(r07.summary).toBe('5회');
   });
 
   it('미확인 reasons', () => {
@@ -116,10 +125,17 @@ describe('rule summary (전체 항목 rows)', () => {
         out,
       ),
     ).toBe('침수전손 1회');
-    expect(ruleSummary(result('R07', 'pass', [{ field: 'ownerChangeCount', value: 0 }]), out)).toBe('소유자 변경 없음');
-    expect(ruleSummary(result('R09', 'warn', []), out)).toBe('수리비 미확정 있음');
-    expect(ruleSummary(result('R01', 'fail', []), out)).toBe('보험이력 비공개');
-    expect(ruleSummary(result('R02', 'fail', []), out)).toBe('성능점검 비공개');
+    expect(ruleSummary(result('R07', 'pass', [{ field: 'ownerChangeCount', value: 0 }]), out)).toBe('없음');
+    expect(ruleSummary(result('R09', 'warn', []), out)).toBe('미확정 사고 있음');
+    expect(ruleSummary(result('R01', 'fail', []), out)).toBe('비공개');
+    expect(ruleSummary(result('R02', 'fail', []), out)).toBe('비공개');
+    expect(ruleSummary(result('R06', 'pass', []), out)).toBe('없음');
+    expect(ruleSummary(result('R08', 'pass', []), out)).toBe('없음');
+    expect(ruleSummary(result('R08', 'warn', [{ field: 'insuranceGap', value: { hasGap: true, totalMonths: 3, periods: [] } }]), out)).toBe('3개월');
+    expect(
+      ruleSummary(result('R10', 'pass', [{ field: 'damages', value: { ownDamageWon: 0, otherDamageWon: 0, domestic: true } }]), out),
+    ).toBe('없음');
+    expect(ruleSummary(result('R12', 'pass', []), out)).toBe('없음');
     expect(
       ruleSummary(
         result('R12', 'warn', [
