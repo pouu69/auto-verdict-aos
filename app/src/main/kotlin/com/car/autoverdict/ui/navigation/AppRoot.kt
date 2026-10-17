@@ -55,9 +55,10 @@ data class ScreenHost(
     val navigate: (Route) -> Unit,
     val back: () -> Unit,
     val finishOnboarding: () -> Unit,
-    /** Last link handed to analysis; the home screen skips re-filling it from the clipboard. */
-    val lastAnalyzedUrl: String?,
-    val onAnalyzed: (String) -> Unit,
+    /** True only for the onboarding shown at first launch; false when replayed from settings. */
+    val isFirstRunOnboarding: Boolean,
+    /** A share arrived during first-run onboarding and opens once it finishes. */
+    val hasPendingShare: Boolean,
     /** Jumps to a tab root, clearing sub-screens (e.g. a toast's "보기" after saving). */
     val selectTab: (MainTab) -> Unit,
 )
@@ -80,7 +81,6 @@ fun AppRoot(
         mutableStateOf(AppNavigator.initial(onboardingComplete))
     }
     var transition by remember { mutableStateOf(NavTransition.None) }
-    var lastAnalyzedUrl by rememberSaveable { mutableStateOf<String?>(null) }
     val toast = rememberAvToastState()
     // Keeps each stacked screen's rememberSaveable state while it is covered (spec 7.2).
     val saveableStateHolder = rememberSaveableStateHolder()
@@ -118,8 +118,8 @@ fun AppRoot(
         navigate = { if (navState.top == route) dispatch(NavEvent.Open(it)) },
         back = { if (navState.top == route) dispatch(NavEvent.Back) },
         finishOnboarding = { if (navState.top == route) dispatch(NavEvent.OnboardingFinished) },
-        lastAnalyzedUrl = lastAnalyzedUrl,
-        onAnalyzed = { lastAnalyzedUrl = it },
+        isFirstRunOnboarding = route == Route.Onboarding && AppNavigator.isFirstRunOnboarding(navState),
+        hasPendingShare = navState.pendingSharedUrl != null,
         // Not gated on the top route: a toast action may fire after its screen left, and
         // repeating SelectTab is a no-op, so a double tap can't stack anything.
         selectTab = { dispatch(NavEvent.SelectTab(it)) },

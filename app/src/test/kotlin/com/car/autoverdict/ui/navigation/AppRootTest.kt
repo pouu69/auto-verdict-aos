@@ -59,10 +59,10 @@ class AppRootTest {
         val key = RouteCodec.encode(route)
         Column(Modifier.fillMaxSize().onSizeChanged { pageHeights.getOrPut(key) { mutableListOf() } += it.height }) {
             Text("route:$key")
-            Text("last:${host.lastAnalyzedUrl}")
+            Text("firstRun:${host.isFirstRunOnboarding} pendingShare:${host.hasPendingShare}")
             Text("count:$count")
             TextButton(onClick = { count++ }) { Text("increment") }
-            TextButton(onClick = { host.onAnalyzed(url); host.navigate(Route.Result(url, fromSaved = false)) }) { Text("open-result") }
+            TextButton(onClick = { host.navigate(Route.Result(url, fromSaved = false)) }) { Text("open-result") }
             TextButton(onClick = { host.navigate(Route.Settings) }) { Text("open-settings") }
             TextButton(onClick = host.back) { Text("go-back") }
             TextButton(onClick = { host.selectTab(MainTab.Saved) }) { Text("select-saved") }
@@ -91,7 +91,7 @@ class AppRootTest {
         }
     }
 
-    @Test fun `back stack and last analyzed url survive recreation`() {
+    @Test fun `back stack survives recreation`() {
         val tester = StateRestorationTester(rule)
         tester.setContent { Root(onboardingComplete = true, pending = null, onConsumed = {}) }
 
@@ -103,7 +103,6 @@ class AppRootTest {
         rule.onNodeWithText("route:result|0|$url").assertExists()
         rule.onNodeWithText("go-back").performClick()
         rule.onNodeWithText("route:home").assertExists()
-        rule.onNodeWithText("last:$url").assertExists()
     }
 
     @Test fun `share during first-run onboarding survives recreation and opens after finishing`() {
@@ -113,6 +112,7 @@ class AppRootTest {
 
         rule.onNodeWithText("route:onboarding").assertExists()
         tester.emulateSavedInstanceStateRestore()
+        rule.onNodeWithText("firstRun:true pendingShare:true").assertExists()
         rule.onNodeWithText("finish-onboarding").performClick()
         rule.onNodeWithText("route:result|0|$url").assertExists()
     }

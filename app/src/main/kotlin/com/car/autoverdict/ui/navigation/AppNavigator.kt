@@ -102,7 +102,8 @@ object AppNavigator {
         return NavResult(NavState(stack), NavTransition.Replace)
     }
 
-    private fun isFirstRunOnboarding(state: NavState) = state.stack == listOf(Route.Onboarding)
+    /** Onboarding is the whole stack only at first launch; a replay sits on top of settings. */
+    internal fun isFirstRunOnboarding(state: NavState) = state.stack == listOf(Route.Onboarding)
 
     private fun sameCar(a: String, b: String): Boolean {
         val idA = EncarUrl.extractCarId(a)
