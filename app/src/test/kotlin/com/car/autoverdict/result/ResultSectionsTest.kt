@@ -12,8 +12,11 @@ import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.hasScrollAction
@@ -230,6 +233,86 @@ class ResultSectionsTest {
         assertEquals(newestFive, timelineRows())
     }
 
+    /** Section title rows (clickable headings), not the rule-category sub-headers. */
+    private fun sectionHeader(title: String) = rule.onNode(hasText(title) and isHeading() and hasClickAction())
+
+    private val sectionTitles = listOf("교환·수리 부위", "확인할 것 2", "이력", "전체 항목 11", "평가에서 빠진 항목", "판매자에게 물어볼 것 2")
+
+    @Test fun `every section starts expanded behind a heading button`() {
+        show(caution)
+        rule.onAllNodes(isHeading() and hasClickAction()).assertCountEquals(sectionTitles.size)
+        sectionTitles.forEach { title ->
+            val name = title.substringBeforeLast(' ').takeIf { title.last().isDigit() } ?: title
+            sectionHeader(title)
+                .assert(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button))
+                .assert(stateDescription("펼쳐짐"))
+                .assert(clickLabel("$name 접기"))
+        }
+        // The verdict header and count chips aren't sections: always shown, never buttons.
+        rule.onNode(hasText("사기 전에 2가지는 꼭 확인하세요") and isHeading()).assert(SemanticsMatcher.keyNotDefined(SemanticsActions.OnClick))
+    }
+
+    @Test fun `tapping a section title folds and unfolds its body`() {
+        show(caution)
+        sectionHeader("확인할 것 2").performClick()
+        rule.onNodeWithText("판매자에게: 주인이 5번 바뀐 이유를 알 수 있을까요?").assertDoesNotExist()
+        sectionHeader("확인할 것 2").assert(stateDescription("접힘")).assert(clickLabel("확인할 것 펼치기"))
+        // Other sections are untouched.
+        rule.onNodeWithText("성능점검 기록을 공개했어요").assertExists()
+
+        sectionHeader("전체 항목 11").performClick()
+        rule.onNodeWithText("성능점검 기록을 공개했어요").assertDoesNotExist()
+        rule.onNodeWithText("가격 적정성").assertExists()
+
+        sectionHeader("확인할 것 2").performClick()
+        rule.onNodeWithText("판매자에게: 주인이 5번 바뀐 이유를 알 수 있을까요?").assertExists()
+        sectionHeader("전체 항목 11").performClick()
+        rule.onNodeWithText("성능점검 기록을 공개했어요").assertExists()
+    }
+
+    @Test fun `folding the timeline section keeps its show-older state`() {
+        show(caution)
+        rule.onNodeWithText("이전 이력 5개 더 보기").performClick()
+        sectionHeader("이력").performClick()
+        assertEquals(emptyList<String>(), timelineRows())
+        rule.onNodeWithText("접기").assertDoesNotExist()
+        sectionHeader("이력").performClick()
+        assertEquals(10, timelineRows().size)
+        rule.onNodeWithText("접기").assertExists()
+    }
+
+    @Test fun `folded sections survive recreation`() {
+        val tester = StateRestorationTester(rule)
+        tester.setContent {
+            AvTheme {
+                ResultScreen(state = ResultUiState.Ready(caution, saved = false, banner = null), actions = recorder.actions)
+            }
+        }
+        sectionHeader("확인할 것 2").performClick()
+        sectionHeader("판매자에게 물어볼 것 2").performClick()
+        tester.emulateSavedInstanceStateRestore()
+        sectionHeader("확인할 것 2").assert(stateDescription("접힘"))
+        sectionHeader("판매자에게 물어볼 것 2").assert(stateDescription("접힘"))
+        sectionHeader("전체 항목 11").assert(stateDescription("펼쳐짐"))
+        rule.onNodeWithText("판매자에게: 주인이 5번 바뀐 이유를 알 수 있을까요?").assertDoesNotExist()
+        rule.onNodeWithText("복사").assertDoesNotExist()
+    }
+
+    @Test fun `a newer report keeps the sections the user folded`() {
+        var report by mutableStateOf(caution)
+        rule.setContent {
+            AvTheme {
+                ResultScreen(state = ResultUiState.Ready(report, saved = false, banner = null), actions = recorder.actions)
+            }
+        }
+        sectionHeader("전체 항목 11").performClick()
+        report = caution.copy(score = caution.score - 1)
+        rule.waitForIdle()
+        sectionHeader("전체 항목 11").assert(stateDescription("접힘"))
+        rule.onNodeWithText("성능점검 기록을 공개했어요").assertDoesNotExist()
+        sectionHeader("확인할 것 2").assert(stateDescription("펼쳐짐"))
+    }
+
     @Test fun `section titles are headings`() {
         show(caution)
         // Top bar title + headline + six sections + four rule categories.
@@ -425,6 +508,24 @@ class ResultScreenScrollTest {
         val first = listState.layoutInfo.visibleItemsInfo.first()
         assertEquals("timeline", first.key)
         assertEquals(0, first.offset)
+    }
+
+    @Test fun `folding a section whose title has scrolled away brings the title back`() {
+        show()
+        rule.onNode(hasScrollToKeyAction()).performScrollToKey("rules")
+        rule.waitForIdle()
+        val index = listState.layoutInfo.visibleItemsInfo.first { it.key == "rules" }.index
+        rule.runOnIdle { scope.launch { listState.scrollToItem(index, scrollOffset = 300) } }
+        rule.waitForIdle()
+        assertTrue(listState.layoutInfo.visibleItemsInfo.first { it.key == "rules" }.offset < 0)
+
+        // The title is off screen, so fold it the way TalkBack would.
+        rule.onNode(hasText("전체 항목 11") and isHeading()).performSemanticsAction(SemanticsActions.OnClick)
+        rule.waitForIdle()
+        val first = listState.layoutInfo.visibleItemsInfo.first()
+        assertEquals("rules", first.key)
+        assertEquals(0, first.offset)
+        rule.onNodeWithText("성능점검 기록을 공개했어요").assertDoesNotExist()
     }
 
     @Test fun `folding while the header is on screen does not scroll`() {

@@ -10,6 +10,10 @@
     <string name="cd_clear">지우기</string>
     <string name="cd_settings">설정</string>
     <string name="button_loading">진행 중</string>
+    <string name="section_state_expanded">펼쳐짐</string>
+    <string name="section_state_collapsed">접힘</string>
+    <string name="section_fold_click_label">%1$s 접기</string>
+    <string name="section_expand_click_label">%1$s 펼치기</string>
     <string name="licenses_title">오픈소스 라이선스</string>
     <string name="license_pretendard_notice">Pretendard는 SIL Open Font License 1.1에 따라 사용합니다.</string>
     <string name="license_material_notice">Material Symbols 아이콘은 Apache License 2.0에 따라 사용합니다.</string>
@@ -78,8 +82,6 @@
     <string name="result_timeline_fold">접기</string>
     <string name="result_timeline_expand_click_label">이전 이력 펼치기</string>
     <string name="result_timeline_fold_click_label">이력 접기</string>
-    <string name="result_timeline_state_collapsed">접힘</string>
-    <string name="result_timeline_state_expanded">펼쳐짐</string>
     <string name="result_section_rules">전체 항목</string>
     <string name="result_section_excluded">평가에서 빠진 항목</string>
     <string name="result_section_questions">판매자에게 물어볼 것</string>

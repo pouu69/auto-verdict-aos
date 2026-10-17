@@ -16,7 +16,6 @@ import com.car.autoverdict.R
 import com.car.autoverdict.ui.components.AvButton
 import com.car.autoverdict.ui.components.AvButtonSize
 import com.car.autoverdict.ui.components.AvButtonStyle
-import com.car.autoverdict.ui.components.AvSectionHeader
 import com.car.autoverdict.ui.theme.AvTheme
 
 /**
@@ -29,10 +28,17 @@ fun SellerQuestionsSection(
     onCopy: () -> Unit,
     onShare: () -> Unit,
     modifier: Modifier = Modifier,
+    expanded: Boolean = true,
+    onToggleExpanded: (() -> Unit)? = null,
 ) {
     val colors = AvTheme.colors
-    Column(modifier = modifier.fillMaxWidth()) {
-        AvSectionHeader(title = stringResource(R.string.result_section_questions), count = questions.size)
+    ResultSection(
+        title = stringResource(R.string.result_section_questions),
+        count = questions.size,
+        expanded = expanded,
+        onToggleExpanded = onToggleExpanded,
+        modifier = modifier,
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()

@@ -21,14 +21,23 @@ import androidx.compose.ui.unit.dp
 import com.car.autoverdict.R
 import com.car.autoverdict.report.RuleItem
 import com.car.autoverdict.ui.components.AvBadge
-import com.car.autoverdict.ui.components.AvSectionHeader
 import com.car.autoverdict.ui.theme.AvTheme
 
 /** Spec 5.2-7: every non-passing rule with its result, why it matters and what to ask. */
 @Composable
-fun IssuesSection(issues: List<RuleItem>, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        AvSectionHeader(title = stringResource(R.string.result_section_issues), count = issues.size)
+fun IssuesSection(
+    issues: List<RuleItem>,
+    modifier: Modifier = Modifier,
+    expanded: Boolean = true,
+    onToggleExpanded: (() -> Unit)? = null,
+) {
+    ResultSection(
+        title = stringResource(R.string.result_section_issues),
+        count = issues.size,
+        expanded = expanded,
+        onToggleExpanded = onToggleExpanded,
+        modifier = modifier,
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()

@@ -17,7 +17,6 @@ import com.car.autoverdict.report.RepairPanel
 import com.car.autoverdict.report.Repairs
 import com.car.autoverdict.report.SystemItem
 import com.car.autoverdict.ui.components.AvBadge
-import com.car.autoverdict.ui.components.AvSectionHeader
 import com.car.autoverdict.ui.theme.AvTheme
 import com.car.autoverdict.ui.theme.AvTone
 
@@ -26,11 +25,20 @@ import com.car.autoverdict.ui.theme.AvTone
  * fine. With nothing to list it says so — together with the fine-system count — in one line.
  */
 @Composable
-fun RepairsSection(repairs: Repairs, modifier: Modifier = Modifier) {
+fun RepairsSection(
+    repairs: Repairs,
+    modifier: Modifier = Modifier,
+    expanded: Boolean = true,
+    onToggleExpanded: (() -> Unit)? = null,
+) {
     val colors = AvTheme.colors
     val typography = AvTheme.typography
-    Column(modifier = modifier.fillMaxWidth()) {
-        AvSectionHeader(title = stringResource(R.string.result_section_repairs))
+    ResultSection(
+        title = stringResource(R.string.result_section_repairs),
+        expanded = expanded,
+        onToggleExpanded = onToggleExpanded,
+        modifier = modifier,
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()

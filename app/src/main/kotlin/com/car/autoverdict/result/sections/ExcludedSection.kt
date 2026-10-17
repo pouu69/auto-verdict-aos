@@ -12,16 +12,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.car.autoverdict.R
 import com.car.autoverdict.report.ExcludedItem
-import com.car.autoverdict.ui.components.AvSectionHeader
 import com.car.autoverdict.ui.theme.AvTheme
 
 /** Spec 5.2-10: rules the engine skipped, with the reason. Callers skip it when empty. */
 @Composable
-fun ExcludedSection(items: List<ExcludedItem>, modifier: Modifier = Modifier) {
+fun ExcludedSection(
+    items: List<ExcludedItem>,
+    modifier: Modifier = Modifier,
+    expanded: Boolean = true,
+    onToggleExpanded: (() -> Unit)? = null,
+) {
     val colors = AvTheme.colors
     val typography = AvTheme.typography
-    Column(modifier = modifier.fillMaxWidth()) {
-        AvSectionHeader(title = stringResource(R.string.result_section_excluded))
+    ResultSection(
+        title = stringResource(R.string.result_section_excluded),
+        expanded = expanded,
+        onToggleExpanded = onToggleExpanded,
+        modifier = modifier,
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()

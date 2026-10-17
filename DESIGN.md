@@ -43,7 +43,8 @@ Spacing: 4 · 8 · 12 · 16 · 20 · 24 · 32; screen side padding 20.
 
 `AvTopBar` (+`AvIconButton`) · `AvButton` (Primary/Weak/Secondary/Danger × L/M/S; Primary is
 L/M only) · `AvBottomCta` · `AvListRow` · `AvTextField` · `AvBadge` · `AvFactTile` ·
-`AvSectionHeader` · `AvSectionDivider` · `AvEmptyState` · `AvIllustrationIcon` ·
+`AvSectionHeader` (optional `expanded`/`onToggle` makes the whole title row a fold button with
+a chevron; pair with `AvCollapsibleBody`) · `AvSectionDivider` · `AvEmptyState` · `AvIllustrationIcon` ·
 `AvBottomSheet` · `AvDialog` · `AvToastHost`/`LocalAvToast` · `AvTabBar` · `AvLoadingSteps`.
 Debug builds show all of them under Settings → 컴포넌트 갤러리.
 

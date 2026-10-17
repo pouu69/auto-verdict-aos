@@ -29,7 +29,6 @@ import com.car.autoverdict.report.TimelineEntry
 import com.car.autoverdict.ui.components.AvButton
 import com.car.autoverdict.ui.components.AvButtonSize
 import com.car.autoverdict.ui.components.AvButtonStyle
-import com.car.autoverdict.ui.components.AvSectionHeader
 import com.car.autoverdict.ui.theme.AvTheme
 import com.car.autoverdict.ui.theme.tone
 
@@ -41,9 +40,9 @@ internal const val TIMELINE_FOLDED_COUNT = 5
  * Newest first, as shown. The report's timeline is ascending, so a plain reversal also
  * flips same-month entries consistently. Folded long timelines keep only the newest five.
  */
-internal fun visibleTimeline(entries: List<TimelineEntry>, expanded: Boolean): List<TimelineEntry> {
+internal fun visibleTimeline(entries: List<TimelineEntry>, showOlder: Boolean): List<TimelineEntry> {
     val newestFirst = entries.asReversed()
-    return if (expanded || !isFoldable(entries)) newestFirst else newestFirst.take(TIMELINE_FOLDED_COUNT)
+    return if (showOlder || !isFoldable(entries)) newestFirst else newestFirst.take(TIMELINE_FOLDED_COUNT)
 }
 
 internal fun isFoldable(entries: List<TimelineEntry>): Boolean = entries.size >= TIMELINE_FOLD_THRESHOLD
@@ -51,18 +50,25 @@ internal fun isFoldable(entries: List<TimelineEntry>): Boolean = entries.size >=
 /**
  * Spec 5.2-8: history as a vertical timeline, newest first. Callers skip it when empty.
  * Seven or more entries fold to the newest five behind a "더 보기" button; the caller owns
- * [expanded] so it can reset it per report and keep the header in view after folding.
+ * [showOlder] so it can reset it per report and keep the header in view after folding.
+ * [expanded]/[onToggleExpanded] fold the whole section from its title, independently.
  */
 @Composable
 fun TimelineSection(
     entries: List<TimelineEntry>,
-    expanded: Boolean,
-    onToggleExpanded: () -> Unit,
+    showOlder: Boolean,
+    onToggleOlder: () -> Unit,
     modifier: Modifier = Modifier,
+    expanded: Boolean = true,
+    onToggleExpanded: (() -> Unit)? = null,
 ) {
-    val shown = visibleTimeline(entries, expanded)
-    Column(modifier = modifier.fillMaxWidth()) {
-        AvSectionHeader(title = stringResource(R.string.result_section_timeline))
+    val shown = visibleTimeline(entries, showOlder)
+    ResultSection(
+        title = stringResource(R.string.result_section_timeline),
+        expanded = expanded,
+        onToggleExpanded = onToggleExpanded,
+        modifier = modifier,
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -74,24 +80,24 @@ fun TimelineSection(
                 TimelineRow(entry, isFirst = index == 0, isLast = index == shown.lastIndex)
             }
             if (isFoldable(entries)) {
-                FoldButton(hiddenCount = entries.size - TIMELINE_FOLDED_COUNT, expanded = expanded, onClick = onToggleExpanded)
+                ShowOlderButton(hiddenCount = entries.size - TIMELINE_FOLDED_COUNT, showOlder = showOlder, onClick = onToggleOlder)
                 Spacer(Modifier.height(8.dp))
             }
         }
     }
 }
 
-/** Full-width Secondary M button (48dp) under the last row; label and state follow [expanded]. */
+/** Full-width Secondary M button (48dp) under the last row; label and state follow [showOlder]. */
 @Composable
-private fun FoldButton(hiddenCount: Int, expanded: Boolean, onClick: () -> Unit) {
-    val text = if (expanded) {
+private fun ShowOlderButton(hiddenCount: Int, showOlder: Boolean, onClick: () -> Unit) {
+    val text = if (showOlder) {
         stringResource(R.string.result_timeline_fold)
     } else {
         stringResource(R.string.result_timeline_show_older, hiddenCount)
     }
-    val state = stringResource(if (expanded) R.string.result_timeline_state_expanded else R.string.result_timeline_state_collapsed)
+    val state = stringResource(if (showOlder) R.string.section_state_expanded else R.string.section_state_collapsed)
     val clickLabel = stringResource(
-        if (expanded) R.string.result_timeline_fold_click_label else R.string.result_timeline_expand_click_label,
+        if (showOlder) R.string.result_timeline_fold_click_label else R.string.result_timeline_expand_click_label,
     )
     AvButton(
         text = text,
