@@ -38,6 +38,8 @@ data class ReportCar(
     val priceWon: Long?,
     val fuel: String?,
     val summary: String,
+    /** Display name such as "BMW 3시리즈 (F30) 320d"; older reports have none and show [title]. */
+    val name: String? = null,
 )
 
 @Serializable
