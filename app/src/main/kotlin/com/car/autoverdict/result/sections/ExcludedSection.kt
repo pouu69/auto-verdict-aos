@@ -26,6 +26,7 @@ fun ExcludedSection(
     val typography = AvTheme.typography
     ResultSection(
         title = stringResource(R.string.result_section_excluded),
+        count = items.size,
         expanded = expanded,
         onToggleExpanded = onToggleExpanded,
         modifier = modifier,

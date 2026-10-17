@@ -161,7 +161,7 @@ class ResultSectionsTest {
         rule.onNodeWithText("투명성").assertExists()
         rule.onNodeWithText("성능점검 기록을 공개했어요").assertExists()
         // Excluded
-        heading("평가에서 빠진 항목").assertExists()
+        heading("평가에서 빠진 항목 1").assertExists()
         rule.onNodeWithText("가격 적정성").assertExists()
         rule.onNodeWithText("신차 가격 정보가 없어 평가하지 않았어요").assertExists()
         // Seller questions
@@ -241,7 +241,7 @@ class ResultSectionsTest {
     /** Section title rows (clickable headings), not the rule-category sub-headers. */
     private fun sectionHeader(title: String) = rule.onNode(hasText(title) and isHeading() and hasClickAction())
 
-    private val sectionTitles = listOf("교환·수리 부위", "확인할 것 2", "이력", "전체 항목 11", "평가에서 빠진 항목", "판매자에게 물어볼 것 2")
+    private val sectionTitles = listOf("교환·수리 부위", "확인할 것 2", "이력", "전체 항목 11", "평가에서 빠진 항목 1", "판매자에게 물어볼 것 2")
 
     @Test fun `every section starts expanded behind a heading button`() {
         show(caution)
@@ -341,7 +341,7 @@ class ResultSectionsTest {
         heading("교환·수리 부위").assertDoesNotExist()
         // Only the rule category "이력" — no timeline section.
         rule.onAllNodes(hasText("이력") and isHeading()).assertCountEquals(1)
-        heading("평가에서 빠진 항목").assertDoesNotExist()
+        rule.onAllNodesWithText("평가에서 빠진 항목", substring = true).assertCountEquals(0)
         rule.onAllNodesWithText("판매자에게 물어볼 것", substring = true).assertCountEquals(0)
         heading("확인할 것 1").assertExists()
         heading("전체 항목 3").assertExists()
