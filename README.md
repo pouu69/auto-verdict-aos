@@ -132,6 +132,7 @@ cd webview-bundle && npm run gen:contract
 │   │   │   ├── CompareScreen.kt
 │   │   │   ├── SettingsScreen.kt
 │   │   │   ├── OnboardingScreen.kt
+│   │   │   ├── LicensesScreen.kt
 │   │   │   └── PrivacyPolicyScreen.kt
 │   │   ├── ui/theme/                    # Compose 테마
 │   │   ├── db/                          # Room (SavedCarEntity, CacheEntity)

@@ -104,7 +104,8 @@ ksp {
 }
 
 // --- WebView bundle wired into the Android build ---------------------------
-// The React/TS evaluation UI lives in webview-bundle/ and is bundled into
+// The headless rule engine bundle (TS engine + report adapter, no UI) lives in
+// webview-bundle/ and is bundled into
 // app/src/main/assets/eval-ui. Wiring it into preBuild guarantees that
 // `assembleDebug` and Android Studio's Run button always ship the latest bundle.
 val webViewDir = file("${rootProject.projectDir}/webview-bundle")
