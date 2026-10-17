@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -45,6 +46,21 @@ class ResultControllerTest {
         val states = mutableListOf<ResultUiState>()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { controller.state.toList(states) }
         return states
+    }
+
+    /** Like [history], stamped with virtual time. */
+    private fun TestScope.timedHistory(controller: ResultController): List<Pair<Long, ResultUiState>> {
+        val states = mutableListOf<Pair<Long, ResultUiState>>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            controller.state.collect { states += testScheduler.currentTime to it }
+        }
+        return states
+    }
+
+    /** Runs past the loading screen's minimum time (the hold lives in backgroundScope). */
+    private fun TestScope.passMinimumLoading() {
+        advanceTimeBy(ResultController.MIN_LOADING_MS)
+        runCurrent()
     }
 
     private fun TestScope.events(controller: ResultController): List<ResultEvent> {
@@ -110,35 +126,72 @@ class ResultControllerTest {
     // --- collect ---
 
     @Test
-    fun `collect walks the loading steps, then shows Ready and caches`() = runTest {
+    fun `fast collect holds the loading steps until 7 seconds, then shows Ready and caches`() = runTest {
         val c = controller()
-        val states = history(c)
+        val states = timedHistory(c)
         c.start()
         runCurrent()
-        assertEquals(ResultUiState.Loading(LoadingStage.OpeningPage), c.state.value)
 
         val call = repo.collects.single()
         assertEquals(URL, call.url)
         assertEquals(CAR_ID, call.carId)
         call.onStage(CollectStage.OpeningPage)
         call.onStage(CollectStage.FetchingHistory)
-        assertEquals(ResultUiState.Loading(LoadingStage.FetchingHistory), c.state.value)
-
+        advanceTimeBy(1_000)
         evaluator.results["raw"] = EngineResult.Success(caution)
         call.result.complete(CollectOutcome.Success("raw"))
-        runCurrent()
+        advanceTimeBy(5_900)
+        assertTrue(c.state.value is ResultUiState.Loading)
+        passMinimumLoading()
 
-        assertEquals(ResultUiState.Ready(caution, saved = false, banner = null), c.state.value)
         assertEquals(
             listOf(
-                ResultUiState.Loading(LoadingStage.OpeningPage),
-                ResultUiState.Loading(LoadingStage.FetchingHistory),
-                ResultUiState.Loading(LoadingStage.Evaluating),
-                ResultUiState.Ready(caution, saved = false, banner = null),
+                0L to ResultUiState.Loading(LoadingStage.OpeningPage),
+                2_000L to ResultUiState.Loading(LoadingStage.FetchingHistory),
+                4_500L to ResultUiState.Loading(LoadingStage.Evaluating),
+                7_000L to ResultUiState.Ready(caution, saved = false, banner = null),
             ),
             states,
         )
         assertEquals(listOf(caution to "raw"), repo.cacheWrites)
+    }
+
+    @Test
+    fun `slow collect shows Ready as soon as it finishes`() = runTest {
+        val c = controller()
+        val states = timedHistory(c)
+        c.start()
+        advanceTimeBy(1_000)
+        val call = repo.collects.single()
+        call.onStage(CollectStage.FetchingHistory)
+        advanceTimeBy(8_000)
+        evaluator.results["raw"] = EngineResult.Success(caution)
+        call.result.complete(CollectOutcome.Success("raw"))
+        runCurrent()
+
+        assertEquals(
+            listOf(
+                0L to ResultUiState.Loading(LoadingStage.OpeningPage),
+                2_000L to ResultUiState.Loading(LoadingStage.FetchingHistory),
+                9_000L to ResultUiState.Loading(LoadingStage.Evaluating),
+                9_000L to ResultUiState.Ready(caution, saved = false, banner = null),
+            ),
+            states,
+        )
+    }
+
+    @Test
+    fun `fast failure shows the error immediately`() = runTest {
+        val c = controller()
+        c.start()
+        advanceTimeBy(1_000)
+        repo.collects.single().result.complete(CollectOutcome.Failed(CollectErrorKind.Network))
+        runCurrent()
+        assertEquals(ResultUiState.Error(ResultErrorKind.Network), c.state.value)
+
+        // The cancelled hold never brings the loading steps back.
+        passMinimumLoading()
+        assertEquals(ResultUiState.Error(ResultErrorKind.Network), c.state.value)
     }
 
     @Test
@@ -195,7 +248,7 @@ class ResultControllerTest {
             c.start()
             runCurrent()
             repo.collects.last().result.complete(CollectOutcome.Success("gap-raw"))
-            runCurrent()
+            passMinimumLoading()
 
             assertEquals(ResultUiState.Ready(report, saved = false, banner = banner), c.state.value)
         }
@@ -357,7 +410,7 @@ class ResultControllerTest {
         runCurrent()
         evaluator.results["raw"] = EngineResult.Success(caution)
         repo.collects.last().result.complete(CollectOutcome.Success("raw"))
-        runCurrent()
+        passMinimumLoading()
 
         assertEquals(ResultUiState.Ready(caution, saved = false, banner = null), c.state.value)
     }
@@ -552,7 +605,7 @@ class ResultControllerTest {
         assertEquals(ResultUiState.Loading(LoadingStage.OpeningPage), c.state.value)
         evaluator.results["new-raw"] = EngineResult.Success(refreshed)
         repo.collects.single().result.complete(CollectOutcome.Success("new-raw"))
-        runCurrent()
+        passMinimumLoading()
 
         // Saved status still comes from the DB row.
         assertEquals(ResultUiState.Ready(refreshed, saved = true, banner = null), c.state.value)
@@ -825,7 +878,7 @@ class ResultControllerTest {
         c.start()
         runCurrent()
         repo.collects.single().result.complete(CollectOutcome.Success("raw"))
-        runCurrent()
+        passMinimumLoading()
         c.save()
         runCurrent()
 
