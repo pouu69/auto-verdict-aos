@@ -3,9 +3,20 @@
  * Plate numbers (`carNo`) are never read into the output.
  */
 import type { MobileOrchestratorInput, MobileOrchestratorResult } from '../orchestrate-mobile';
-import type { TimelineEntry } from './types';
+import type { DetailSheet, TimelineEntry } from './types';
 import { formatMan, koreanMonth } from './format';
 import { arr, isObj, num, str, toYearMonth } from './raw';
+import { safe } from './safe';
+import {
+  type AccidentRecord,
+  type AccidentSide,
+  accidentSheet,
+  gapSheet,
+  lossSheet,
+  ownerSheet,
+  plateSheet,
+  repairCost,
+} from './details/timeline';
 
 /** Same-month order: 신차 등록 → 사고 → 소유자 변경 → 보험 미가입 → 번호 변경 → 침수·전손·도난. */
 const Kind = { Registration: 0, Accident: 1, Owner: 2, Gap: 3, Plate: 4, Loss: 5 } as const;
@@ -18,24 +29,34 @@ interface Row {
   sortKey: string;
 }
 
-const row = (kind: Kind, date: string, sortKey: string, label: string, detail: string | null, tone: TimelineEntry['tone']): Row => ({
-  entry: { date, label, detail, tone },
+/** [sheet] is built lazily under `safe`: a broken sheet costs only the sheet, never the entry. */
+const row = (
+  kind: Kind,
+  date: string,
+  sortKey: string,
+  label: string,
+  detail: string | null,
+  tone: TimelineEntry['tone'],
+  sheet: (() => DetailSheet | null) | null = null,
+): Row => ({
+  entry: { date, label, detail, tone, sheet: sheet ? safe(sheet, null) : null },
   kind,
   sortKey,
 });
 
 /** Accident `type`: 1·2 내차 피해, 3 타차 가해. */
-const accidentSide = (type: unknown): '내차 피해' | '타차 가해' | null => {
+const accidentSide = (type: unknown): AccidentSide | null => {
   const t = String(type ?? '');
   if (t === '1' || t === '2') return '내차 피해';
   if (t === '3') return '타차 가해';
   return null;
 };
 
-const LOSS_FIELDS: Array<[string, string]> = [
-  ['floodDate', '침수 피해'],
-  ['totalLossDate', '전손 처리'],
-  ['robberDate', '도난'],
+/** Date field, label, and the record counts shown in its sheet. */
+const LOSS_FIELDS: Array<[string, string, Array<[string, string]>]> = [
+  ['floodDate', '침수 피해', [['침수전손', 'floodTotalLossCnt'], ['침수분손', 'floodPartLossCnt']]],
+  ['totalLossDate', '전손 처리', [['전손', 'totalLossCnt']]],
+  ['robberDate', '도난', [['도난', 'robberCnt']]],
 ];
 
 const cmp = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
@@ -43,26 +64,45 @@ const cmp = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
 export interface AccidentGroup {
   ym: string;
   firstDate: string;
-  side: '내차 피해' | '타차 가해';
+  side: AccidentSide;
   count: number;
   /** Repair cost (partCost + laborCost + paintingCost), the basis of myAccidentCost/otherAccidentCost and R10. */
   won: number;
+  /** The grouped claims, in record order. */
+  records: AccidentRecord[];
+}
+
+/** Every readable claim in `recordJson.accidents`, in record order. */
+export function accidentRecords(rec: Record<string, unknown>): AccidentRecord[] {
+  const out: AccidentRecord[] = [];
+  for (const a of arr(rec.accidents)) {
+    if (!isObj(a)) continue;
+    const date = str(a, 'date');
+    const side = accidentSide(a.type);
+    if (!date || !toYearMonth(date) || !side) continue;
+    out.push({
+      date,
+      side,
+      insuranceBenefit: num(a, 'insuranceBenefit'),
+      partCost: num(a, 'partCost'),
+      laborCost: num(a, 'laborCost'),
+      paintingCost: num(a, 'paintingCost'),
+    });
+  }
+  return out;
 }
 
 /** Accidents grouped by (month, side): the timeline shows months only. */
 export function accidentGroups(rec: Record<string, unknown>): AccidentGroup[] {
   const groups = new Map<string, AccidentGroup>();
-  for (const a of arr(rec.accidents)) {
-    if (!isObj(a)) continue;
-    const date = str(a, 'date');
-    const ym = toYearMonth(date);
-    const side = accidentSide(a.type);
-    if (!date || !ym || !side) continue;
-    const key = `${ym}|${side}`;
-    const g = groups.get(key) ?? { ym, firstDate: date, side, count: 0, won: 0 };
+  for (const a of accidentRecords(rec)) {
+    const ym = toYearMonth(a.date) as string;
+    const key = `${ym}|${a.side}`;
+    const g = groups.get(key) ?? { ym, firstDate: a.date, side: a.side, count: 0, won: 0, records: [] };
     g.count += 1;
-    g.won += (num(a, 'partCost') ?? 0) + (num(a, 'laborCost') ?? 0) + (num(a, 'paintingCost') ?? 0);
-    if (date < g.firstDate) g.firstDate = date;
+    g.won += repairCost(a);
+    g.records.push(a);
+    if (a.date < g.firstDate) g.firstDate = a.date;
     groups.set(key, g);
   }
   return [...groups.values()];
@@ -82,19 +122,22 @@ export function buildTimeline(raw: MobileOrchestratorInput, out: MobileOrchestra
   for (const g of accidentGroups(rec)) {
     const label = g.count > 1 ? `사고 ${g.count}건 · ${g.side}` : `사고 · ${g.side}`;
     const detail = Math.round(g.won / 10_000) > 0 ? `수리비 합계 ${formatMan(g.won)}` : null;
-    rows.push(row(Kind.Accident, g.ym, g.firstDate, label, detail, 'warning'));
+    rows.push(row(Kind.Accident, g.ym, g.firstDate, label, detail, 'warning', () => accidentSheet(label, g.records)));
   }
 
-  for (const d of arr(rec.ownerChanges)) {
-    if (typeof d !== 'string') continue;
-    const ym = toYearMonth(d);
-    if (ym) rows.push(row(Kind.Owner, ym, d, '소유자 변경', null, 'neutral'));
-  }
+  const owners = arr(rec.ownerChanges)
+    .filter((d): d is string => typeof d === 'string' && toYearMonth(d) !== null)
+    .sort(cmp);
+  owners.forEach((d, i) => {
+    const ym = toYearMonth(d) as string;
+    rows.push(row(Kind.Owner, ym, d, '소유자 변경', null, 'neutral', () => ownerSheet(d, i + 1, owners.length)));
+  });
 
   // Same periods the R08 copy uses.
   const gap = out.facts.insuranceGap;
   for (const p of gap.kind === 'value' ? gap.value.periods : []) {
-    rows.push(row(Kind.Gap, p.from, p.from, '보험 미가입', `${koreanMonth(p.from)}~${koreanMonth(p.to)}`, 'warning'));
+    const detail = `${koreanMonth(p.from)}~${koreanMonth(p.to)}`;
+    rows.push(row(Kind.Gap, p.from, p.from, '보험 미가입', detail, 'warning', () => gapSheet(p)));
   }
 
   // The earliest entry is the original registration; later ones are plate changes.
@@ -105,12 +148,17 @@ export function buildTimeline(raw: MobileOrchestratorInput, out: MobileOrchestra
     if (date && ym) plates.push({ date, ym });
   }
   plates.sort((a, b) => cmp(a.date, b.date));
-  for (const p of plates.slice(1)) rows.push(row(Kind.Plate, p.ym, p.date, '번호 변경', null, 'neutral'));
+  const changes = plates.slice(1);
+  changes.forEach((p, i) => {
+    rows.push(row(Kind.Plate, p.ym, p.date, '번호 변경', null, 'neutral', () => plateSheet(p.date, i + 1, changes.length)));
+  });
 
-  for (const [field, label] of LOSS_FIELDS) {
+  for (const [field, label, counts] of LOSS_FIELDS) {
     const date = str(rec, field);
     const ym = toYearMonth(date);
-    if (date && ym) rows.push(row(Kind.Loss, ym, date, label, null, 'danger'));
+    if (!date || !ym) continue;
+    const sheet = () => lossSheet(label, date, counts.map(([name, key]) => [name, num(rec, key)]));
+    rows.push(row(Kind.Loss, ym, date, label, null, 'danger', sheet));
   }
 
   return rows

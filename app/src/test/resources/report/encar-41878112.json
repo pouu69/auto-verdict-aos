@@ -53,6 +53,306 @@
     "systems": {
       "flagged": [],
       "okCount": 29
+    },
+    "sheet": {
+      "title": "성능점검 전체",
+      "subtitle": null,
+      "blocks": [
+        {
+          "title": "사고·단순수리",
+          "rows": [
+            {
+              "label": "사고 이력",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "단순수리",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "침수",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "구조 변경(튜닝)",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "특별 이력",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "용도 변경",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "점검 당시 주행거리",
+              "value": "119,529km",
+              "tone": null
+            },
+            {
+              "label": "점검일",
+              "value": "2026-04-01",
+              "tone": null
+            }
+          ],
+          "note": "단순수리는 문·휀더처럼 떼어 낼 수 있는 외판을 바꾼 경우예요. 프레임 사고와는 달라요"
+        },
+        {
+          "title": "외판·골격 부위",
+          "rows": [],
+          "note": "교환하거나 수리한 부위가 없어요"
+        },
+        {
+          "title": "자기진단",
+          "rows": [
+            {
+              "label": "원동기",
+              "value": "양호",
+              "tone": "success"
+            },
+            {
+              "label": "변속기",
+              "value": "양호",
+              "tone": "success"
+            }
+          ],
+          "note": null
+        },
+        {
+          "title": "원동기",
+          "rows": [
+            {
+              "label": "작동상태(공회전)",
+              "value": "양호",
+              "tone": "success"
+            },
+            {
+              "label": "오일누유 · 실린더 커버(로커암 커버)",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "오일누유 · 실린더 헤드 / 개스킷",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "오일누유 · 실린더 블록 / 오일팬",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "오일 유량",
+              "value": "적정",
+              "tone": "success"
+            },
+            {
+              "label": "냉각수누수 · 실린더 헤드 / 개스킷",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "냉각수누수 · 워터펌프",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "냉각수누수 · 라디에이터",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "냉각수누수 · 냉각수 수량",
+              "value": "적정",
+              "tone": "success"
+            },
+            {
+              "label": "커먼레일",
+              "value": "양호",
+              "tone": "success"
+            }
+          ],
+          "note": null
+        },
+        {
+          "title": "변속기",
+          "rows": [
+            {
+              "label": "자동변속기(A/T) · 오일누유",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "자동변속기(A/T) · 오일유량 및 상태",
+              "value": "기록 없음",
+              "tone": null
+            },
+            {
+              "label": "자동변속기(A/T) · 작동상태(공회전)",
+              "value": "양호",
+              "tone": "success"
+            },
+            {
+              "label": "수동변속기(M/T) · 오일누유",
+              "value": "기록 없음",
+              "tone": null
+            },
+            {
+              "label": "수동변속기(M/T) · 기어변속장치",
+              "value": "기록 없음",
+              "tone": null
+            },
+            {
+              "label": "수동변속기(M/T) · 오일유량 및 상태",
+              "value": "기록 없음",
+              "tone": null
+            },
+            {
+              "label": "수동변속기(M/T) · 작동상태(공회전)",
+              "value": "기록 없음",
+              "tone": null
+            }
+          ],
+          "note": null
+        },
+        {
+          "title": "동력전달",
+          "rows": [
+            {
+              "label": "클러치 어셈블리",
+              "value": "기록 없음",
+              "tone": null
+            },
+            {
+              "label": "등속조인트",
+              "value": "양호",
+              "tone": "success"
+            },
+            {
+              "label": "추친축 및 베어링",
+              "value": "기록 없음",
+              "tone": null
+            },
+            {
+              "label": "디피렌셜 기어",
+              "value": "기록 없음",
+              "tone": null
+            }
+          ],
+          "note": null
+        },
+        {
+          "title": "조향",
+          "rows": [
+            {
+              "label": "동력조향 작동 오일 누유",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "작동상태 · 스티어링 펌프",
+              "value": "기록 없음",
+              "tone": null
+            },
+            {
+              "label": "작동상태 · 스티어링 기어(MDPS포함)",
+              "value": "양호",
+              "tone": "success"
+            },
+            {
+              "label": "작동상태 · 스티어링 조인트",
+              "value": "양호",
+              "tone": "success"
+            },
+            {
+              "label": "작동상태 · 파워고압호스",
+              "value": "기록 없음",
+              "tone": null
+            },
+            {
+              "label": "작동상태 · 타이로드엔드 및 볼 조인트",
+              "value": "양호",
+              "tone": "success"
+            }
+          ],
+          "note": null
+        },
+        {
+          "title": "제동",
+          "rows": [
+            {
+              "label": "브레이크 마스터 실린더오일 누유",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "브레이크 오일 누유",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "배력장치 상태",
+              "value": "양호",
+              "tone": "success"
+            }
+          ],
+          "note": null
+        },
+        {
+          "title": "전기",
+          "rows": [
+            {
+              "label": "발전기 출력",
+              "value": "양호",
+              "tone": "success"
+            },
+            {
+              "label": "시동 모터",
+              "value": "양호",
+              "tone": "success"
+            },
+            {
+              "label": "와이퍼 모터 기능",
+              "value": "양호",
+              "tone": "success"
+            },
+            {
+              "label": "실내송풍 모터",
+              "value": "양호",
+              "tone": "success"
+            },
+            {
+              "label": "라디에이터 팬 모터",
+              "value": "양호",
+              "tone": "success"
+            },
+            {
+              "label": "윈도우 모터",
+              "value": "양호",
+              "tone": "success"
+            }
+          ],
+          "note": null
+        },
+        {
+          "title": "연료",
+          "rows": [
+            {
+              "label": "연료누출(LP가스포함)",
+              "value": "없음",
+              "tone": "success"
+            }
+          ],
+          "note": null
+        }
+      ]
     }
   },
   "issues": [
@@ -64,7 +364,82 @@
       "label": "주의",
       "message": "주인이 5번 바뀌었어요",
       "why": "소유자가 자주 바뀐 차는 문제가 있어 자주 되팔렸거나, 정비 이력이 끊겨 관리 상태를 알기 어려운 경우가 많아요. 3회 이상부터 주의 신호로 봐요.",
-      "sellerQuestion": "주인이 5번 바뀐 이유를 알 수 있을까요?"
+      "sellerQuestion": "주인이 5번 바뀐 이유를 알 수 있을까요?",
+      "detail": {
+        "title": "소유자 변경",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "소유자 변경",
+            "rows": [
+              {
+                "label": "변경 횟수",
+                "value": "5회",
+                "tone": "warning"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "변경 날짜",
+            "rows": [
+              {
+                "label": "5번째 변경",
+                "value": "2026-04-01",
+                "tone": null
+              },
+              {
+                "label": "4번째 변경",
+                "value": "2024-09-30",
+                "tone": null
+              },
+              {
+                "label": "3번째 변경",
+                "value": "2024-02-14",
+                "tone": null
+              },
+              {
+                "label": "2번째 변경",
+                "value": "2023-11-14",
+                "tone": null
+              },
+              {
+                "label": "1번째 변경",
+                "value": "2018-04-25",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "통과",
+                "value": "2회 이하",
+                "tone": "success"
+              },
+              {
+                "label": "주의",
+                "value": "3회 이상",
+                "tone": "warning"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R08",
@@ -74,7 +449,61 @@
       "label": "주의",
       "message": "자차보험 없이 운행한 기간이 2개 구간, 총 7개월 있어요",
       "why": "보험에 가입하지 않은 기간에 난 사고는 이력에 남지 않아요. 이력이 깨끗해 보여도 숨은 사고가 있을 수 있는 공백 구간이에요.",
-      "sellerQuestion": "2023년 11월~2024년 1월, 2026년 4월~2026년 7월에 보험 없이 운행했나요?"
+      "sellerQuestion": "2023년 11월~2024년 1월, 2026년 4월~2026년 7월에 보험 없이 운행했나요?",
+      "detail": {
+        "title": "자차보험 공백",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "보험 미가입 기간",
+            "rows": [
+              {
+                "label": "2023년 11월~2024년 1월",
+                "value": "3개월",
+                "tone": "warning"
+              },
+              {
+                "label": "2026년 4월~2026년 7월",
+                "value": "4개월",
+                "tone": "warning"
+              },
+              {
+                "label": "합계",
+                "value": "7개월",
+                "tone": "warning"
+              }
+            ],
+            "note": "자차보험에 가입하지 않은 기간이에요. 이 기간에 난 사고는 보험이력에 남지 않아요"
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "주의",
+                "value": "자차보험 미가입 기간이 1개월이라도 있음",
+                "tone": "warning"
+              },
+              {
+                "label": "통과",
+                "value": "미가입 기간 없음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     }
   ],
   "rules": [
@@ -86,7 +515,118 @@
       "label": "통과",
       "message": "엔카진단을 통과한 차예요",
       "why": null,
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "엔카진단",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "엔카진단 여부",
+            "rows": [
+              {
+                "label": "엔카진단",
+                "value": "있음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "엔카진단 결과",
+            "rows": [
+              {
+                "label": "진단일",
+                "value": "2026-08-22",
+                "tone": null
+              },
+              {
+                "label": "종합 판정",
+                "value": "무사고",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "진단 부위",
+            "rows": [
+              {
+                "label": "프론트 도어(좌)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "리어 도어(좌)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "트렁크 리드",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "리어 도어(우)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "프론트 도어(우)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "후드",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "프론트 휀더(우)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "프론트 휀더(좌)",
+                "value": "정상",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "통과",
+                "value": "엔카진단을 받은 차",
+                "tone": "success"
+              },
+              {
+                "label": "평가 제외",
+                "value": "엔카진단을 받지 않은 차(감점 없음)",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "매물 정보",
+                "value": "확인 완료",
+                "tone": null
+              },
+              {
+                "label": "엔카진단",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R04",
@@ -96,7 +636,144 @@
       "label": "통과",
       "message": "프레임 손상은 없어요",
       "why": null,
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "프레임/외판",
+        "subtitle": "근거: 엔카진단",
+        "blocks": [
+          {
+            "title": "판정 근거",
+            "rows": [
+              {
+                "label": "프레임 손상",
+                "value": "없음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "성능점검",
+            "rows": [
+              {
+                "label": "사고 이력",
+                "value": "없음",
+                "tone": "success"
+              },
+              {
+                "label": "단순수리",
+                "value": "없음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "외판·골격 부위",
+            "rows": [],
+            "note": "교환하거나 수리한 부위가 없어요"
+          },
+          {
+            "title": "엔카진단 결과",
+            "rows": [
+              {
+                "label": "진단일",
+                "value": "2026-08-22",
+                "tone": null
+              },
+              {
+                "label": "종합 판정",
+                "value": "무사고",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "진단 부위",
+            "rows": [
+              {
+                "label": "프론트 도어(좌)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "리어 도어(좌)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "트렁크 리드",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "리어 도어(우)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "프론트 도어(우)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "후드",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "프론트 휀더(우)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "프론트 휀더(좌)",
+                "value": "정상",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "위험",
+                "value": "엔카진단 프레임 손상 또는 성능점검 사고 이력",
+                "tone": "danger"
+              },
+              {
+                "label": "통과",
+                "value": "프레임 손상 없음(외판 교환·수리는 감점 없음)",
+                "tone": "success"
+              }
+            ],
+            "note": "엔카진단 판정을 먼저 보고, 판정이 분명하지 않으면 성능점검의 사고 이력을 봐요"
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "엔카진단",
+                "value": "확인 완료",
+                "tone": null
+              },
+              {
+                "label": "성능점검",
+                "value": "확인 완료",
+                "tone": null
+              },
+              {
+                "label": "매물 정보",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R12",
@@ -106,7 +783,56 @@
       "label": "통과",
       "message": "누유가 없어요",
       "why": null,
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "누유 여부",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "누유 항목",
+            "rows": [
+              {
+                "label": "누유 항목",
+                "value": "없음",
+                "tone": "success"
+              }
+            ],
+            "note": "미세누유·누유만 판정에 써요. 누수 같은 다른 항목은 성능점검 전체 보기에서 볼 수 있어요"
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "주의",
+                "value": "미세누유·누유 항목이 하나라도 있음",
+                "tone": "warning"
+              },
+              {
+                "label": "통과",
+                "value": "누유 항목 없음",
+                "tone": "success"
+              },
+              {
+                "label": "평가 제외",
+                "value": "성능점검 기록 없음",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "성능점검",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R05",
@@ -116,7 +842,76 @@
       "label": "통과",
       "message": "렌트·영업용 이력이 없어요",
       "why": null,
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "렌트·택시 이력",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "용도 이력",
+            "rows": [
+              {
+                "label": "용도",
+                "value": "자가용",
+                "tone": null
+              },
+              {
+                "label": "렌트 이력",
+                "value": "없음",
+                "tone": "success"
+              },
+              {
+                "label": "영업용 이력",
+                "value": "없음",
+                "tone": "success"
+              },
+              {
+                "label": "관용 이력",
+                "value": "없음",
+                "tone": "success"
+              },
+              {
+                "label": "용도 변경",
+                "value": "없음",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "위험",
+                "value": "렌트·영업용 이력이 1회라도 있음",
+                "tone": "danger"
+              },
+              {
+                "label": "주의",
+                "value": "관용 이력이 1회라도 있음",
+                "tone": "warning"
+              },
+              {
+                "label": "통과",
+                "value": "세 가지 모두 없음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R06",
@@ -126,7 +921,66 @@
       "label": "통과",
       "message": "전손·침수·도난 이력이 없어요",
       "why": null,
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "전손·침수·도난",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "전손·침수·도난",
+            "rows": [
+              {
+                "label": "전손",
+                "value": "없음",
+                "tone": "success"
+              },
+              {
+                "label": "침수전손",
+                "value": "없음",
+                "tone": "success"
+              },
+              {
+                "label": "침수분손",
+                "value": "없음",
+                "tone": "success"
+              },
+              {
+                "label": "도난",
+                "value": "없음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "위험",
+                "value": "전손·침수전손·침수분손·도난 중 1회라도 있음",
+                "tone": "danger"
+              },
+              {
+                "label": "통과",
+                "value": "모두 없음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R07",
@@ -136,7 +990,82 @@
       "label": "주의",
       "message": "주인이 5번 바뀌었어요",
       "why": "소유자가 자주 바뀐 차는 문제가 있어 자주 되팔렸거나, 정비 이력이 끊겨 관리 상태를 알기 어려운 경우가 많아요. 3회 이상부터 주의 신호로 봐요.",
-      "sellerQuestion": "주인이 5번 바뀐 이유를 알 수 있을까요?"
+      "sellerQuestion": "주인이 5번 바뀐 이유를 알 수 있을까요?",
+      "detail": {
+        "title": "소유자 변경",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "소유자 변경",
+            "rows": [
+              {
+                "label": "변경 횟수",
+                "value": "5회",
+                "tone": "warning"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "변경 날짜",
+            "rows": [
+              {
+                "label": "5번째 변경",
+                "value": "2026-04-01",
+                "tone": null
+              },
+              {
+                "label": "4번째 변경",
+                "value": "2024-09-30",
+                "tone": null
+              },
+              {
+                "label": "3번째 변경",
+                "value": "2024-02-14",
+                "tone": null
+              },
+              {
+                "label": "2번째 변경",
+                "value": "2023-11-14",
+                "tone": null
+              },
+              {
+                "label": "1번째 변경",
+                "value": "2018-04-25",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "통과",
+                "value": "2회 이하",
+                "tone": "success"
+              },
+              {
+                "label": "주의",
+                "value": "3회 이상",
+                "tone": "warning"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R08",
@@ -146,7 +1075,61 @@
       "label": "주의",
       "message": "자차보험 없이 운행한 기간이 2개 구간, 총 7개월 있어요",
       "why": "보험에 가입하지 않은 기간에 난 사고는 이력에 남지 않아요. 이력이 깨끗해 보여도 숨은 사고가 있을 수 있는 공백 구간이에요.",
-      "sellerQuestion": "2023년 11월~2024년 1월, 2026년 4월~2026년 7월에 보험 없이 운행했나요?"
+      "sellerQuestion": "2023년 11월~2024년 1월, 2026년 4월~2026년 7월에 보험 없이 운행했나요?",
+      "detail": {
+        "title": "자차보험 공백",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "보험 미가입 기간",
+            "rows": [
+              {
+                "label": "2023년 11월~2024년 1월",
+                "value": "3개월",
+                "tone": "warning"
+              },
+              {
+                "label": "2026년 4월~2026년 7월",
+                "value": "4개월",
+                "tone": "warning"
+              },
+              {
+                "label": "합계",
+                "value": "7개월",
+                "tone": "warning"
+              }
+            ],
+            "note": "자차보험에 가입하지 않은 기간이에요. 이 기간에 난 사고는 보험이력에 남지 않아요"
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "주의",
+                "value": "자차보험 미가입 기간이 1개월이라도 있음",
+                "tone": "warning"
+              },
+              {
+                "label": "통과",
+                "value": "미가입 기간 없음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R09",
@@ -156,7 +1139,51 @@
       "label": "통과",
       "message": "수리비가 확정되지 않은 사고는 없어요",
       "why": null,
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "수리비 확정",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "수리비 확정",
+            "rows": [
+              {
+                "label": "수리비 미확정 사고",
+                "value": "없음",
+                "tone": "success"
+              }
+            ],
+            "note": "보험 처리한 사고 2건 모두 수리비가 기록돼 있어요"
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "주의",
+                "value": "수리비가 확정되지 않은 사고가 있음",
+                "tone": "warning"
+              },
+              {
+                "label": "통과",
+                "value": "없음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R10",
@@ -166,7 +1193,128 @@
       "label": "통과",
       "message": "경미한 수준이에요 · 내차 209만원 · 타차 0원",
       "why": null,
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "보험처리 규모",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "보험 처리 합계",
+            "rows": [
+              {
+                "label": "내차 피해",
+                "value": "2건 · 2,090,550원",
+                "tone": null
+              },
+              {
+                "label": "타차 가해",
+                "value": "없음",
+                "tone": null
+              },
+              {
+                "label": "기준 금액",
+                "value": "수입 400만원",
+                "tone": null
+              }
+            ],
+            "note": "금액은 보험금이 아니라 수리비(부품비·공임·도장비) 합계예요"
+          },
+          {
+            "title": "2015-09-30 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "1,391,000원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "1,277,600원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "80,780원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "230,550원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "1,588,930원",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "2015-05-23 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "947,000원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "0원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "286,670원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "214,950원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "501,620원",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "통과",
+                "value": "내차·타차 수리비 중 큰 쪽이 국산 200만원·수입 400만원 이하",
+                "tone": "success"
+              },
+              {
+                "label": "주의",
+                "value": "국산 200만원·수입 400만원 초과",
+                "tone": "warning"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "확인 완료",
+                "tone": null
+              },
+              {
+                "label": "매물 정보",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R01",
@@ -176,7 +1324,56 @@
       "label": "통과",
       "message": "딜러가 보험이력을 공개했어요",
       "why": null,
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "보험이력 공개",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "딜러 공개 설정",
+            "rows": [
+              {
+                "label": "보험이력",
+                "value": "공개",
+                "tone": "success"
+              },
+              {
+                "label": "성능점검",
+                "value": "공개",
+                "tone": "success"
+              }
+            ],
+            "note": "딜러가 매물을 올릴 때 정하는 설정이에요"
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "통과",
+                "value": "보험이력 공개",
+                "tone": "success"
+              },
+              {
+                "label": "비공개",
+                "value": "보험이력 비공개",
+                "tone": "danger"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "매물 정보",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R02",
@@ -186,7 +1383,56 @@
       "label": "통과",
       "message": "성능점검 기록이 공개돼 있어요",
       "why": null,
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "성능점검 공개",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "딜러 공개 설정",
+            "rows": [
+              {
+                "label": "보험이력",
+                "value": "공개",
+                "tone": "success"
+              },
+              {
+                "label": "성능점검",
+                "value": "공개",
+                "tone": "success"
+              }
+            ],
+            "note": "딜러가 매물을 올릴 때 정하는 설정이에요"
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "통과",
+                "value": "성능점검 기록 공개",
+                "tone": "success"
+              },
+              {
+                "label": "비공개",
+                "value": "성능점검 기록 비공개",
+                "tone": "danger"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "매물 정보",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     }
   ],
   "excluded": [
@@ -201,61 +1447,300 @@
       "date": "2015-04",
       "label": "신차 등록",
       "detail": null,
-      "tone": "neutral"
+      "tone": "neutral",
+      "sheet": null
     },
     {
       "date": "2015-05",
       "label": "사고 · 내차 피해",
       "detail": "수리비 합계 50만원",
-      "tone": "warning"
+      "tone": "warning",
+      "sheet": {
+        "title": "사고 · 내차 피해",
+        "subtitle": "수리비 합계 501,620원",
+        "blocks": [
+          {
+            "title": "2015-05-23 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "947,000원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "0원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "286,670원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "214,950원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "501,620원",
+                "tone": null
+              }
+            ],
+            "note": "수리비 합계는 부품비·공임·도장비를 더한 금액이에요. 보험사가 지급한 보험금과 다를 수 있어요"
+          }
+        ]
+      }
     },
     {
       "date": "2015-09",
       "label": "사고 · 내차 피해",
       "detail": "수리비 합계 159만원",
-      "tone": "warning"
+      "tone": "warning",
+      "sheet": {
+        "title": "사고 · 내차 피해",
+        "subtitle": "수리비 합계 1,588,930원",
+        "blocks": [
+          {
+            "title": "2015-09-30 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "1,391,000원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "1,277,600원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "80,780원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "230,550원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "1,588,930원",
+                "tone": null
+              }
+            ],
+            "note": "수리비 합계는 부품비·공임·도장비를 더한 금액이에요. 보험사가 지급한 보험금과 다를 수 있어요"
+          }
+        ]
+      }
     },
     {
       "date": "2018-04",
       "label": "소유자 변경",
       "detail": null,
-      "tone": "neutral"
+      "tone": "neutral",
+      "sheet": {
+        "title": "소유자 변경",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": null,
+            "rows": [
+              {
+                "label": "변경일",
+                "value": "2018-04-25",
+                "tone": null
+              },
+              {
+                "label": "순서",
+                "value": "전체 5회 중 1번째",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "date": "2023-11",
       "label": "소유자 변경",
       "detail": null,
-      "tone": "neutral"
+      "tone": "neutral",
+      "sheet": {
+        "title": "소유자 변경",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": null,
+            "rows": [
+              {
+                "label": "변경일",
+                "value": "2023-11-14",
+                "tone": null
+              },
+              {
+                "label": "순서",
+                "value": "전체 5회 중 2번째",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "date": "2023-11",
       "label": "보험 미가입",
       "detail": "2023년 11월~2024년 1월",
-      "tone": "warning"
+      "tone": "warning",
+      "sheet": {
+        "title": "보험 미가입",
+        "subtitle": "2023년 11월~2024년 1월",
+        "blocks": [
+          {
+            "title": null,
+            "rows": [
+              {
+                "label": "시작",
+                "value": "2023년 11월",
+                "tone": null
+              },
+              {
+                "label": "끝",
+                "value": "2024년 1월",
+                "tone": null
+              },
+              {
+                "label": "기간",
+                "value": "3개월",
+                "tone": "warning"
+              }
+            ],
+            "note": "이 기간에 난 사고는 보험이력에 남지 않아요"
+          }
+        ]
+      }
     },
     {
       "date": "2024-02",
       "label": "소유자 변경",
       "detail": null,
-      "tone": "neutral"
+      "tone": "neutral",
+      "sheet": {
+        "title": "소유자 변경",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": null,
+            "rows": [
+              {
+                "label": "변경일",
+                "value": "2024-02-14",
+                "tone": null
+              },
+              {
+                "label": "순서",
+                "value": "전체 5회 중 3번째",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "date": "2024-09",
       "label": "소유자 변경",
       "detail": null,
-      "tone": "neutral"
+      "tone": "neutral",
+      "sheet": {
+        "title": "소유자 변경",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": null,
+            "rows": [
+              {
+                "label": "변경일",
+                "value": "2024-09-30",
+                "tone": null
+              },
+              {
+                "label": "순서",
+                "value": "전체 5회 중 4번째",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "date": "2026-04",
       "label": "소유자 변경",
       "detail": null,
-      "tone": "neutral"
+      "tone": "neutral",
+      "sheet": {
+        "title": "소유자 변경",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": null,
+            "rows": [
+              {
+                "label": "변경일",
+                "value": "2026-04-01",
+                "tone": null
+              },
+              {
+                "label": "순서",
+                "value": "전체 5회 중 5번째",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "date": "2026-04",
       "label": "보험 미가입",
       "detail": "2026년 4월~2026년 7월",
-      "tone": "warning"
+      "tone": "warning",
+      "sheet": {
+        "title": "보험 미가입",
+        "subtitle": "2026년 4월~2026년 7월",
+        "blocks": [
+          {
+            "title": null,
+            "rows": [
+              {
+                "label": "시작",
+                "value": "2026년 4월",
+                "tone": null
+              },
+              {
+                "label": "끝",
+                "value": "2026년 7월",
+                "tone": null
+              },
+              {
+                "label": "기간",
+                "value": "4개월",
+                "tone": "warning"
+              }
+            ],
+            "note": "이 기간에 난 사고는 보험이력에 남지 않아요"
+          }
+        ]
+      }
     }
   ],
   "shareText": {
