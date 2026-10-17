@@ -9,6 +9,7 @@ import { parseDiagnosisApi } from '@core/parsers/encar/api-diagnosis.js';
 import { parseInspectionApi } from '@core/parsers/encar/api-inspection.js';
 import { encarToFacts } from '@core/bridge/encar-to-facts.js';
 import { evaluate } from '@core/rules/index.js';
+import { normalizeInput } from './normalize-input';
 
 type FetchStatus = 'ok' | 'not_found' | 'unauthorized' | 'error' | 'skipped';
 
@@ -70,8 +71,10 @@ const toStateRoot = (preloadedState: unknown): Parameters<typeof extractBase>[0]
 };
 
 export const orchestrateMobile = (
-  input: MobileOrchestratorInput,
+  rawInput: MobileOrchestratorInput,
 ): MobileOrchestratorResult => {
+  // Malformed Encar shapes would make the core throw; repair them first (no-op for well-formed input).
+  const input = normalizeInput(rawInput);
   const stateRoot = toStateRoot(input.preloadedState);
 
   const base = extractBase(stateRoot);
