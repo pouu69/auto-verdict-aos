@@ -29,6 +29,7 @@ import androidx.compose.material.icons.rounded.LinkOff
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
@@ -46,8 +47,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.car.autoverdict.R
@@ -250,23 +253,48 @@ private fun ReadyBody(
     }
     val scope = rememberCoroutineScope()
     val questions = remember(state.report) { state.report.issues.mapNotNull { it.sellerQuestion } }
-    Column(modifier = modifier.fillMaxWidth()) {
-        // Pinned above the list: "update available" only appears after the user has scrolled,
-        // so it has to stay visible wherever the list is.
-        state.banner?.let { banner ->
-            ResultBannerCard(
-                banner = banner,
-                onApplyUpdate = {
-                    actions.onApplyUpdate()
-                    scope.launch { listState.animateScrollToItem(0) }
-                },
-                onRetry = actions.onRetry,
-            )
+    Box(modifier = modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Pinned above the list: "update available" only appears after the user has scrolled,
+            // so it has to stay visible wherever the list is.
+            state.banner?.let { banner ->
+                ResultBannerCard(
+                    banner = banner,
+                    onApplyUpdate = {
+                        actions.onApplyUpdate()
+                        scope.launch { listState.animateScrollToItem(0) }
+                    },
+                    onRetry = actions.onRetry,
+                    refreshing = state.refreshing,
+                )
+            }
+            LazyColumn(state = listState, modifier = Modifier.fillMaxWidth().weight(1f)) {
+                reportSections(report = state.report, questions = questions, hasBanner = state.banner != null, actions = actions)
+            }
         }
-        LazyColumn(state = listState, modifier = Modifier.fillMaxWidth().weight(1f)) {
-            reportSections(report = state.report, questions = questions, hasBanner = state.banner != null, actions = actions)
+        // The partial-data banner shows its own progress; otherwise a slim bar under the top bar.
+        // Overlaid, so the report doesn't shift when the retry starts or ends.
+        if (state.refreshing && state.banner != ResultBanner.PartialData) {
+            RefreshingBar(modifier = Modifier.align(Alignment.TopCenter))
         }
     }
+}
+
+@Composable
+private fun RefreshingBar(modifier: Modifier) {
+    val colors = AvTheme.colors
+    val description = stringResource(R.string.result_refreshing)
+    LinearProgressIndicator(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(2.dp)
+            .semantics {
+                contentDescription = description
+                liveRegion = LiveRegionMode.Polite
+            },
+        color = colors.accent,
+        trackColor = colors.surfaceMuted,
+    )
 }
 
 /** Spec 5.2 items 3-11, top to bottom, all expanded. Empty sections are left out with their divider. */

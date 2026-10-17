@@ -4,14 +4,19 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
@@ -24,13 +29,17 @@ import com.car.autoverdict.ui.theme.AvTheme
 import com.car.autoverdict.ui.theme.AvTone
 import com.car.autoverdict.ui.theme.tone
 
-/** Spec 5.2-2: one notice above the verdict, with an inline action for update and partial data. */
+/**
+ * Spec 5.2-2: one notice above the verdict, with an inline action for update and partial data.
+ * While [refreshing], the partial-data retry turns into a progress label that ignores taps.
+ */
 @Composable
 fun ResultBannerCard(
     banner: ResultBanner,
     onApplyUpdate: () -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
+    refreshing: Boolean = false,
 ) {
     val (message, tone, action) = when (banner) {
         ResultBanner.SoldOut -> Triple(R.string.result_banner_sold_out, AvTone.Neutral, null)
@@ -47,6 +56,7 @@ fun ResultBannerCard(
         )
     }
     val toneColors = AvTheme.colors.tone(tone)
+    val retrying = refreshing && banner == ResultBanner.PartialData
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -66,7 +76,9 @@ fun ResultBannerCard(
                 // Banners can appear after the screen is already read (refresh done, listing sold).
                 .semantics { liveRegion = LiveRegionMode.Polite },
         )
-        if (action != null) {
+        if (retrying) {
+            RetryingLabel(color = toneColors.text)
+        } else if (action != null) {
             Box(
                 modifier = Modifier
                     .minimumInteractiveComponentSize()
@@ -77,6 +89,22 @@ fun ResultBannerCard(
                 Text(text = stringResource(action.label), style = AvTheme.typography.buttonS, color = toneColors.text)
             }
         }
+    }
+}
+
+/** Stands in for [다시 시도] while the retry runs; same footprint, no click action. */
+@Composable
+private fun RetryingLabel(color: Color) {
+    Row(
+        modifier = Modifier
+            .minimumInteractiveComponentSize()
+            .padding(horizontal = 12.dp)
+            .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        CircularProgressIndicator(modifier = Modifier.size(14.dp), color = color, strokeWidth = 2.dp)
+        Spacer(Modifier.width(6.dp))
+        Text(text = stringResource(R.string.result_refreshing), style = AvTheme.typography.buttonS, color = color)
     }
 }
 
