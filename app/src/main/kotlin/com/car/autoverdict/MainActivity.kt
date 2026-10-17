@@ -60,7 +60,7 @@ import com.car.autoverdict.ui.screen.PrivacyPolicyScreen
 import com.car.autoverdict.ui.screen.ResultScreen
 import com.car.autoverdict.ui.screen.SavedListScreen
 import com.car.autoverdict.ui.screen.SettingsScreen
-import com.car.autoverdict.ui.theme.AutoVerdictTheme
+import com.car.autoverdict.ui.theme.AvTheme
 import com.car.autoverdict.ui.theme.Primary
 import com.car.autoverdict.ui.theme.TextSecondary
 import com.car.autoverdict.util.EncarUrl
@@ -82,7 +82,7 @@ class MainActivity : ComponentActivity() {
         appPreferences = AppPreferences(this)
         handleShareIntent(intent)
         setContent {
-            AutoVerdictTheme {
+            AvTheme {
                 AppRouter(
                     isOnboardingComplete = appPreferences.isOnboardingComplete,
                     onOnboardingComplete = { appPreferences.setOnboardingComplete() },
