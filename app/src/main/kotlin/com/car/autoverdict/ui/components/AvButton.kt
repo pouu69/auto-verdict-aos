@@ -77,7 +77,8 @@ fun AvButton(
         modifier = modifier
             // Small (36dp) still gets a 48dp touch target (spec 6).
             .minimumInteractiveComponentSize()
-            .avPressable(onClick = onClick, enabled = enabled && !loading)
+            // Before clip(shape) so the outside focus ring isn't clipped away.
+            .avPressable(onClick = onClick, enabled = enabled && !loading, focusShape = shape)
             .semantics { if (loading) stateDescription = loadingDescription }
             .heightIn(min = size.minHeight)
             .clip(shape)
