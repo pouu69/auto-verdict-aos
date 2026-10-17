@@ -155,7 +155,7 @@ val buildWebView = tasks.register<Exec>("buildWebView") {
         file("$webViewDir/package-lock.json"),
         file("$webViewDir/tsconfig.json"),
         file("$webViewDir/vite.config.ts"),
-        file("$webViewDir/index.html"),
+        file("$webViewDir/public/engine.html"),
     )
     outputs.dir(file("$webViewDir/dist"))
     commandLine(npmExecutable, "run", "build")
