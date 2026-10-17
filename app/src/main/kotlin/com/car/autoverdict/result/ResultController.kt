@@ -130,13 +130,7 @@ class ResultController(
         val update = pendingUpdate ?: return
         pendingUpdate = null
         soldOut = false
-        // Same report as on screen: keep it (no redraw), only refresh the stored raw.
-        if (update.report == shown?.report) {
-            shown = update
-            publishReady()
-        } else {
-            display(update)
-        }
+        display(update)
         scope.launch { persist(update) }
     }
 

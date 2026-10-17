@@ -448,6 +448,27 @@ class ResultControllerTest {
     }
 
     @Test
+    fun `refresh without scrolling and an equal report keeps the shown state and updates the saved row`() = runTest {
+        givenSavedCar()
+        val c = controller()
+        val states = history(c)
+        c.start()
+        runCurrent()
+        val before = c.state.value
+        val statesBefore = states.size
+
+        evaluator.results["new-raw"] = EngineResult.Success(caution.copy())
+        repo.collects.single().result.complete(CollectOutcome.Success("new-raw"))
+        runCurrent()
+
+        // No redraw: the very same Ready instance, no state emitted.
+        assertTrue(before === c.state.value)
+        assertEquals(statesBefore, states.size)
+        assertEquals(listOf(SaveCall(caution, "new-raw", SAVED_AT)), repo.saves)
+        assertEquals(listOf(caution to "new-raw"), repo.cacheWrites)
+    }
+
+    @Test
     fun `refresh with an equal report that has data gaps updates the saved row but not the cache`() = runTest {
         val gapped = caution.copy(dataGaps = listOf(loginGap))
         repo.saved = savedEntity(rawJson = "saved-raw", savedAt = SAVED_AT)
