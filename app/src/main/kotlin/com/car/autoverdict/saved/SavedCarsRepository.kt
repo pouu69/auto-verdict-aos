@@ -2,6 +2,7 @@ package com.car.autoverdict.saved
 
 import com.car.autoverdict.db.SavedCarDao
 import com.car.autoverdict.db.SavedCarEntity
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.launch
 
 /**
  * App-scoped access to saved cars, grouped by vehicle identity (spec 3.4–3.5). The DB is never
@@ -18,7 +20,7 @@ import kotlinx.coroutines.flow.shareIn
  */
 class SavedCarsRepository(
     private val dao: SavedCarDao,
-    scope: CoroutineScope,
+    private val scope: CoroutineScope,
     dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
     /** carId → (updatedAt, identity); replaced wholesale per emission so deleted rows drop out. */
@@ -45,6 +47,23 @@ class SavedCarsRepository(
 
     /** Writes deleted rows back unchanged (savedAt/updatedAt included), so they return to the same place. */
     suspend fun restore(rows: List<SavedCarEntity>) = dao.upsertAll(rows)
+
+    /**
+     * [restore] in the app scope, for an undo toast: the toast outlives the list screen, so the
+     * write must not be cancelled with it (spec 4.6). [onFailure] runs off the main thread.
+     */
+    fun restoreDetached(rows: List<SavedCarEntity>, onFailure: () -> Unit) {
+        scope.launch {
+            try {
+                restore(rows)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: RuntimeException) {
+                // SQLite and closed-database errors are runtime exceptions.
+                onFailure()
+            }
+        }
+    }
 
     /** The given rows as they change, for the compare screen. Missing ids are simply absent. */
     fun observe(carIds: List<String>): Flow<List<SavedCarEntity>> = dao.getByCarIdsFlow(carIds)
