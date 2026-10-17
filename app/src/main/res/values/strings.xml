@@ -12,4 +12,7 @@
     <string name="cd_clear">지우기</string>
     <string name="cd_settings">설정</string>
     <string name="button_loading">진행 중</string>
+    <string name="loading_step_done">완료</string>
+    <string name="loading_step_active">진행 중</string>
+    <string name="loading_step_pending">대기 중</string>
 </resources>
