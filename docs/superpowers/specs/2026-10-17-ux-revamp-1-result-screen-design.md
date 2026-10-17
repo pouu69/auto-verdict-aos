@@ -151,7 +151,7 @@
 
 | 판정 | 조건 | 문장 |
 |---|---|---|
-| NEVER | 룰 번호가 가장 앞선 killer | R04 "사고(프레임 손상) 이력이 있어 사지 않는 게 좋아요" / R05 "{렌트·택시·영업용} 이력이 있어 사지 않는 게 좋아요" / R06 "{전손·침수·도난} 이력이 있어 사지 않는 게 좋아요" (실제 해당 항목만 나열) |
+| NEVER | 룰 번호가 가장 앞선 killer | R04는 근거 출처별: 성능점검 "성능점검에 사고 이력이 있어 사지 않는 게 좋아요", 엔카진단 "엔카진단에서 프레임 손상이 확인돼 사지 않는 게 좋아요", 출처 불명 "사고 이력이 있어 사지 않는 게 좋아요" / R05 "{렌트·택시·영업용} 이력이 있어 사지 않는 게 좋아요" / R06 "{전손·침수·도난} 이력이 있어 사지 않는 게 좋아요" (실제 해당 항목만 나열) |
 | CAUTION | 주의 n개 | "사기 전에 {n}가지는 꼭 확인하세요" |
 | UNKNOWN | 미확인 n개 | "확인하지 못한 항목이 {n}개 있어요" |
 | OK | 주의 1개 | "큰 문제는 없지만 1가지는 확인해 보세요" |
@@ -160,7 +160,7 @@
 
 - `issues` = `rules` 중 tone이 danger·warning·neutral인 것. 정렬: danger(위험 → 비공개) → warning → neutral, 같은 묶음 안에서는 룰 번호 순. `rules`에도 그대로 남는다(전체 항목을 한곳에서 보기 위한 의도된 중복). `issues`의 `why`는 항상 채운다.
 - `rules`는 카테고리 순서(차량 상태 → 이력 → 사고 → 가격 → 투명성), 카테고리 안에서 룰 번호 순. `why`·`sellerQuestion`은 issues에만 채우고 통과 항목은 null.
-- **`repairs.panels`**: 성능점검 `outers` 중 상태가 있는 부위. `rank`는 원본 표기를 도메인 용어로: `RANK_ONE`→"1랭크", `RANK_TWO`→"2랭크"(둘 다 외판, tone warning), `RANK_A`·`RANK_B`·`RANK_C`→"A랭크"·"B랭크"·"C랭크"(주요 골격, tone danger), 그 외 → null(tone neutral). 정렬: 골격 → 2랭크 → 1랭크. 판정의 프레임 여부는 계속 R04(`master.accdient`)만 쓴다. 이 목록은 근거 표시용이다.
+- **`repairs.panels`**: 성능점검 `outers` 중 상태가 있는 부위. `rank`는 원본 표기를 도메인 용어로: `RANK_ONE`→"1랭크", `RANK_TWO`→"2랭크"(둘 다 외판, tone warning), `RANK_A`·`RANK_B`·`RANK_C`→"A랭크"·"B랭크"·"C랭크"(주요 골격, tone danger), 그 외 → null(tone neutral). 정렬: 골격 → 2랭크 → 1랭크. 판정의 프레임 여부는 core R04(엔카진단 → 성능점검 `master.accdient` 순)를 그대로 쓴다. 이 목록은 근거 표시용이다.
 - **`repairs.systems`**: `inners` 트리 전체를 돌며 `statusType`이 있는 모든 노드의 상태 코드를 읽는다(core R12 순회와 같음). `group`은 바로 위 부모 이름. 코드 → tone: 1 양호·2 적정·3 없음 = success, 4 미세누수·6 미세누유·8 부족·9 과다 = warning, 5 누수·7 누유·10 불량 = danger, 11 있음·그 외 = neutral. `flagged`는 success가 아닌 항목(danger 먼저), `okCount`는 success 개수. R12(오일 누유) 판정과 표시가 같은 코드표(core `OIL_LEAK_CODES`)를 따르는지 테스트로 확인한다.
 - **`timeline`**: 날짜 오름차순, `YYYY-MM`. 원본 `recordJson`을 직접 읽는다. 항목: 최초 등록(`firstDate`), 소유자 변경(`ownerChanges`, 각각), 사고(`accidents`, 같은 날짜·같은 종류는 하나로 묶고 "사고 n건"), 보험 미가입 기간(`notJoinDate1..5`, "보험 미가입 2023-11~2024-01"), 침수·전손·도난(`floodDate`·`totalLossDate`·`robberDate`), 번호 변경(`carInfoChanges`). 사고 `type` 1·2 = "내차 피해", 3 = "타차 가해"(두 테스트 매물의 건수와 `myAccidentCnt`·`otherAccidentCnt`가 일치함을 확인했다). `detail`은 묶인 사고의 수리비(`partCost`+`laborCost`+`paintingCost`) 합계를 만원 단위 반올림("수리비 합계 95만원"), 0이면 null. 보험금(`insuranceBenefit`)이 아니라 수리비 기준이라 종류별 합계가 R10 문구의 `myAccidentCost`·`otherAccidentCost`와 같다(보험이력이 있는 세 매물에서 테스트로 확인). tone: 침수·전손·도난 danger, 사고 warning, 보험 미가입 warning, 나머지 neutral.
 - **`dataGaps`**: `source` ∈ `page|record|diagnosis|inspection`, `reason` ∈ `failed|loginRequired`. `httpStatus`가 `error`면 failed, `unauthorized`면 loginRequired. `not_found`(개인 매물의 진단 없음 등)·`skipped`·호출 없음은 **누락이 아니다**(원래 없는 정보).
@@ -246,7 +246,7 @@
 - 결과 문장은 엔진의 `message` 문자열을 쓰지 않고 룰 결과와 수치로 새로 만든다(엔진 문구에는 합니다체·이모지·개발자 용어가 섞여 있음). 수치는 `evidence`·facts에서 읽는다.
 - 미확인 사유 매핑: `login_required` → "엔카에 로그인하면 확인할 수 있어요", `api_fetch_error`·`not_fetched` → "엔카에서 정보를 받지 못했어요", 딜러 비공개 → "딜러가 공개하지 않았어요", `no_report_for_personal`(API 404) → 룰의 출처별 문구: 보험이력(R05~R10) "엔카에 이 차의 보험 이력이 없어요", 성능점검(R12) "엔카에 성능점검 기록이 없어요", 진단·성능점검(R04) "프레임 상태를 확인할 자료가 없어요". 그 외 사유 → "정보를 확인하지 못했어요".
 - 평가 제외 이유(엔진이 null을 반환한 룰): R03 "엔카진단을 받지 않은 차예요(감점 없음)", R11 "신차 가격 정보가 없어 평가하지 않았어요", R12 "성능점검 기록이 없어 누유를 평가하지 않았어요".
-- R04 killer 결과 문장은 "프레임까지 손상된 사고 이력이 있어요"(진단·성능점검 중 어느 쪽이 근거인지 어댑터는 모르므로 출처를 쓰지 않는다).
+- R04 killer 결과 문장은 근거 출처를 밝힌다. 출처는 어댑터(`report/frame-source.ts`)가 코어 `encarToFacts`의 R04 우선순위(엔카진단 CHECKER_COMMENT → 성능점검 `master.accdient` → 리본)를 코어 헬퍼(`getFrameIntact`·`getFrameFromInspection`)로 그대로 재현해 정한다. 성능점검 "성능점검에 사고 이력이 있어요"(외판 부위는 붙이지 않는다 — 교환·수리 섹션에 이미 나온다), 판매자 질문 "성능점검 사고 부위의 수리 내역과 사진을 볼 수 있을까요?"; 엔카진단 "엔카진단에서 프레임 손상이 확인됐어요", 질문 "프레임 수리 내역과 사진을 볼 수 있을까요?"; 출처 불명 "사고 이력(프레임 손상)이 있어요", 질문은 엔카진단과 같다. 진단이 프레임 정상이라 해도 판정이 모호하면(예: 39339524 "외부패널 단순교환") 성능점검이 근거가 되므로, 진단을 근거로 단정하는 문구를 쓰지 않는다.
 - 가격 적정성 이유: "신차 가격 대비 지나치게 싸거나 비싸면 …"으로 고친다(실제 계산은 신차가 대비).
 - 판매자 질문은 문제 항목에만 있고, 수치·기간을 넣는다(예: "2023년 11월~2024년 1월에 보험 없이 운행했나요?").
 - 기존 `rule-meta.ts`의 `why` 문단은 합니다체를 해요체로 고쳐 옮긴다.

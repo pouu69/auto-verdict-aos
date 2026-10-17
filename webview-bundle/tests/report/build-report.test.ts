@@ -114,7 +114,7 @@ describe('buildReport on fixtures', () => {
 
   it('39339524: NEVER headline from R04', () => {
     const { report } = build('39339524');
-    expect(report.headline.startsWith('사고(프레임 손상) 이력이 있어')).toBe(true);
+    expect(report.headline).toBe('성능점검에 사고 이력이 있어 사지 않는 게 좋아요');
     expect(report.issues.map((i) => [i.ruleId, i.label])).toEqual([
       ['R04', '위험'],
       ['R10', '주의'],
