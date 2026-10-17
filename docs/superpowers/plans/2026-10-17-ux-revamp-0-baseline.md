@@ -25,3 +25,12 @@
 - Kotlin 단위 테스트: 226개 통과 / vitest: 83개 통과
 - eval-ui 에셋: 이전 React 번들 JS 약 178KB → 이후 `engine.html` 263 bytes + `engine.js` 36,369 bytes (AAB 내 assets는 이 2개뿐)
 - `build-all.sh`: 스크립트가 `JAVA_HOME=/opt/homebrew/opt/openjdk@17`(이 머신에 없음)를 강제해 Gradle 단계에서 실패하던 문제 수정됨 — 바깥 JAVA_HOME을 우선(`${JAVA_HOME:-…}`)하도록 바꿨고, Android Studio JBR로 `./build-all.sh` 전체 통과
+
+## 2·3·4번 + 알려진 한계 (2026-10-18, feat/ux-revamp-2)
+
+- 커밋: 9de27c0 (main 미병합, 사용자 최종 확인 대기)
+- release AAB: 10,564,318 bytes (1번 최종 10,454,463 대비 +109,855)
+  - 추가분 대부분은 오픈소스 고지 JSON(`res/raw/oss_google_notices.json` 374,878 B + `oss_notices.json` 26,520 B, 압축 후 약 78 KB)과 새 화면(홈·온보딩·저장·비교·설정·라이선스) 코드
+  - 한국어 리소스만 포함(`localeFilters`)으로 debug APK는 약 674 KiB 줄었지만, AAB에는 매핑·디버그 심볼 등 BUNDLE-METADATA가 함께 들어 있어 AAB 파일 크기로는 차이가 작게 보인다
+  - 0번에서 정한 "10 MiB(10,485,760) 이내" 예산을 약 78 KB 넘음 → 사용자 판단 필요(고지 JSON을 줄이거나 예산 기준을 실제 다운로드 크기로 바꾸는 방안)
+- Kotlin 단위 테스트 384개 / vitest 164개 통과
