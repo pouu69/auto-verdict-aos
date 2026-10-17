@@ -201,13 +201,22 @@ class ResultController(
      * rule — the user asked); failure, engine failure or more data gaps keep it + RetryFailed.
      */
     private suspend fun retryInPlace(id: String, before: Evaluated) {
-        val outcome = collect(id) {}
-        val fresh = (outcome as? CollectOutcome.Success)?.let { success ->
-            evaluate(success.rawJson)
-                ?.takeIf { it.dataGaps.size <= before.report.dataGaps.size }
-                ?.let { Evaluated(it, success.rawJson) }
+        val outcome: CollectOutcome
+        val fresh: Evaluated?
+        var finished = false
+        try {
+            outcome = collect(id) {}
+            fresh = (outcome as? CollectOutcome.Success)?.let { success ->
+                evaluate(success.rawJson)
+                    ?.takeIf { it.dataGaps.size <= before.report.dataGaps.size }
+                    ?.let { Evaluated(it, success.rawJson) }
+            }
+            finished = true
+        } finally {
+            refreshing = false
+            // Cancelled mid-retry: keep the shown report, no longer marked refreshing.
+            if (!finished) publishReady()
         }
-        refreshing = false
         when {
             fresh != null -> {
                 soldOut = false

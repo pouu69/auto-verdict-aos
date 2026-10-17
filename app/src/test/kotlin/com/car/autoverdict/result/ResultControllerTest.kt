@@ -9,9 +9,12 @@ import com.car.autoverdict.report.GapReason
 import com.car.autoverdict.report.GapSource
 import com.car.autoverdict.report.ReportParser
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runCurrent
@@ -287,6 +290,25 @@ class ResultControllerTest {
 
         assertEquals(1, repo.collects.size)
         assertFalse(repo.collects.single().cancelled)
+    }
+
+    @Test
+    fun `cancelling an in-place retry clears refreshing and keeps the report`() = runTest {
+        val partial = givenPartialCache()
+        val scopeJob = Job()
+        val c = ResultController(URL, repo, evaluator, CoroutineScope(StandardTestDispatcher(testScheduler) + scopeJob))
+        c.start()
+        runCurrent()
+
+        c.retry()
+        runCurrent()
+        assertTrue(c.ready().refreshing)
+
+        scopeJob.cancel()
+        runCurrent()
+
+        assertTrue(repo.collects.single().cancelled)
+        assertEquals(ResultUiState.Ready(partial, saved = false, banner = ResultBanner.PartialData), c.state.value)
     }
 
     @Test
