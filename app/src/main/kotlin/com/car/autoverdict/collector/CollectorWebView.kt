@@ -231,8 +231,8 @@ class CollectorWebView(context: Context) : Collector {
      * The page's base fetch failed, which Encar flags the same way for a 404 and a transient
      * 5xx/network error. Re-request the base API the page uses and decide from the HTTP status
      * ([ListingAvailability.isConfirmedMissing]): 404 → [Result.Deleted], anything else →
-     * retryable [CollectErrorKind.PageUnreadable]. The probe gives up after [PROBE_TIMEOUT_MS]
-     * and always stays under the collection timeout.
+     * retryable [CollectErrorKind.PageUnreadable]. The probe gives up after [PROBE_TIMEOUT_MS];
+     * the collection-wide [TIMEOUT_MS] still applies and may end the collection first (Timeout).
      */
     private fun probeBaseApi(session: Int, carId: String, callback: (Result) -> Unit) {
         apiResultHandler = onProbe@{ json ->
@@ -244,6 +244,7 @@ class CollectorWebView(context: Context) : Collector {
             } else {
                 callback(Result.Error(CollectErrorKind.PageUnreadable, "매물 기본 정보 조회 실패: $json"))
             }
+            webView.loadUrl("about:blank")
         }
         // Same endpoint and include list as the page's own base request (cars.base.requestUrl).
         val probeJs = """

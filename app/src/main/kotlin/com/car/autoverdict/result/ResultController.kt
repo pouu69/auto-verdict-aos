@@ -6,7 +6,9 @@ import com.car.autoverdict.report.EvaluationReport
 import com.car.autoverdict.report.GapReason
 import com.car.autoverdict.util.EncarUrl
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
@@ -40,6 +42,8 @@ class ResultController(
     private val evaluator: ReportEvaluator,
     private val scope: CoroutineScope,
     private val carIdOf: (String) -> String? = EncarUrl::extractCarId,
+    /** Runs [SavedCarKey] (a parse of the whole payload) off the main thread; tests swap it. */
+    private val keyDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
     private val _state = MutableStateFlow<ResultUiState>(ResultUiState.Loading(LoadingStage.OpeningPage))
     val state: StateFlow<ResultUiState> = _state.asStateFlow()
@@ -48,9 +52,16 @@ class ResultController(
     val events: Flow<ResultEvent> = _events.receiveAsFlow()
 
     /** A report and the raw collector payload it was built from (what save/cache store). */
-    private data class Evaluated(val report: EvaluationReport, val rawJson: String) {
+    private data class Evaluated(
+        val report: EvaluationReport,
+        val rawJson: String,
         /** Where a new save of this car goes (the original vehicle id for a dummy ad). */
-        val savedKey: String by lazy { SavedCarKey.of(rawJson, fallback = report.carId) }
+        val savedKey: String,
+    )
+
+    private suspend fun evaluated(report: EvaluationReport, rawJson: String): Evaluated {
+        val key = withContext(keyDispatcher) { SavedCarKey.of(rawJson, fallback = report.carId) }
+        return Evaluated(report, rawJson, key)
     }
 
     private val carId: String? = carIdOf(url)
@@ -91,7 +102,7 @@ class ResultController(
             if (entity != null) {
                 val report = evaluate(entity.rawJson)
                 if (report != null) {
-                    display(Evaluated(report, entity.rawJson))
+                    display(evaluated(report, entity.rawJson))
                     refreshSaved(id)
                     return@launch
                 }
@@ -103,9 +114,9 @@ class ResultController(
             if (cached != null) {
                 val report = evaluate(cached)
                 if (report != null) {
-                    val evaluated = Evaluated(report, cached)
-                    adoptSavedRow(evaluated)
-                    display(evaluated)
+                    val fromCache = evaluated(report, cached)
+                    adoptSavedRow(fromCache)
+                    display(fromCache)
                     return@launch
                 }
             }
@@ -232,7 +243,7 @@ class ResultController(
                     minimumHold.cancel()
                     _state.value = ResultUiState.Error(ResultErrorKind.EngineFailed)
                 } else {
-                    val fresh = Evaluated(report, outcome.rawJson)
+                    val fresh = evaluated(report, outcome.rawJson)
                     adoptSavedRow(fresh)
                     // Write before the hold, so leaving the screen during it still keeps the result.
                     persist(fresh)
@@ -265,7 +276,7 @@ class ResultController(
             fresh = (outcome as? CollectOutcome.Success)?.let { success ->
                 evaluate(success.rawJson)
                     ?.takeIf { it.dataGaps.size <= before.report.dataGaps.size }
-                    ?.let { Evaluated(it, success.rawJson) }
+                    ?.let { evaluated(it, success.rawJson) }
             }
             finished = true
         } finally {
@@ -306,7 +317,7 @@ class ResultController(
                 val current = shown ?: return
                 // More data gaps than the saved result (e.g. logged out): keep the saved one.
                 if (report.dataGaps.size > current.report.dataGaps.size) return
-                val fresh = Evaluated(report, outcome.rawJson)
+                val fresh = evaluated(report, outcome.rawJson)
                 if (report == current.report) {
                     // Nothing visible changed: no swap, no banner — just store the newer raw.
                     shown = fresh

@@ -10,6 +10,7 @@ import com.car.autoverdict.report.GapSource
 import com.car.autoverdict.report.ReportParser
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -39,7 +40,7 @@ class ResultControllerTest {
     private val evaluator = FakeEvaluator()
 
     private fun TestScope.controller(url: String = URL): ResultController =
-        ResultController(url, repo, evaluator, backgroundScope)
+        ResultController(url, repo, evaluator, backgroundScope, keyDispatcher = Dispatchers.Unconfined)
 
     /** Records every state, including the transient ones (Loading steps). */
     private fun TestScope.history(controller: ResultController): List<ResultUiState> {
@@ -350,7 +351,11 @@ class ResultControllerTest {
     fun `cancelling an in-place retry clears refreshing and keeps the report`() = runTest {
         val partial = givenPartialCache()
         val scopeJob = Job()
-        val c = ResultController(URL, repo, evaluator, CoroutineScope(StandardTestDispatcher(testScheduler) + scopeJob))
+        val c = ResultController(
+            URL, repo, evaluator,
+            CoroutineScope(StandardTestDispatcher(testScheduler) + scopeJob),
+            keyDispatcher = Dispatchers.Unconfined,
+        )
         c.start()
         runCurrent()
 
@@ -818,7 +823,7 @@ class ResultControllerTest {
         repo.cache = "cache-raw"
         evaluator.results["cache-raw"] = EngineResult.Success(caution)
         val screen = CoroutineScope(Job() + StandardTestDispatcher(testScheduler))
-        val c = ResultController(URL, repo, evaluator, screen)
+        val c = ResultController(URL, repo, evaluator, screen, keyDispatcher = Dispatchers.Unconfined)
         val events = events(c)
         c.start()
         runCurrent()
@@ -840,7 +845,7 @@ class ResultControllerTest {
     fun `unsave finishes its delete after the screen scope is cancelled`() = runTest {
         givenSavedCar()
         val screen = CoroutineScope(Job() + StandardTestDispatcher(testScheduler))
-        val c = ResultController(URL, repo, evaluator, screen)
+        val c = ResultController(URL, repo, evaluator, screen, keyDispatcher = Dispatchers.Unconfined)
         c.start()
         runCurrent()
         val gate = CompletableDeferred<Unit>()
@@ -859,7 +864,7 @@ class ResultControllerTest {
     fun `refresh writes both the cache and the saved row after the screen scope is cancelled`() = runTest {
         givenSavedCar()
         val screen = CoroutineScope(Job() + StandardTestDispatcher(testScheduler))
-        val c = ResultController(URL, repo, evaluator, screen)
+        val c = ResultController(URL, repo, evaluator, screen, keyDispatcher = Dispatchers.Unconfined)
         c.start()
         runCurrent()
         val gate = CompletableDeferred<Unit>()

@@ -1,56 +1,26 @@
 package com.car.autoverdict.result
 
-import com.car.autoverdict.collector.ListingAvailability
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.booleanOrNull
-import kotlinx.serialization.json.doubleOrNull
-import kotlinx.serialization.json.longOrNull
+import com.car.autoverdict.saved.savedIdentity
+import com.car.autoverdict.saved.vehicleIdOf
 
 /**
- * The `saved_cars.carId` a car is saved under, so one car has one saved row.
+ * The `saved_cars.carId` a car is saved under, so one car has one saved row. Also the saved
+ * list's grouping key ([savedIdentity] delegates here), so save and display share one rule.
  *
- * Encar can serve one vehicle under two ids: its original vehicle id and a dummy-ad id (see
- * [ListingAvailability.isGone]). Rule:
+ * Encar can serve one vehicle under two ids: its original vehicle id and a dummy-ad id. The
+ * collector payload's `cars.base.vehicleId` is always the original: for a regular listing it
+ * equals the URL id, for a dummy ad it is the original vehicle's id. (A page whose vehicleId
+ * names another car without a dummy link is reported Deleted and never saved.) Rule:
  *
- * - **New saves always use the original vehicle id.** For a dummy-ad payload (`cars.base.vehicleId`
- *   differs from `queryCarId`, with `manage.dummy` and `manage.dummyVehicleId == queryCarId`)
- *   that is `base.vehicleId`; for any other payload it is the payload's `carId` (the URL id).
+ * - **New saves always use the original vehicle id**: `base.vehicleId`, or [of]'s fallback (the
+ *   URL id) when the payload has no usable vehicleId.
  * - **Legacy rows may use a dummy-ad id** (saved before this rule). They are never migrated or
  *   deleted automatically; an existing row keeps being refreshed under its own id.
  *
- * So two saved rows are the same car when [of] returns the same key for their `rawJson`
- * (legacy rows hold the full collector payload too). The cache stays keyed by the URL id.
+ * The cache stays keyed by the URL id.
  */
 object SavedCarKey {
 
-    /** Key for the collector payload [rawJson]; [fallback] when it is not a readable payload. */
-    fun of(rawJson: String, fallback: String): String {
-        val payload = try {
-            Json.parseToJsonElement(rawJson) as? JsonObject
-        } catch (e: SerializationException) {
-            null
-        } ?: return fallback
-        val requested = idOf(payload["carId"]) ?: fallback
-        val base = payload.obj("preloadedState")?.obj("cars")?.obj("base") ?: return requested
-        val manage = base.obj("manage")
-        return ListingAvailability.originalOfDummyAd(
-            vehicleId = idOf(base["vehicleId"]),
-            queryCarId = idOf(base["queryCarId"]),
-            dummy = (manage?.get("dummy") as? JsonPrimitive)?.booleanOrNull ?: false,
-            dummyVehicleId = idOf(manage?.get("dummyVehicleId")),
-        ) ?: requested
-    }
-
-    private fun JsonObject.obj(key: String): JsonObject? = this[key] as? JsonObject
-
-    // Same normalization as ListingAvailability: numbers and numeric strings compare by value.
-    private fun idOf(element: JsonElement?): String? {
-        val p = element as? JsonPrimitive ?: return null
-        if (p.isString) return p.content.trim().takeIf { it.isNotEmpty() }
-        return (p.longOrNull ?: p.doubleOrNull?.toLong())?.toString()
-    }
+    /** Key for the collector payload [rawJson]; [fallback] when it has no usable vehicleId. */
+    fun of(rawJson: String, fallback: String): String = vehicleIdOf(rawJson) ?: fallback
 }
