@@ -27,4 +27,27 @@
     <string name="tab_saved_count">저장한 차 %1$d</string>
     <string name="cd_sheet_handle">시트 닫기</string>
     <string name="toast_invalid_share">엔카 매물 링크만 확인할 수 있어요</string>
+    <!-- Result screen (sub-project 1) -->
+    <string name="result_title">분석 결과</string>
+    <string name="result_subtitle_saved">저장된 매물</string>
+    <string name="result_open_in_encar">엔카에서 보기</string>
+    <string name="result_loading_title">매물을 분석하고 있어요</string>
+    <string name="result_loading_open_page">매물 페이지 열기</string>
+    <string name="result_loading_fetch_history">이력·진단 가져오기</string>
+    <string name="result_loading_evaluate">12가지 기준으로 평가</string>
+    <string name="result_error_network">인터넷 연결을 확인해 주세요</string>
+    <string name="result_error_timeout">엔카 응답이 늦어요</string>
+    <string name="result_error_page_unreadable">엔카 페이지를 읽지 못했어요</string>
+    <string name="result_error_engine">결과를 계산하지 못했어요</string>
+    <string name="result_error_invalid_url">엔카 매물 주소가 아니에요</string>
+    <string name="result_deleted">판매가 끝났거나 삭제된 매물이에요</string>
+    <string name="result_retry">다시 시도</string>
+    <string name="result_go_back">돌아가기</string>
+    <string name="result_cd_share">결과 공유</string>
+    <string name="result_save">저장하기</string>
+    <string name="result_saved">저장됨</string>
+    <string name="result_unsave_title">저장을 취소할까요?</string>
+    <string name="result_unsave_message">저장한 차 목록에서 빠져요</string>
+    <string name="result_unsave_confirm">취소하기</string>
+    <string name="result_unsave_dismiss">그대로 두기</string>
 </resources>

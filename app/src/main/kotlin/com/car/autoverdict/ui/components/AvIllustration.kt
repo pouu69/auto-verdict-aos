@@ -1,8 +1,10 @@
 package com.car.autoverdict.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -42,6 +44,10 @@ fun AvIllustrationIcon(icon: ImageVector, tone: AvTone, size: Dp, modifier: Modi
     }
 }
 
+/**
+ * Centered empty/error state. The optional secondary action sits beside the main one as a
+ * quieter Secondary button (e.g. "다시 시도" · "엔카에서 보기").
+ */
 @Composable
 fun AvEmptyState(
     icon: ImageVector,
@@ -51,6 +57,8 @@ fun AvEmptyState(
     description: String? = null,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
+    secondaryActionLabel: String? = null,
+    onSecondaryAction: (() -> Unit)? = null,
 ) {
     val colors = AvTheme.colors
     val typography = AvTheme.typography
@@ -73,9 +81,23 @@ fun AvEmptyState(
             Spacer(Modifier.height(6.dp))
             Text(text = description, style = typography.body2, color = colors.textSecondary, textAlign = TextAlign.Center)
         }
-        if (actionLabel != null && onAction != null) {
+        val hasAction = actionLabel != null && onAction != null
+        val hasSecondary = secondaryActionLabel != null && onSecondaryAction != null
+        if (hasAction || hasSecondary) {
             Spacer(Modifier.height(20.dp))
-            AvButton(text = actionLabel, onClick = onAction, style = AvButtonStyle.Weak, size = AvButtonSize.Medium)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (actionLabel != null && onAction != null) {
+                    AvButton(text = actionLabel, onClick = onAction, style = AvButtonStyle.Weak, size = AvButtonSize.Medium)
+                }
+                if (secondaryActionLabel != null && onSecondaryAction != null) {
+                    AvButton(
+                        text = secondaryActionLabel,
+                        onClick = onSecondaryAction,
+                        style = AvButtonStyle.Secondary,
+                        size = AvButtonSize.Medium,
+                    )
+                }
+            }
         }
     }
 }
