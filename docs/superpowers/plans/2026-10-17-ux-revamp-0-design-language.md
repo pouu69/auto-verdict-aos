@@ -12,6 +12,8 @@
 
 ---
 
+> **결정 기록 (2026-10-17, 웨이브 2 리뷰 후):** `AvToastState.show()`는 루트 스코프에서 실행되는 **일반 함수**다(코루틴에서 부를 필요 없음). `AvBottomSheet`는 `sheetState` 파라미터를 받는다. Task 22 코드는 이에 맞춰 고쳐 두었다.
+>
 > **결정 기록 (2026-10-17, Task 6A 이후):** 토스페이스는 Android 9 이하에서 컬러로 그려지지 않아 **제외**했고(`tossface.otf` 삭제), 용량을 줄이려고 Pretendard **Medium도 제외**했다(3종: Regular·SemiBold·Bold, `body1`→Regular, `caption2`→SemiBold). 아래 Task 12·14·19·27·28은 이 결정을 반영해 고쳐 두었다. `AvEmoji`는 만들지 않고 `AvIllustrationIcon`을 만든다.
 
 ## 공통 사항
@@ -4079,7 +4081,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -4095,7 +4096,6 @@ import com.car.autoverdict.ui.components.AvToastHost
 import com.car.autoverdict.ui.components.LocalAvToast
 import com.car.autoverdict.ui.components.rememberAvToastState
 import com.car.autoverdict.ui.theme.AvTheme
-import kotlinx.coroutines.launch
 
 /** What a screen may do to the app shell. Built by [AppRoot], consumed by [AppScreenContent]. */
 data class ScreenHost(
@@ -4128,7 +4128,6 @@ fun AppRoot(
     var lastAnalyzedUrl by rememberSaveable { mutableStateOf<String?>(null) }
     var bottomChromeHeight by remember { mutableStateOf(0.dp) }
     val toast = rememberAvToastState()
-    val scope = rememberCoroutineScope()
     val density = LocalDensity.current
     val invalidShareMessage = stringResource(R.string.toast_invalid_share)
 
@@ -4138,7 +4137,7 @@ fun AppRoot(
         navState = result.state
         transition = result.transition
         if (result.message == NavMessage.InvalidShare) {
-            scope.launch { toast.show(invalidShareMessage) }
+            toast.show(invalidShareMessage)
         }
     }
 
@@ -4272,7 +4271,8 @@ fun AppScreenContent(route: Route, host: ScreenHost) {
         )
         Route.PrivacyPolicy -> PrivacyPolicyScreen(onBack = host.back)
         Route.Licenses -> LicensesScreen(onBack = host.back)
-        Route.Gallery -> ComponentGalleryScreen(onBack = host.back)
+        // Debug-only: release builds never reach it, and R8 drops the gallery code (spec 6).
+        Route.Gallery -> if (BuildConfig.DEBUG) ComponentGalleryScreen(onBack = host.back)
         is Route.Result -> ResultScreen(url = route.url, onBack = host.back, isAlreadySaved = route.fromSaved)
         is Route.Compare -> CompareScreen(carIds = route.carIds, onBack = host.back)
     }
