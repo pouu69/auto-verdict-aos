@@ -52,7 +52,7 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val toast = LocalAvToast.current
     val url = stringResource(R.string.privacy_full_policy_url)
-    val noBrowser = stringResource(R.string.privacy_toast_no_browser)
+    val noBrowser = stringResource(R.string.common_no_browser)
     PrivacyPolicyContent(
         onBack = onBack,
         onOpenFullPolicy = {

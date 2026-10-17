@@ -30,6 +30,7 @@
     <string name="m3c_bottom_sheet_expand_description" tools:ignore="PrivateResource">하단 시트 펼치기</string>
     <string name="m3c_bottom_sheet_drag_handle_description" tools:ignore="PrivateResource">드래그 핸들</string>
     <string name="toast_invalid_share">엔카 매물 링크만 확인할 수 있어요</string>
+    <string name="common_no_browser">브라우저 앱을 찾지 못했어요</string>
     <!-- Result screen (sub-project 1) -->
     <string name="result_title">분석 결과</string>
     <string name="result_subtitle_saved">저장된 매물</string>

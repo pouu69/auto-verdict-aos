@@ -30,5 +30,4 @@
     <string name="privacy_full_policy">전체 방침 보기</string>
     <string name="privacy_full_policy_subtitle">웹에서 열려요</string>
     <string name="privacy_full_policy_url" translatable="false">https://pouu69.github.io/auto-verdict-aos/</string>
-    <string name="privacy_toast_no_browser">브라우저 앱을 찾지 못했어요</string>
 </resources>

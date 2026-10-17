@@ -1,10 +1,8 @@
 package com.car.autoverdict.ui.screen
 
 import android.content.ActivityNotFoundException
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -33,6 +31,7 @@ import com.car.autoverdict.ui.components.AvButtonSize
 import com.car.autoverdict.ui.components.AvButtonStyle
 import com.car.autoverdict.ui.components.AvSectionDivider
 import com.car.autoverdict.ui.components.AvTopBar
+import com.car.autoverdict.ui.components.LocalAvToast
 import com.car.autoverdict.ui.theme.AvTheme
 
 /**
@@ -60,6 +59,8 @@ private fun LicenseDetailBody(detail: OssDetail, modifier: Modifier = Modifier) 
     val typography = AvTheme.typography
     val spacing = AvTheme.spacing
     val context = LocalContext.current
+    val toast = LocalAvToast.current
+    val noBrowser = stringResource(R.string.common_no_browser)
     // Up to ~110KB: one Text per paragraph lets the list render only what is on screen.
     val paragraphs = remember(detail.text) { detail.text?.let(OssCatalog::paragraphs).orEmpty() }
     SelectionContainer(modifier = modifier) {
@@ -91,7 +92,13 @@ private fun LicenseDetailBody(detail: OssDetail, modifier: Modifier = Modifier) 
                         Spacer(Modifier.height(spacing.lg))
                         AvButton(
                             text = stringResource(R.string.licenses_open_web),
-                            onClick = { context.openInBrowser(detail.url) },
+                            onClick = {
+                                try {
+                                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(detail.url)))
+                                } catch (e: ActivityNotFoundException) {
+                                    toast.show(noBrowser)
+                                }
+                            },
                             style = AvButtonStyle.Weak,
                             size = AvButtonSize.Small,
                         )
@@ -118,14 +125,5 @@ private fun LicenseDetailBody(detail: OssDetail, modifier: Modifier = Modifier) 
             }
             item { Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars)) }
         }
-    }
-}
-
-private fun Context.openInBrowser(url: String) {
-    try {
-        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-    } catch (e: ActivityNotFoundException) {
-        // No browser installed; nothing sensible to offer instead.
-        Log.w("LicenseDetailScreen", "no activity for $url", e)
     }
 }
