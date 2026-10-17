@@ -97,6 +97,40 @@ describe('engine entry', () => {
     expect(message.length).toBeLessThanOrEqual(2000);
   });
 
+  // Shapes the core used to throw on; normalize-input repairs them before evaluation.
+  type Raw = ReturnType<typeof rawOf> & {
+    preloadedState: { cars: { base: Record<string, unknown> } };
+    recordJson: Record<string, unknown>;
+    inspectionJson: { outers: unknown; inners: Array<Record<string, unknown>> };
+    diagnosisJson: { items: unknown[] };
+  };
+  type Report = { verdict: string; car: { year: number | null; priceWon: number | null } };
+  it.each<[string, (raw: Raw) => void, ((report: Report) => void)?]>([
+    ['base without category', (raw) => { delete raw.preloadedState.cars.base.category; },
+      (report) => expect(report.car.year).toBeNull()],
+    ['base without advertisement', (raw) => { delete raw.preloadedState.cars.base.advertisement; },
+      (report) => expect(report.car.priceWon).toBeNull()],
+    ['a non-string notJoinDate', (raw) => { raw.recordJson.notJoinDate1 = 202001; }],
+    ['outers not an array', (raw) => { raw.inspectionJson.outers = {}; }],
+    ['outers containing null', (raw) => { raw.inspectionJson.outers = [null]; }],
+    ['inners containing null and non-array children', (raw) => {
+      raw.inspectionJson.inners[0]!.children = {};
+      raw.inspectionJson.inners.push(null as unknown as Record<string, unknown>);
+    }],
+    ['diagnosis items containing null', (raw) => { raw.diagnosisJson.items.push(null); }],
+  ])('evaluates %s instead of failing', async (_label, breakIt, check) => {
+    const engine = await loadEngine();
+    const raw = rawOf('39339524') as Raw;
+    breakIt(raw);
+    engine.handleEvaluate('req-13', JSON.stringify(raw));
+
+    expect(android.onEngineError).not.toHaveBeenCalled();
+    const [, json] = android.onReport.mock.calls[0] as [string, string];
+    const report = JSON.parse(json) as Report;
+    expect(['NEVER', 'CAUTION', 'OK', 'UNKNOWN']).toContain(report.verdict);
+    check?.(report);
+  });
+
   describe('when the engine itself throws', () => {
     afterEach(() => {
       vi.doUnmock('../src/orchestrate-mobile');

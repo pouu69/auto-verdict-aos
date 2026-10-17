@@ -1,6 +1,7 @@
 package com.car.autoverdict.saved
 
 import com.car.autoverdict.db.SavedCarEntity
+import com.car.autoverdict.result.SavedCarKey
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
@@ -35,12 +36,9 @@ fun vehicleIdOf(rawJson: String): String? {
 
 /**
  * Grouping key of a saved row: its vehicle id, falling back to carId for old or damaged rows.
- *
- * Same rule as `result/SavedCarKey` on the save path (dummy ad → base.vehicleId, otherwise the
- * listing's own id, which equals vehicleId for regular listings); to be unified into
- * `SavedCarKey.of` after merge.
+ * The same key new saves are written under ([SavedCarKey]).
  */
-fun savedIdentity(row: SavedCarEntity): String = vehicleIdOf(row.rawJson) ?: row.carId
+fun savedIdentity(row: SavedCarEntity): String = SavedCarKey.of(row.rawJson, fallback = row.carId)
 
 /**
  * Collapses rows with the same identity into items, in order of each group's first row in [rows].

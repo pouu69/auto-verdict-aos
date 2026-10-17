@@ -204,7 +204,8 @@ class CollectorWebView(context: Context) : Collector {
                     // Only trust "removed" once the page is fully loaded; until then keep polling.
                     val state = obj.optJSONObject("state")
                     if (isPageFinished() && state != null && ListingAvailability.isMissing(state)) {
-                        callback(Result.Deleted)
+                        // Suspected removal: confirm with the base API's HTTP status.
+                        probeBaseApi(session, carId, callback)
                         return@evaluateJavascript
                     }
                     retryOr(Result.Error(CollectErrorKind.PageUnreadable, "매물 데이터를 찾을 수 없습니다"))
@@ -217,12 +218,56 @@ class CollectorWebView(context: Context) : Collector {
                     return@evaluateJavascript
                 }
                 // A dummy-ad URL resolves to the original vehicle: the APIs use base.vehicleId,
-                // while carId (DB/cache key, saved URL) stays the id the user opened.
+                // while the payload's carId (cache key) stays the id the user opened. Saved rows
+                // key on the original id instead (SavedCarKey).
                 fetchApis(session, carId, cars, onStage, callback)
             } catch (e: Exception) {
                 callback(Result.Error(CollectErrorKind.PageUnreadable, "데이터 파싱 오류: ${e.message}"))
             }
         }
+    }
+
+    /**
+     * The page's base fetch failed, which Encar flags the same way for a 404 and a transient
+     * 5xx/network error. Re-request the base API the page uses and decide from the HTTP status
+     * ([ListingAvailability.isConfirmedMissing]): 404 → [Result.Deleted], anything else →
+     * retryable [CollectErrorKind.PageUnreadable]. The probe gives up after [PROBE_TIMEOUT_MS];
+     * the collection-wide [TIMEOUT_MS] still applies and may end the collection first (Timeout).
+     */
+    private fun probeBaseApi(session: Int, carId: String, callback: (Result) -> Unit) {
+        apiResultHandler = onProbe@{ json ->
+            if (session != sessionId) return@onProbe
+            apiResultHandler = null
+            Log.d(TAG, "base probe: $json")
+            if (ListingAvailability.isConfirmedMissing(json)) {
+                callback(Result.Deleted)
+            } else {
+                callback(Result.Error(CollectErrorKind.PageUnreadable, "매물 기본 정보 조회 실패: $json"))
+            }
+            webView.loadUrl("about:blank")
+        }
+        // Same endpoint and include list as the page's own base request (cars.base.requestUrl).
+        val probeJs = """
+        (function() {
+            var done = false;
+            function report(r) {
+                if (done) return;
+                done = true;
+                ApiCallback.onResult(JSON.stringify(r));
+            }
+            var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+            var timer = setTimeout(function() {
+                if (ctrl) ctrl.abort();
+                report({ error: 'timeout' });
+            }, $PROBE_TIMEOUT_MS);
+            var url = 'https://api.encar.com/v1/readside/vehicle/' +
+                encodeURIComponent(${JSONObject.quote(carId)}) + '?include=$BASE_INCLUDE';
+            fetch(url, ctrl ? { signal: ctrl.signal } : {})
+                .then(function(r) { clearTimeout(timer); report({ status: r.status }); })
+                .catch(function(e) { clearTimeout(timer); report({ error: String((e && e.message) || e) }); });
+        })();
+        """.trimIndent()
+        webView.evaluateJavascript(probeJs, null)
     }
 
     private fun fetchApis(
@@ -358,5 +403,8 @@ class CollectorWebView(context: Context) : Collector {
         private const val TIMEOUT_MS = 45_000L
         private const val RETRY_DELAY_MS = 1_000L
         private const val MAX_RETRIES = 5
+        private const val PROBE_TIMEOUT_MS = 10_000L
+        private const val BASE_INCLUDE =
+            "ADVERTISEMENT,CATEGORY,CONDITION,CONTACT,MANAGE,OPTIONS,PHOTOS,SPEC,PARTNERSHIP,CENTER,VIEW"
     }
 }
