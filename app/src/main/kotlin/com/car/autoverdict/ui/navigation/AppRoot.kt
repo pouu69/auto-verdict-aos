@@ -58,6 +58,8 @@ data class ScreenHost(
     /** Last link handed to analysis; the home screen skips re-filling it from the clipboard. */
     val lastAnalyzedUrl: String?,
     val onAnalyzed: (String) -> Unit,
+    /** Jumps to a tab root, clearing sub-screens (e.g. a toast's "보기" after saving). */
+    val selectTab: (MainTab) -> Unit,
 )
 
 /**
@@ -118,6 +120,9 @@ fun AppRoot(
         finishOnboarding = { if (navState.top == route) dispatch(NavEvent.OnboardingFinished) },
         lastAnalyzedUrl = lastAnalyzedUrl,
         onAnalyzed = { lastAnalyzedUrl = it },
+        // Not gated on the top route: a toast action may fire after its screen left, and
+        // repeating SelectTab is a no-op, so a double tap can't stack anything.
+        selectTab = { dispatch(NavEvent.SelectTab(it)) },
     )
     val top = navState.top
     val currentTab = top.tabOrNull()

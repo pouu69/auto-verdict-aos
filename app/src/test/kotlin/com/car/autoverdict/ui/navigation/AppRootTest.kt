@@ -65,6 +65,7 @@ class AppRootTest {
             TextButton(onClick = { host.onAnalyzed(url); host.navigate(Route.Result(url, fromSaved = false)) }) { Text("open-result") }
             TextButton(onClick = { host.navigate(Route.Settings) }) { Text("open-settings") }
             TextButton(onClick = host.back) { Text("go-back") }
+            TextButton(onClick = { host.selectTab(MainTab.Saved) }) { Text("select-saved") }
             TextButton(onClick = host.finishOnboarding) { Text("finish-onboarding") }
         }
     }
@@ -114,6 +115,21 @@ class AppRootTest {
         tester.emulateSavedInstanceStateRestore()
         rule.onNodeWithText("finish-onboarding").performClick()
         rule.onNodeWithText("route:result|0|$url").assertExists()
+    }
+
+    @Test fun `selectTab from a sub-screen replaces the stack with that tab root`() {
+        rule.setContent { Root(onboardingComplete = true, pending = null, onConsumed = {}) }
+        rule.onNodeWithText("open-result").performClick()
+        rule.onNodeWithText("route:result|0|$url").assertExists()
+
+        rule.onNodeWithText("select-saved").performClick()
+        rule.waitForIdle()
+
+        rule.onNodeWithText("route:saved").assertExists()
+        rule.onNodeWithText("route:result|0|$url").assertDoesNotExist()
+        // Saved is a tab root: back returns to Home, not to the result.
+        rule.onNodeWithText("go-back").performClick()
+        rule.onNodeWithText("route:home").assertExists()
     }
 
     @Test fun `tab bar shows only on tab roots`() {
