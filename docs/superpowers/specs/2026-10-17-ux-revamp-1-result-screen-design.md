@@ -143,6 +143,7 @@
 **규칙**
 - `verdict`·`score`는 엔진 값 그대로(`NEVER|CAUTION|OK|UNKNOWN`, 0~100).
 - **null 규칙**: 최상위 필드는 모두 항상 있다. `car`의 `year`·`mileageKm`·`priceWon`·`fuel`만 null 가능, `car.title`은 정보가 없으면 "차량 정보 없음". `repairs`는 성능점검을 못 읽었으면 null. `why`·`sellerQuestion`·`detail`은 null 가능. 배열은 비어 있어도 `[]`로 온다. `shareText.sellerQuestions`는 질문이 없으면 null.
+- `car.name`(추가 필드, 2026-10-18 사용자 결정): 화면 헤더 맨 위에 보이는 차량 이름. "{제조사} {모델} {등급}"(예: "BMW 3시리즈 (F30) 320d"), 연식 제외(아래 `summary` 줄에 있음), 정보가 없으면 `car.title`과 같은 대체 규칙. Kotlin 기본값 null이면 `car.title`을 표시.
 - `car.title`은 기존 저장 형식과 같다: `"{연식 4자리} {제조사} {모델}"`(저장 목록·비교 화면이 이 값을 쓴다). `car.summary`는 헤더 한 줄용.
 - `tone`: `danger|warning|success|neutral` (Kotlin `AvTone`으로 매핑).
 - 엔진 severity → 표시: `killer`=**위험**(danger), `fail`=**비공개**(danger), `warn`=**주의**(warning), `pass`=**통과**(success), `unknown`=**미확인**(neutral). 판정 배지 "확인 필요"와 겹치지 않도록 룰 단위는 "미확인"으로 쓴다.
@@ -254,7 +255,7 @@ interface DetailRow { label: string; value: string; tone: Tone | null }
    - 최신 정보 → "최신 정보가 있어요" + [보기]
    - 로그인 필요 → "엔카에 로그인하면 더 많은 항목을 확인할 수 있어요"
    - 일부 누락 → "일부 정보를 가져오지 못했어요" + [다시 시도]
-3. **판정 헤더**: `car.summary`(caption1) · 판정 배지(`verdictLabelRes`) + 점수(`title2`, 판정 톤 text 색, "72점") · 얇은 진행 바(판정 톤 fill) · **결론 문장** `headline`(`title1`)
+3. **판정 헤더**: `car.name`(title3 또는 body 굵게, 없으면 `car.title`) · `car.summary`(caption1) · 판정 배지(`verdictLabelRes`) + 점수(`title2`, 판정 톤 text 색, "72점") · 얇은 진행 바(판정 톤 fill) · **결론 문장** `headline`(`title1`)
 4. 개수 칩: 위험 · 비공개 · 주의 · 통과 · 미확인 · 평가 제외 (0인 칩은 숨김)
 5. 핵심 사실 4칸(`AvFactTile`)
 6. **교환·수리 부위**(`repairs`가 있고 내용이 있을 때): 부위 행(이름 + 랭크 배지 + 상태 배지) → 주요 장치 중 이상 있는 항목 행 → "그 외 {okCount}개 항목 양호" 한 줄. 부위·이상이 모두 없으면 "교환·수리 부위가 없어요" 한 줄
