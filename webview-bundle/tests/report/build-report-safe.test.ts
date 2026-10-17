@@ -13,6 +13,16 @@ vi.mock('../../src/report/repairs', () => ({
     throw new Error('boom');
   },
 }));
+// So does the copy of a single rule row.
+vi.mock('../../src/report/rule-copy', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../src/report/rule-copy')>()),
+  ruleCopy: () => {
+    throw new Error('boom');
+  },
+  unknownMessage: () => {
+    throw new Error('boom');
+  },
+}));
 
 describe('buildReport section isolation', () => {
   it('falls back per section and keeps verdict, score and rules', () => {
@@ -25,5 +35,16 @@ describe('buildReport section isolation', () => {
     expect(report.rules).toHaveLength(out.report.results.length);
     expect(report.facts).toHaveLength(4);
     expect(report.car.title).toBe('2012 BMW 3시리즈 (F30)');
+    // 39339524 has no 미확인 rule: every row is a decided one on the fallback copy.
+    expect(report.rules.map((r) => r.message)).toEqual(report.rules.map(() => '자세한 내용을 표시하지 못했어요'));
+    expect(report.issues.length).toBeGreaterThan(0);
+  });
+
+  it('falls back for a 미확인 row whose reason cannot be read', () => {
+    const { raw, out } = load('41623744');
+    const report = buildReport(raw, out);
+    const unknown = report.rules.filter((r) => r.label === '미확인');
+    expect(unknown.length).toBeGreaterThan(0);
+    for (const r of unknown) expect(r.message).toBe('정보를 확인하지 못했어요');
   });
 });

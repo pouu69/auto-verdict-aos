@@ -2,6 +2,7 @@ import type { Severity } from '@core/types/RuleTypes.js';
 import type { MobileOrchestratorResult } from '../orchestrate-mobile';
 import type { Fact, Tone } from './types';
 import { lossHits } from './rule-copy';
+import { count } from './raw';
 
 /** Tile tone follows the matching rule result so the thresholds live in the engine only. */
 const toneOf = (out: MobileOrchestratorResult, ruleId: string): Tone => {
@@ -20,12 +21,15 @@ export function buildFacts(out: MobileOrchestratorResult): Fact[] {
   if (record.kind !== 'value') return [];
   const rec = record.value;
 
+  // Core only checks that these are numbers; -1 or 1e21 must not reach the tiles.
+  const mine = count(rec.myAccidentCnt) ?? 0;
+  const other = count(rec.otherAccidentCnt) ?? 0;
   const accidentParts: string[] = [];
-  if (rec.myAccidentCnt > 0) accidentParts.push(`내차 ${rec.myAccidentCnt}건`);
-  if (rec.otherAccidentCnt > 0) accidentParts.push(`타차 ${rec.otherAccidentCnt}건`);
+  if (mine > 0) accidentParts.push(`내차 ${mine}건`);
+  if (other > 0) accidentParts.push(`타차 ${other}건`);
 
   const ownerFact = out.facts.ownerChangeCount;
-  const owners = ownerFact.kind === 'value' ? ownerFact.value : rec.ownerChangeCnt;
+  const owners = count(ownerFact.kind === 'value' ? ownerFact.value : rec.ownerChangeCnt);
 
   const usage = out.facts.usageHistory;
   const usageTags: string[] = [];
@@ -43,9 +47,9 @@ export function buildFacts(out: MobileOrchestratorResult): Fact[] {
       id: 'accidents',
       label: '사고',
       value: accidentParts.length > 0 ? accidentParts.join(' · ') : '없음',
-      tone: rec.myAccidentCnt > 0 ? 'warning' : 'neutral',
+      tone: mine > 0 ? 'warning' : 'neutral',
     },
-    { id: 'owners', label: '소유자 변경', value: owners === 0 ? '없음' : `${owners}회`, tone: toneOf(out, 'R07') },
+    { id: 'owners', label: '소유자 변경', value: owners === null ? '정보 없음' : owners === 0 ? '없음' : `${owners}회`, tone: toneOf(out, 'R07') },
     { id: 'usage', label: '용도', value: usageTags.length > 0 ? usageTags.join('·') : '자가용', tone: toneOf(out, 'R05') },
     { id: 'floodLoss', label: '침수·전손', value: hits.length > 0 ? hits.join(' · ') : '없음', tone: toneOf(out, 'R06') },
   ];

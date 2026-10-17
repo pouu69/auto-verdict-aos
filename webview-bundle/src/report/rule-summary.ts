@@ -10,7 +10,7 @@ import type { RuleResult } from '@core/types/RuleTypes.js';
 import type { MobileOrchestratorResult } from '../orchestrate-mobile';
 import type { FrameSource } from './frame-source';
 import { formatMan, partName } from './format';
-import { evidenceOf, gapDuration, lossHits, unknownStatus, usageKinds } from './rule-copy';
+import { damagesOf, evidenceOf, gapDuration, gapPeriods, leakItems, lossHits, ownerCount, ratioOf, unknownStatus, usageKinds } from './rule-copy';
 import { reasonShort } from './reasons';
 
 const FRAME_KILLER: Record<FrameSource, string> = {
@@ -48,37 +48,35 @@ export function ruleSummary(result: RuleResult, out: MobileOrchestratorResult, f
       return (l ? lossHits(l) : []).join(' · ') || '전손·침수·도난 이력 있음';
     }
     case 'R07': {
-      const n = evidenceOf(result, 'ownerChangeCount', facts.ownerChangeCount);
+      const n = ownerCount(result, facts);
       if (n === undefined) return problem ? '소유자 변경 잦음' : '소유자 변경 정상 범위';
       return n === 0 ? '소유자 변경 없음' : `소유자 변경 ${n}회`;
     }
     case 'R08': {
       if (!problem) return '자차보험 공백 없음';
-      const g = evidenceOf(result, 'insuranceGap', facts.insuranceGap);
-      const months = g?.totalMonths ?? 0;
-      const periods = g?.periods.length ?? 0;
+      const g = gapPeriods(evidenceOf(result, 'insuranceGap', facts.insuranceGap));
+      const months = g.totalMonths;
+      const periods = g.periods.length;
       if (months <= 0) return '자차보험 공백 있음';
       return periods > 1 ? `자차보험 공백 ${gapDuration(months)} · ${periods}구간` : `자차보험 공백 ${gapDuration(months)}`;
     }
     case 'R09':
       return problem ? '수리비 미확정 있음' : '수리비 미확정 없음';
     case 'R10': {
-      const d = evidenceOf(result, 'damages', facts.minorAccidents);
+      const d = damagesOf(result, facts);
       if (!d) return problem ? '수리비 큼' : '경미';
       if (!problem && d.ownDamageWon === 0 && d.otherDamageWon === 0) return '보험 처리 없음';
       return `${problem ? '수리비 큼' : '경미'} · 내차 ${formatMan(d.ownDamageWon)} · 타차 ${formatMan(d.otherDamageWon)}`;
     }
     case 'R11': {
-      const ratio =
-        evidenceOf<number>(result, 'ratio') ??
-        (facts.priceVsMarket.kind === 'value' ? facts.priceVsMarket.value.ratio : undefined);
+      const ratio = ratioOf(result, facts);
       if (!ratio) return problem ? '신차가 대비 차이 큼' : '신차가 대비 정상';
       const tag = !problem ? '정상' : ratio < 1 ? '저가 의심' : '고가';
       return `신차가 대비 ${Math.round(ratio * 100)}% · ${tag}`;
     }
     case 'R12': {
       if (!problem) return '누유 없음';
-      const items = evidenceOf(result, 'oilLeak', facts.oilLeak)?.items ?? [];
+      const items = leakItems(result, facts);
       const first = items[0];
       if (!first) return '누유 있음';
       const head = `${partName(first.part)} ${first.status}`;

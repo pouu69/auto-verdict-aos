@@ -78,7 +78,7 @@ class CollectorWebViewTest {
         commitVisible()
 
         assertTrue(shadow.lastEvaluatedJavascript.contains("__PRELOADED_STATE__"))
-        respond("""{"deleted":true}""")
+        respond(SOLD_STATE)
         assertEquals(listOf(CollectorWebView.Result.Deleted), results)
 
         // 늦게 도착한 onPageFinished나 타임아웃이 두 번째 콜백을 만들면 안 된다
@@ -115,6 +115,56 @@ class CollectorWebViewTest {
     }
 
     @Test
+    fun extractionJs_reportsBaseFetchFailureWithEmptyState() {
+        collect()
+        commitVisible()
+
+        assertTrue(shadow.lastEvaluatedJavascript.contains("pender"))
+    }
+
+    @Test
+    fun missingListing_afterPageFinished_reportsDeleted() {
+        collect(carId = "30000000")
+        pageFinished()
+        respond(MISSING_STATE)
+
+        assertEquals(listOf(CollectorWebView.Result.Deleted), results)
+        assertEquals(listOf(CollectStage.OpeningPage), stages)
+    }
+
+    @Test
+    fun missingListing_beforePageFinished_keepsPollingThenReportsDeleted() {
+        collect(carId = "30000000")
+        commitVisible()
+
+        repeat(10) {
+            respond(MISSING_STATE)
+            idle(1)
+        }
+        assertTrue(results.isEmpty())
+
+        pageFinished()
+        respond(MISSING_STATE)
+        assertEquals(listOf(CollectorWebView.Result.Deleted), results)
+    }
+
+    @Test
+    fun emptyBaseWithoutFailureFlag_afterPageFinished_reportsPageUnreadable() {
+        collect()
+        pageFinished()
+        val emptyBaseNoFailure =
+            """{"error":"empty_state","state":{"pender":{"failure":{}},"cars":{"base":{}}}}"""
+        repeat(6) {
+            assertTrue(results.isEmpty())
+            respond(emptyBaseNoFailure)
+            idle(1)
+        }
+
+        val error = results.single() as CollectorWebView.Result.Error
+        assertEquals(CollectErrorKind.PageUnreadable, error.kind)
+    }
+
+    @Test
     fun recollect_dropsStaleSessionCallbacks() {
         val first = mutableListOf<CollectorWebView.Result>()
         collect(sink = first)
@@ -122,7 +172,7 @@ class CollectorWebViewTest {
         val staleCallback = shadow.lastEvaluatedJavascriptCallback
 
         collect(carId = "99999999")
-        staleCallback.onReceiveValue(JSONObject.quote("""{"deleted":true}"""))
+        staleCallback.onReceiveValue(JSONObject.quote(SOLD_STATE))
         assertTrue(first.isEmpty())
         assertTrue(results.isEmpty())
 
@@ -201,6 +251,53 @@ class CollectorWebViewTest {
     }
 
     @Test
+    fun dummyAdOfLiveCar_fetchesOriginalVehicleApis() {
+        // fem.encar.com/cars/detail/42753994 serves vehicle 42751994 (same car) as a dummy ad.
+        collect(carId = "42753994")
+        commitVisible()
+        respond(dummyAdState(vehicleNo = "12가3456"))
+
+        assertTrue(results.isEmpty())
+        assertEquals(listOf(CollectStage.OpeningPage, CollectStage.FetchingHistory), stages)
+        assertTrue(shadow.lastEvaluatedJavascript.contains("var vid = 42751994;"))
+    }
+
+    @Test
+    fun dummyAdOfLiveCar_keepsRequestedCarIdForSave() {
+        collect(carId = "42753994")
+        commitVisible()
+        respond(dummyAdState(vehicleNo = ""))
+
+        val success = results.single() as CollectorWebView.Result.Success
+        val json = JSONObject(success.json)
+        assertEquals("42753994", json.getString("carId"))
+        assertEquals("https://fem.encar.com/cars/detail/42753994", json.getString("url"))
+    }
+
+    @Test
+    fun soldListing_reportsDeleted() {
+        collect()
+        commitVisible()
+        respond(SOLD_STATE)
+
+        assertEquals(listOf(CollectorWebView.Result.Deleted), results)
+        assertEquals(listOf(CollectStage.OpeningPage), stages)
+    }
+
+    @Test
+    fun differentCarThanRequested_reportsDeleted() {
+        collect(carId = "42000002")
+        commitVisible()
+        respond(
+            """{"ok":true,"cars":{"base":{"vehicleId":41000001,"queryCarId":42000002,""" +
+                """"vehicleNo":"12가3456","manage":{"dummy":true,"dummyVehicleId":null},""" +
+                """"advertisement":{"status":"ADVERTISE"}}}}""",
+        )
+
+        assertEquals(listOf(CollectorWebView.Result.Deleted), results)
+    }
+
+    @Test
     fun destroy_cancelsTimeoutAndPendingRetries() {
         collect()
         commitVisible()
@@ -214,5 +311,21 @@ class CollectorWebViewTest {
     companion object {
         private const val CAR_ID = "38000000"
         private const val URL = "https://fem.encar.com/cars/detail/$CAR_ID"
+
+        // Shape of /cars/detail/38000000 (sold), reduced to the fields the check reads.
+        private const val SOLD_STATE =
+            """{"ok":true,"cars":{"base":{"vehicleId":38000000,"queryCarId":38000000,""" +
+                """"vehicleNo":"12가3456","manage":{"dummy":false,"dummyVehicleId":null},""" +
+                """"advertisement":{"status":"SOLD"}}}}"""
+
+        // Shape of /cars/detail/30000000 (no longer exists): empty base, base fetch failed.
+        private const val MISSING_STATE =
+            """{"error":"empty_state","state":{"pender":{"failure":{"cars/GET_BASE":true}},""" +
+                """"cars":{"base":{}}}}"""
+
+        private fun dummyAdState(vehicleNo: String) =
+            """{"ok":true,"cars":{"base":{"vehicleId":42751994,"queryCarId":42753994,""" +
+                """"vehicleNo":"$vehicleNo","manage":{"dummy":true,"dummyVehicleId":42753994,""" +
+                """"reRegistered":false},"advertisement":{"status":"ADVERTISE"}}}}"""
     }
 }

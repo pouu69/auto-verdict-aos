@@ -5,10 +5,16 @@ export type Obj = Record<string, unknown>;
 export const isObj = (v: unknown): v is Obj =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
 
-export const num = (o: Obj, key: string): number | null => {
-  const v = o[key];
-  return typeof v === 'number' && Number.isFinite(v) ? v : null;
-};
+/**
+ * A count or won amount: a finite, non-negative number in the safe-integer
+ * range. Anything else (NaN, -1, 1e21, "3") is unreadable: shown as such, never
+ * formatted into "NaN", "-1회" or "1e+21원".
+ */
+export const count = (v: unknown): number | null =>
+  typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= Number.MAX_SAFE_INTEGER ? v : null;
+
+/** [count] read from a raw field. */
+export const num = (o: Obj, key: string): number | null => count(o[key]);
 
 export const str = (o: Obj, key: string): string | null => {
   const v = o[key];
