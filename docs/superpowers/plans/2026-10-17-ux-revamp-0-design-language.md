@@ -95,7 +95,7 @@ ln -s ~/study/auto-verdict-aos-ux/webview-bundle/node_modules webview-bundle/nod
 | `…/ui/components/AvTextField.kt` | `AvTextField` | 신규 |
 | `…/ui/components/AvBadge.kt` | `AvBadge`, `AvFactTile` | 신규 |
 | `…/ui/components/AvSection.kt` | `AvSectionHeader`, `AvSectionDivider` | 신규 |
-| `…/ui/components/AvEmoji.kt` | `AvEmoji`, `AvEmptyState` | 신규 |
+| `…/ui/components/AvIllustration.kt` | `AvIllustrationIcon`, `AvEmptyState` | 신규 |
 | `…/ui/components/AvBottomSheet.kt` | `AvBottomSheet`, `AvDialog` | 신규 |
 | `…/ui/components/AvToast.kt` | `AvToastState`, `AvToastHost`, `LocalAvToast`, `rememberAvToastState()` | 신규 |
 | `…/ui/components/AvTabBar.kt` | `AvTabBar` | 신규 |
@@ -4564,6 +4564,7 @@ git commit -m "refactor(ui): drop raw Color.kt now that all screens use Av token
 6. 개인정보 처리방침, 오픈소스 라이선스(전문 보기/접기).
 7. 온보딩: 설정 → 사용법 다시 보기 → 완료 시 설정으로 복귀.
 8. 컴포넌트 갤러리(설정 → 컴포넌트 갤러리): 모든 섹션이 깨짐 없이 보이고, 버튼 눌림 축소, 시트 드래그 닫기, 다이얼로그, 토스트(액션 포함), 탭바 선택이 동작한다.
+10. 버튼·리스트 행을 누르면 96% 축소 반응이 보이고, 하드웨어 키보드 Tab(`"$ADB" shell input keyevent TAB`)으로 이동하면 2dp 파란 포커스 링이 보인다.
 9. 탭 루트 → 서브화면 push 전환 때 탭바·배너가 사라지며 화면이 튀는지 기록만 한다(0번에서는 허용, 1번에서 판단). 가로 모드 디스플레이 컷아웃 인셋은 0번 범위 밖으로 기록만 한다.
 
 - [ ] **Step 2: 문제 수정과 Commit (있을 때만)**
