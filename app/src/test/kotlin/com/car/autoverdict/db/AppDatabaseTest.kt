@@ -78,6 +78,16 @@ class AppDatabaseTest {
     }
 
     @Test
+    fun `deleteAll removes every saved car`() = runTest {
+        savedCarDao.upsert(makeSavedCar("1"))
+        savedCarDao.upsert(makeSavedCar("2"))
+
+        savedCarDao.deleteAll()
+
+        assertEquals(0, savedCarDao.countFlow().first())
+    }
+
+    @Test
     fun `countFlow tracks the number of saved cars`() = runTest {
         assertEquals(0, savedCarDao.countFlow().first())
         savedCarDao.upsert(makeSavedCar("1"))

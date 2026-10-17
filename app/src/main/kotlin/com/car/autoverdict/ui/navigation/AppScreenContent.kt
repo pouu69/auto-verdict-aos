@@ -16,7 +16,7 @@ import com.car.autoverdict.ui.screen.LicensesScreen
 import com.car.autoverdict.ui.screen.OnboardingScreen
 import com.car.autoverdict.ui.screen.PrivacyPolicyScreen
 import com.car.autoverdict.ui.screen.SavedListScreen
-import com.car.autoverdict.ui.screen.SettingsScreen
+import com.car.autoverdict.ui.screen.SettingsRoute
 
 /** Maps each [Route] to its real screen. Kept apart from AppRoot so tests can inject fakes. */
 @Composable
@@ -31,13 +31,7 @@ fun AppScreenContent(route: Route, host: ScreenHost) {
             onCarClick = { url -> host.navigate(Route.Result(url, fromSaved = true)) },
             onCompare = { ids -> host.navigate(Route.Compare(ids)) },
         )
-        Route.Settings -> SettingsScreen(
-            onBack = host.back,
-            onPrivacyPolicy = { host.navigate(Route.PrivacyPolicy) },
-            onLicenses = { host.navigate(Route.Licenses) },
-            onReplayGuide = { host.navigate(Route.Onboarding) },
-            onGallery = if (BuildConfig.DEBUG) ({ host.navigate(Route.Gallery) }) else null,
-        )
+        Route.Settings -> SettingsRoute(host)
         Route.PrivacyPolicy -> PrivacyPolicyScreen(onBack = host.back)
         Route.Licenses -> LicensesScreen(onBack = host.back)
         // Debug-only: release builds never reach it, and R8 drops the gallery code (spec 6).
