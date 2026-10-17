@@ -54,7 +54,7 @@ internal fun isFoldable(entries: List<TimelineEntry>): Boolean = entries.size >=
  * Seven or more entries fold to the newest five behind a "더 보기" button; the caller owns
  * [showOlder] so it can reset it per report and keep the header in view after folding.
  * [expanded]/[onToggleExpanded] fold the whole section from its title, independently.
- * Entries with a detail sheet open it through [onOpenEntry] with their index in [entries].
+ * Entries with a detail sheet open it through [onOpenEntry].
  */
 @Composable
 fun TimelineSection(
@@ -62,7 +62,7 @@ fun TimelineSection(
     showOlder: Boolean,
     onToggleOlder: () -> Unit,
     modifier: Modifier = Modifier,
-    onOpenEntry: ((Int) -> Unit)? = null,
+    onOpenEntry: ((TimelineEntry) -> Unit)? = null,
     expanded: Boolean = true,
     onToggleExpanded: (() -> Unit)? = null,
 ) {
@@ -81,13 +81,11 @@ fun TimelineSection(
         ) {
             // The rail ends at the first and last rows shown, folded or not.
             shown.forEachIndexed { index, entry ->
-                // Shown newest first, so the n-th row is the n-th entry from the end of [entries].
-                val entryIndex = entries.lastIndex - index
                 TimelineRow(
                     entry,
                     isFirst = index == 0,
                     isLast = index == shown.lastIndex,
-                    onClick = onOpenEntry?.takeIf { entry.sheet != null }?.let { open -> { open(entryIndex) } },
+                    onClick = onOpenEntry?.takeIf { entry.sheet != null }?.let { open -> { open(entry) } },
                 )
             }
             if (isFoldable(entries)) {

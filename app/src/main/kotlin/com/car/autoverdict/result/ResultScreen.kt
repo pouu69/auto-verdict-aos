@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import com.car.autoverdict.R
 import com.car.autoverdict.report.EvaluationReport
 import com.car.autoverdict.report.RuleItem
+import com.car.autoverdict.report.TimelineEntry
 import com.car.autoverdict.result.sections.AllRulesSection
 import com.car.autoverdict.result.sections.CountChips
 import com.car.autoverdict.result.sections.ExcludedSection
@@ -396,7 +397,7 @@ private fun FoldableTimeline(
     report: EvaluationReport,
     listState: LazyListState,
     fold: SectionFold,
-    onOpenEntry: (Int) -> Unit,
+    onOpenEntry: (TimelineEntry) -> Unit,
 ) {
     var showOlder by rememberSaveable(report) { mutableStateOf(false) }
     TimelineSection(

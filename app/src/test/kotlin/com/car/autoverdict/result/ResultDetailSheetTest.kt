@@ -1,9 +1,12 @@
 package com.car.autoverdict.result
 
 import android.app.Application
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
@@ -19,9 +22,14 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.unit.Density
 import com.car.autoverdict.report.EvaluationReport
+import com.car.autoverdict.report.TimelineEntry
+import com.car.autoverdict.report.Tone
+import com.car.autoverdict.result.sections.DetailSheetContent
 import com.car.autoverdict.ui.theme.AvTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -208,6 +216,79 @@ class ResultDetailSheetTest {
         report = caution
         rule.waitForIdle()
         assertNoSheet()
+    }
+
+    private val insuranceGapRow = hasText("2026-04~2026-07") and opensDetail
+
+    /** The 2026-04 insurance-gap sheet is the only place with this row. */
+    private fun assertGapSheetOpen() = rule.onNode(hasText("개월 수") and hasText("3개월")).assertExists()
+
+    @Test fun `an open timeline sheet follows its entry when older history is added`() {
+        var report by mutableStateOf(caution)
+        rule.setContent {
+            AvTheme {
+                ResultScreen(state = ResultUiState.Ready(report, saved = false, banner = null), actions = recorder.actions)
+            }
+        }
+        rule.onNode(insuranceGapRow).performClick()
+        assertGapSheetOpen()
+
+        // A refresh found one more (older) entry: every position shifts by one.
+        val older = TimelineEntry(date = "2015-01", label = "번호 변경", detail = null, tone = Tone.Neutral)
+        report = caution.copy(timeline = listOf(older) + caution.timeline)
+        rule.waitForIdle()
+        assertGapSheetOpen()
+        heading("보험 미가입").assertExists()
+    }
+
+    @Test fun `an open timeline sheet closes when its entry is gone`() {
+        var report by mutableStateOf(caution)
+        rule.setContent {
+            AvTheme {
+                ResultScreen(state = ResultUiState.Ready(report, saved = false, banner = null), actions = recorder.actions)
+            }
+        }
+        rule.onNode(insuranceGapRow).performClick()
+        assertGapSheetOpen()
+
+        report = caution.copy(timeline = caution.timeline.filterNot { it.date == "2026-04" && it.label == "보험 미가입" })
+        rule.waitForIdle()
+        assertNoSheet()
+    }
+
+    @Test fun `a subtitle equal to the rule's sentence shows once`() {
+        show()
+        // R07's sheet subtitle repeats its message; the sheet adds exactly one copy of it.
+        fun sentences() = rule.onAllNodesWithText("주인이 5번 바뀌었어요", useUnmergedTree = true).fetchSemanticsNodes().size
+        val before = sentences()
+        rule.onNode(ownerIssueCard).performClick()
+        assertOwnerSheetOpen()
+        assertEquals(before + 1, sentences())
+    }
+
+    /** Renders R07's sheet body at [fontScale]; returns the label and value bounds of its first row. */
+    private fun ownerRowBounds(fontScale: Float): Pair<Rect, Rect> {
+        val r07 = caution.rules.first { it.ruleId == "R07" }
+        rule.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
+                AvTheme { DetailSheetContent(sheet = r07.detail!!, rule = r07) }
+            }
+        }
+        fun bounds(text: String) = rule.onNode(hasText(text), useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+        return bounds("변경 횟수") to bounds("5회")
+    }
+
+    @Test fun `detail rows keep label and value side by side at normal sizes`() {
+        val (label, value) = ownerRowBounds(fontScale = 1.3f)
+        assertEquals(label.top, value.top)
+        assertTrue(value.left > label.right)
+    }
+
+    @Test fun `detail rows stack the value under the label at large font sizes`() {
+        val (label, value) = ownerRowBounds(fontScale = 1.5f)
+        assertTrue("value $value should sit under label $label", value.top >= label.bottom)
+        assertEquals(label.left, value.left)
     }
 
     @Test fun `copy in a rule sheet copies that question`() {

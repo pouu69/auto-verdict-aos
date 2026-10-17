@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -135,20 +136,31 @@ private fun DetailBlockContent(block: DetailBlock) {
     }
 }
 
+/** From this font scale on, a row's two columns get too narrow and stack instead. */
+internal const val DETAIL_ROW_STACK_FONT_SCALE = 1.5f
+
 /**
- * Label left, value right. Both columns wrap, so long values and large fonts grow the row
- * downwards instead of truncating; screen readers hear "label value" as one item.
+ * Label left, value right. Both columns wrap, so long values grow the row downwards instead
+ * of truncating; at [DETAIL_ROW_STACK_FONT_SCALE] and above the label sits over the value.
+ * Screen readers hear "label value" as one item either way.
  */
 @Composable
 private fun DetailRowContent(row: DetailRow) {
     val colors = AvTheme.colors
     val typography = AvTheme.typography
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp)
-            .semantics(mergeDescendants = true) {},
-    ) {
+    val valueColor = row.tone?.let { colors.tone(it.toAvTone()).text } ?: colors.textPrimary
+    val modifier = Modifier
+        .fillMaxWidth()
+        .padding(vertical = 6.dp)
+        .semantics(mergeDescendants = true) {}
+    if (LocalDensity.current.fontScale >= DETAIL_ROW_STACK_FONT_SCALE) {
+        Column(modifier = modifier) {
+            Text(text = row.label, style = typography.body2, color = colors.textSecondary)
+            Text(text = row.value, style = typography.body2, color = valueColor)
+        }
+        return
+    }
+    Row(modifier = modifier) {
         Text(
             text = row.label,
             style = typography.body2,
@@ -159,7 +171,7 @@ private fun DetailRowContent(row: DetailRow) {
         Text(
             text = row.value,
             style = typography.body2,
-            color = row.tone?.let { colors.tone(it.toAvTone()).text } ?: colors.textPrimary,
+            color = valueColor,
             textAlign = TextAlign.End,
             modifier = Modifier.weight(0.58f),
         )

@@ -6,12 +6,14 @@ import androidx.compose.runtime.LaunchedEffect
 import com.car.autoverdict.report.DetailSheet
 import com.car.autoverdict.report.EvaluationReport
 import com.car.autoverdict.report.RuleItem
+import com.car.autoverdict.report.TimelineEntry
 import com.car.autoverdict.result.sections.DetailSheetContent
 import com.car.autoverdict.ui.components.AvBottomSheet
 
 /**
- * Which detail sheet is open, as a saveable string: "rule:R07", "timeline:3" (index into the
- * report's ascending timeline) or "repairs". Strings survive recreation without a Saver.
+ * Which detail sheet is open, as a saveable string: "rule:R07", "timeline:2015-05|사고 · 내차 피해"
+ * or "repairs". Keys name content, not positions, so a refreshed report with entries added or
+ * removed reopens the same item (or closes). Strings survive recreation without a Saver.
  */
 internal object DetailKey {
     const val REPAIRS = "repairs"
@@ -20,7 +22,8 @@ internal object DetailKey {
 
     fun rule(ruleId: String) = "$RULE$ruleId"
 
-    fun timeline(index: Int) = "$TIMELINE$index"
+    /** Dates are yyyy-MM, so the first "|" always ends the date. */
+    fun timeline(entry: TimelineEntry) = "$TIMELINE${entry.date}|${entry.label}"
 
     /** The sheet [key] points at in [report], or null when it no longer has one. */
     fun resolve(report: EvaluationReport, key: String): DetailTarget? = when {
@@ -32,8 +35,13 @@ internal object DetailKey {
                 ?: report.rules.firstOrNull { it.ruleId == id && it.detail != null }
             rule?.detail?.let { DetailTarget(it, rule) }
         }
-        key.startsWith(TIMELINE) ->
-            key.removePrefix(TIMELINE).toIntOrNull()?.let(report.timeline::getOrNull)?.sheet?.let { DetailTarget(it) }
+        key.startsWith(TIMELINE) -> {
+            val id = key.removePrefix(TIMELINE)
+            val date = id.substringBefore('|')
+            val label = id.substringAfter('|')
+            report.timeline.firstOrNull { it.date == date && it.label == label && it.sheet != null }
+                ?.sheet?.let { DetailTarget(it) }
+        }
         else -> null
     }
 }
