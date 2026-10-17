@@ -1,5 +1,6 @@
 package com.car.autoverdict.result.sections
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -12,6 +13,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.car.autoverdict.R
 import com.car.autoverdict.result.ResultBanner
@@ -29,12 +33,18 @@ fun ResultBannerCard(
     modifier: Modifier = Modifier,
 ) {
     val (message, tone, action) = when (banner) {
-        ResultBanner.SoldOut -> Triple(stringResource(R.string.result_banner_sold_out), AvTone.Neutral, null)
-        ResultBanner.UpdateAvailable ->
-            Triple(stringResource(R.string.result_banner_update), AvTone.Accent, stringResource(R.string.result_banner_update_action) to onApplyUpdate)
-        ResultBanner.LoginRequired -> Triple(stringResource(R.string.result_banner_login), AvTone.Accent, null)
-        ResultBanner.PartialData ->
-            Triple(stringResource(R.string.result_banner_partial), AvTone.Warning, stringResource(R.string.result_retry) to onRetry)
+        ResultBanner.SoldOut -> Triple(R.string.result_banner_sold_out, AvTone.Neutral, null)
+        ResultBanner.UpdateAvailable -> Triple(
+            R.string.result_banner_update,
+            AvTone.Accent,
+            BannerAction(R.string.result_banner_update_action, R.string.result_banner_update_click_label, onApplyUpdate),
+        )
+        ResultBanner.LoginRequired -> Triple(R.string.result_banner_login, AvTone.Accent, null)
+        ResultBanner.PartialData -> Triple(
+            R.string.result_banner_partial,
+            AvTone.Warning,
+            BannerAction(R.string.result_retry, R.string.result_banner_retry_click_label, onRetry),
+        )
     }
     val toneColors = AvTheme.colors.tone(tone)
     Row(
@@ -47,24 +57,32 @@ fun ResultBannerCard(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = message,
+            text = stringResource(message),
             style = AvTheme.typography.body2,
             color = toneColors.text,
             modifier = Modifier
                 .weight(1f)
-                .padding(vertical = 8.dp),
+                .padding(vertical = 8.dp)
+                // Banners can appear after the screen is already read (refresh done, listing sold).
+                .semantics { liveRegion = LiveRegionMode.Polite },
         )
         if (action != null) {
-            val (label, onClick) = action
             Box(
                 modifier = Modifier
                     .minimumInteractiveComponentSize()
-                    .avPressable(onClick = onClick)
+                    .avPressable(onClick = action.onClick, onClickLabel = stringResource(action.clickLabel))
                     .padding(horizontal = 12.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(text = label, style = AvTheme.typography.buttonS, color = toneColors.text)
+                Text(text = stringResource(action.label), style = AvTheme.typography.buttonS, color = toneColors.text)
             }
         }
     }
 }
+
+/** [label] is the short visible text; [clickLabel] tells screen readers what the tap does. */
+private data class BannerAction(
+    @StringRes val label: Int,
+    @StringRes val clickLabel: Int,
+    val onClick: () -> Unit,
+)

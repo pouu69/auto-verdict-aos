@@ -1,6 +1,8 @@
 package com.car.autoverdict.result
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,8 +39,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -191,7 +193,7 @@ private fun LoadingBody(stage: LoadingStage, loadingAd: @Composable () -> Unit, 
 
 private data class ErrorCopy(
     val icon: ImageVector,
-    val title: Int,
+    @StringRes val title: Int,
     val retry: Boolean,
     val openInEncar: Boolean,
 )
@@ -239,37 +241,42 @@ private fun ReadyBody(
     modifier: Modifier,
 ) {
     val onUserScrolled by rememberUpdatedState(actions.onUserScrolled)
-    // Report the first scroll only: after that the controller turns refreshes into a banner.
+    // Report the first user drag only: after that the controller turns refreshes into a banner.
+    // Programmatic scrolls (e.g. back to the top after "보기") emit no drag and don't count.
     LaunchedEffect(listState) {
-        snapshotFlow { listState.isScrollInProgress }.first { it }
+        listState.interactionSource.interactions.first { it is DragInteraction.Start }
         onUserScrolled()
     }
     val scope = rememberCoroutineScope()
-    LazyColumn(state = listState, modifier = modifier.fillMaxWidth()) {
-        reportSections(
-            report = state.report,
-            banner = state.banner,
-            actions = actions,
-            onApplyUpdate = {
-                actions.onApplyUpdate()
-                scope.launch { listState.animateScrollToItem(0) }
-            },
-        )
+    val questions = remember(state.report) { state.report.issues.mapNotNull { it.sellerQuestion } }
+    Column(modifier = modifier.fillMaxWidth()) {
+        // Pinned above the list: "update available" only appears after the user has scrolled,
+        // so it has to stay visible wherever the list is.
+        state.banner?.let { banner ->
+            ResultBannerCard(
+                banner = banner,
+                onApplyUpdate = {
+                    actions.onApplyUpdate()
+                    scope.launch { listState.animateScrollToItem(0) }
+                },
+                onRetry = actions.onRetry,
+            )
+        }
+        LazyColumn(state = listState, modifier = Modifier.fillMaxWidth().weight(1f)) {
+            reportSections(report = state.report, questions = questions, hasBanner = state.banner != null, actions = actions)
+        }
     }
 }
 
-/** Spec 5.2 items 2-11, top to bottom, all expanded. Empty sections are left out with their divider. */
+/** Spec 5.2 items 3-11, top to bottom, all expanded. Empty sections are left out with their divider. */
 private fun LazyListScope.reportSections(
     report: EvaluationReport,
-    banner: ResultBanner?,
+    questions: List<String>,
+    hasBanner: Boolean,
     actions: ResultActions,
-    onApplyUpdate: () -> Unit,
 ) {
-    if (banner != null) {
-        item(key = "banner") { ResultBannerCard(banner = banner, onApplyUpdate = onApplyUpdate, onRetry = actions.onRetry) }
-    }
     item(key = "header") {
-        Column(modifier = Modifier.padding(top = if (banner == null) 8.dp else 4.dp, bottom = 24.dp)) {
+        Column(modifier = Modifier.padding(top = if (hasBanner) 4.dp else 8.dp, bottom = 24.dp)) {
             VerdictHeader(report)
             Spacer(Modifier.height(16.dp))
             CountChips(report.counts)
@@ -284,7 +291,6 @@ private fun LazyListScope.reportSections(
     if (report.timeline.isNotEmpty()) section("timeline") { TimelineSection(report.timeline) }
     section("rules") { AllRulesSection(report.rules) }
     if (report.excluded.isNotEmpty()) section("excluded") { ExcludedSection(report.excluded) }
-    val questions = report.issues.mapNotNull { it.sellerQuestion }
     if (questions.isNotEmpty()) {
         section("questions") {
             SellerQuestionsSection(questions = questions, onCopy = actions.onCopyQuestions, onShare = actions.onShareQuestions)
@@ -300,7 +306,7 @@ private fun LazyListScope.section(key: String, content: @Composable () -> Unit) 
 
 @Composable
 private fun ReadyCta(state: ResultUiState.Ready, actions: ResultActions) {
-    var confirmUnsave by remember { mutableStateOf(false) }
+    var confirmUnsave by rememberSaveable { mutableStateOf(false) }
     AvBottomCta(windowInsets = WindowInsets(0)) {
         CtaIconButton(
             icon = Icons.Rounded.Share,

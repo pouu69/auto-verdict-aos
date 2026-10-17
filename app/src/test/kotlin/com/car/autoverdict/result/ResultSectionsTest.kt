@@ -1,9 +1,17 @@
 package com.car.autoverdict.result
 
 import android.app.Application
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
@@ -15,6 +23,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.test.swipeUp
 import com.car.autoverdict.report.EvaluationReport
 import com.car.autoverdict.report.RepairPanel
@@ -23,6 +32,8 @@ import com.car.autoverdict.report.SystemItem
 import com.car.autoverdict.report.SystemSummary
 import com.car.autoverdict.report.Tone
 import com.car.autoverdict.ui.theme.AvTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -91,7 +102,8 @@ class ResultSectionsTest {
         rule.onAllNodesWithText("왜 중요한가요").assertCountEquals(2)
         rule.onNodeWithText("판매자에게: 주인이 5번 바뀐 이유를 알 수 있을까요?").assertExists()
         // Timeline
-        heading("이력").assertExists()
+        // The timeline title and the "이력" category label in the full rule list.
+        rule.onAllNodes(hasText("이력") and isHeading()).assertCountEquals(2)
         rule.onNodeWithText("신차 등록").assertExists()
         assertTrue(rule.onAllNodesWithText("소유자 변경").fetchSemanticsNodes().size >= 5)
         rule.onNodeWithText("2023-11~2024-01").assertExists()
@@ -112,23 +124,27 @@ class ResultSectionsTest {
 
     @Test fun `section titles are headings`() {
         show(caution)
-        // Top bar title + headline + six sections.
-        rule.onAllNodes(isHeading()).assertCountEquals(8)
+        // Top bar title + headline + six sections + four rule categories.
+        rule.onAllNodes(isHeading()).assertCountEquals(12)
+        heading("차량 상태").assertExists()
+        heading("투명성").assertExists()
     }
 
     @Test fun `seller question buttons copy and share`() {
         show(caution)
         // The last section can sit partly under the bottom CTA even on the tall screen.
+        // performScrollTo is a programmatic scroll, so it must not count as the user scrolling.
         rule.onNodeWithText("복사").performScrollTo().performClick()
         rule.onNodeWithText("공유").performScrollTo().performClick()
-        assertEquals(listOf("copyQuestions", "shareQuestions"), recorder.calls.filter { it != "userScrolled" })
+        assertEquals(listOf("copyQuestions", "shareQuestions"), recorder.calls)
     }
 
     @Test fun `minimal report hides empty sections and shows the login banner`() {
         show(minimal, banner = ResultBanner.LoginRequired)
         rule.onNodeWithText("엔카에 로그인하면 더 많은 항목을 확인할 수 있어요").assertExists()
         heading("교환·수리 부위").assertDoesNotExist()
-        heading("이력").assertDoesNotExist()
+        // Only the rule category "이력" — no timeline section.
+        rule.onAllNodes(hasText("이력") and isHeading()).assertCountEquals(1)
         heading("평가에서 빠진 항목").assertDoesNotExist()
         rule.onAllNodesWithText("판매자에게 물어볼 것", substring = true).assertCountEquals(0)
         heading("확인할 것 1").assertExists()
@@ -164,20 +180,24 @@ class ResultSectionsTest {
                 ResultScreen(state = ResultUiState.Ready(caution, saved = true, banner = banner), actions = recorder.actions)
             }
         }
-        rule.onNodeWithText("판매가 끝난 매물이에요 · 저장 당시 결과예요").assertExists()
+        val polite = SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite)
+        fun clickLabel(label: String) = SemanticsMatcher("onClick label is $label") {
+            it.config.getOrNull(SemanticsActions.OnClick)?.label == label
+        }
+        rule.onNode(hasText("판매가 끝난 매물이에요 · 저장 당시 결과예요") and polite).assertExists()
 
         banner = ResultBanner.UpdateAvailable
-        rule.onNodeWithText("최신 정보가 있어요").assertExists()
-        rule.onNodeWithText("보기").performClick()
+        rule.onNode(hasText("최신 정보가 있어요") and polite).assertExists()
+        rule.onNode(hasText("보기") and clickLabel("최신 결과 보기")).performClick()
         rule.waitForIdle()
 
         banner = ResultBanner.PartialData
-        rule.onNodeWithText("일부 정보를 가져오지 못했어요").assertExists()
-        rule.onNodeWithText("다시 시도").performClick()
+        rule.onNode(hasText("일부 정보를 가져오지 못했어요") and polite).assertExists()
+        rule.onNode(hasText("다시 시도") and clickLabel("정보 다시 가져오기")).performClick()
 
         banner = null
         rule.onNodeWithText("일부 정보를 가져오지 못했어요").assertDoesNotExist()
-        assertEquals(listOf("applyUpdate", "retry"), recorder.calls.filter { it != "userScrolled" })
+        assertEquals(listOf("applyUpdate", "retry"), recorder.calls)
     }
 }
 
@@ -188,22 +208,49 @@ class ResultScreenScrollTest {
 
     @get:Rule val rule = createComposeRule()
 
-    @Test fun `first user scroll is reported once`() {
-        val recorder = RecordingActions()
+    private val recorder = RecordingActions()
+    private lateinit var listState: LazyListState
+    private lateinit var scope: CoroutineScope
+
+    private fun show(banner: ResultBanner? = null) {
         rule.setContent {
+            listState = rememberLazyListState()
+            scope = rememberCoroutineScope()
             AvTheme {
                 ResultScreen(
-                    state = ResultUiState.Ready(sampleReport("sample-caution.json"), saved = false, banner = null),
+                    state = ResultUiState.Ready(sampleReport("sample-caution.json"), saved = true, banner = banner),
                     actions = recorder.actions,
+                    listState = listState,
                 )
             }
         }
         rule.waitForIdle()
-        assertEquals(0, recorder.count("userScrolled"))
+    }
+
+    @Test fun `only a user drag counts as the first scroll, and only once`() {
+        show()
+        rule.runOnIdle { scope.launch { listState.animateScrollToItem(3) } }
+        rule.waitForIdle()
+        assertEquals(3, listState.firstVisibleItemIndex)
+        assertEquals(emptyList<String>(), recorder.calls)
+
         rule.onNode(hasScrollAction()).performTouchInput { swipeUp() }
         rule.waitForIdle()
-        rule.onNode(hasScrollAction()).performTouchInput { swipeUp() }
+        rule.onNode(hasScrollAction()).performTouchInput { swipeDown() }
         rule.waitForIdle()
-        assertEquals(1, recorder.count("userScrolled"))
+        assertEquals(listOf("userScrolled"), recorder.calls)
+    }
+
+    @Test fun `update banner stays visible while scrolled and its action returns to the top`() {
+        show(banner = ResultBanner.UpdateAvailable)
+        rule.runOnIdle { scope.launch { listState.scrollToItem(4) } }
+        rule.waitForIdle()
+        assertEquals(4, listState.firstVisibleItemIndex)
+
+        rule.onNodeWithText("보기").performClick()
+        rule.waitForIdle()
+
+        assertEquals(listOf("applyUpdate"), recorder.calls)
+        assertEquals(0, listState.firstVisibleItemIndex)
     }
 }

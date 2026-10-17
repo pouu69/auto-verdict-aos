@@ -83,11 +83,12 @@ private fun TimelineRow(entry: TimelineEntry, isFirst: Boolean, isLast: Boolean)
     }
 }
 
+/** Keeps its slot either way so the dot stays aligned; only draws when [visible]. */
 @Composable
 private fun RailSegment(visible: Boolean, color: Color, modifier: Modifier) {
     Box(
         modifier = modifier
             .width(2.dp)
-            .background(if (visible) color else Color.Transparent),
+            .then(if (visible) Modifier.background(color) else Modifier),
     )
 }

@@ -9,6 +9,7 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -175,6 +176,19 @@ class ResultScreenTest {
         rule.onNodeWithText("취소하기").performClick()
         rule.onNodeWithText("저장을 취소할까요?").assertDoesNotExist()
         assertEquals(listOf("unsave"), recorder.calls)
+    }
+
+    @Test fun `unsave dialog survives recreation`() {
+        val tester = StateRestorationTester(rule)
+        tester.setContent {
+            AvTheme { ResultScreen(state = ResultUiState.Ready(caution, saved = true, banner = null), actions = recorder.actions) }
+        }
+        rule.onNodeWithText("저장됨").performClick()
+        rule.onNodeWithText("저장을 취소할까요?").assertExists()
+
+        tester.emulateSavedInstanceStateRestore()
+
+        rule.onNodeWithText("저장을 취소할까요?").assertExists()
     }
 
     @Test fun `save button ignores taps while saving`() {

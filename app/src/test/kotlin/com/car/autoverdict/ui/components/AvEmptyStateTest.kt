@@ -1,15 +1,21 @@
 package com.car.autoverdict.ui.components
 
 import android.app.Application
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.WifiOff
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.isHeading
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.dp
 import com.car.autoverdict.ui.theme.AvTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -42,6 +48,30 @@ class AvEmptyStateTest {
         rule.onNodeWithText("엔카에서 보기").performClick()
         assertEquals(1, primary)
         assertEquals(1, secondary)
+    }
+
+    /**
+     * Stands in for a large font scale: Robolectric barely widens text when fontScale grows,
+     * so a narrow container is the reliable way to make the two buttons not fit on one line.
+     */
+    @Test fun `actions wrap onto a second line when they don't fit side by side`() {
+        rule.setContent {
+            AvTheme {
+                Box(Modifier.width(120.dp)) {
+                    AvEmptyState(
+                        icon = Icons.Rounded.WifiOff,
+                        title = "엔카 응답이 늦어요",
+                        actionLabel = "다시 시도",
+                        onAction = {},
+                        secondaryActionLabel = "엔카에서 보기",
+                        onSecondaryAction = {},
+                    )
+                }
+            }
+        }
+        val primary = rule.onNodeWithText("다시 시도").getUnclippedBoundsInRoot()
+        val secondary = rule.onNodeWithText("엔카에서 보기").getUnclippedBoundsInRoot()
+        assertTrue("secondary should wrap below: $primary / $secondary", secondary.top >= primary.bottom)
     }
 
     @Test fun `secondary action is optional`() {

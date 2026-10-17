@@ -4,7 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -48,6 +49,7 @@ fun AvIllustrationIcon(icon: ImageVector, tone: AvTone, size: Dp, modifier: Modi
  * Centered empty/error state. The optional secondary action sits beside the main one as a
  * quieter Secondary button (e.g. "다시 시도" · "엔카에서 보기").
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AvEmptyState(
     icon: ImageVector,
@@ -85,7 +87,12 @@ fun AvEmptyState(
         val hasSecondary = secondaryActionLabel != null && onSecondaryAction != null
         if (hasAction || hasSecondary) {
             Spacer(Modifier.height(20.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            // Wraps the second button onto its own line at large font scales instead of clipping.
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 if (actionLabel != null && onAction != null) {
                     AvButton(text = actionLabel, onClick = onAction, style = AvButtonStyle.Weak, size = AvButtonSize.Medium)
                 }
