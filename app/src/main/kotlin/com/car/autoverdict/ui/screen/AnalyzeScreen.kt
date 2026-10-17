@@ -468,8 +468,8 @@ private fun UrlInputCard(
                     .height(52.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colors.accent,
-                    disabledContainerColor = colors.accent.copy(alpha = 0.3f),
-                    disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
+                    disabledContainerColor = colors.surfaceMuted,
+                    disabledContentColor = colors.textTertiary,
                 ),
                 shape = RoundedCornerShape(999.dp),
                 enabled = isValid,

@@ -12,6 +12,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.car.autoverdict.ui.theme.AvTheme
+import com.car.autoverdict.ui.theme.LightAvColors
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -60,5 +61,13 @@ class AvButtonTest {
         assertEquals(true, isAllowedButtonCombination(AvButtonStyle.Primary, AvButtonSize.Medium))
         assertEquals(false, isAllowedButtonCombination(AvButtonStyle.Primary, AvButtonSize.Small))
         assertEquals(true, isAllowedButtonCombination(AvButtonStyle.Secondary, AvButtonSize.Small))
+    }
+
+    @Test fun `disabled buttons are light grey with a readable grey label for every style`() {
+        val c = LightAvColors
+        AvButtonStyle.entries.forEach { style ->
+            assertEquals(c.surfaceMuted to c.textTertiary, avButtonColors(style, enabled = false, colors = c))
+        }
+        assertEquals(c.accent to c.onAccent, avButtonColors(AvButtonStyle.Primary, enabled = true, colors = c))
     }
 }

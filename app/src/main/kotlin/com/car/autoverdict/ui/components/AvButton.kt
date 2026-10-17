@@ -20,6 +20,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.car.autoverdict.R
+import androidx.compose.ui.graphics.Color
+import com.car.autoverdict.ui.theme.AvColors
 import com.car.autoverdict.ui.theme.AvTheme
 
 enum class AvButtonStyle { Primary, Weak, Secondary, Danger }
@@ -32,6 +34,19 @@ enum class AvButtonSize(val minHeight: Dp, val horizontalPadding: Dp) {
 
 internal fun isAllowedButtonCombination(style: AvButtonStyle, size: AvButtonSize): Boolean =
     !(style == AvButtonStyle.Primary && size == AvButtonSize.Small)
+
+/** Container to content colors. Disabled is light grey fill + textTertiary label (4.19:1, readable). */
+internal fun avButtonColors(style: AvButtonStyle, enabled: Boolean, colors: AvColors): Pair<Color, Color> =
+    if (!enabled) {
+        colors.surfaceMuted to colors.textTertiary
+    } else {
+        when (style) {
+            AvButtonStyle.Primary -> colors.accent to colors.onAccent
+            AvButtonStyle.Weak -> colors.accentWeak to colors.accentText
+            AvButtonStyle.Secondary -> colors.surfaceMuted to colors.textSecondary
+            AvButtonStyle.Danger -> colors.dangerBg to colors.dangerText
+        }
+    }
 
 /**
  * Primary is Large/Medium only: white on accent is the spec's one allowed
@@ -53,16 +68,7 @@ fun AvButton(
     val shapes = AvTheme.shapes
     val typography = AvTheme.typography
     val loadingDescription = stringResource(R.string.button_loading)
-    val (container, content) = if (!enabled) {
-        colors.surfaceMuted to colors.textDisabled
-    } else {
-        when (style) {
-            AvButtonStyle.Primary -> colors.accent to colors.onAccent
-            AvButtonStyle.Weak -> colors.accentWeak to colors.accentText
-            AvButtonStyle.Secondary -> colors.surfaceMuted to colors.textSecondary
-            AvButtonStyle.Danger -> colors.dangerBg to colors.dangerText
-        }
-    }
+    val (container, content) = avButtonColors(style, enabled, colors)
     val shape = when (size) {
         AvButtonSize.Large -> shapes.buttonL
         AvButtonSize.Medium -> shapes.buttonM

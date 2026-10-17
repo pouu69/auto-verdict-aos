@@ -100,10 +100,10 @@
 | `textTertiary` on `background` | 4.62 | 통과 |
 | `accentText` on `background` / `surfaceMuted` / `accentWeak` | 5.41 / 4.91 / 4.82 | 통과 (링크, weak 버튼 라벨) |
 | `toastAction` on `toastBg` | 5.94 | 통과 |
-| `textTertiary` on `surfaceMuted` | 4.19 | **플레이스홀더에만 예외 허용** (`AvTextField`, 앞에 아이콘이 함께 있음). 그 외 `surfaceMuted` 위 보조 텍스트는 `textSecondary` |
+| `textTertiary` on `surfaceMuted` | 4.19 | **플레이스홀더와 비활성 버튼 라벨에만 예외 허용** (플레이스홀더: `AvTextField`, 앞에 아이콘이 함께 있음 / 비활성 버튼: `AvButton` 비활성, 홈 "분석 시작"). 그 외 `surfaceMuted` 위 보조 텍스트는 `textSecondary` |
 | `onAccent` on `accent` | 3.71 | **예외 허용**. 토스 파랑 유지 결정에 따름. Primary 버튼 라벨(`AvButton` Primary, SemiBold 15sp 이상)에만 사용. 0번 과도기에는 M3 `primary` 슬롯을 쓰는 기존 화면의 M3 컴포넌트(FilledButton, Switch 등)도 이 조합이 되며, 1~4번에서 화면을 재설계할 때 `AvButton`으로 교체해 해소 |
 | 흰 글자 on `dangerFill` | 3.71 | **사용 금지**. Danger 버튼은 `dangerBg` 배경 + `dangerText` 라벨(4.69) |
-| `textDisabled` | 2.01 | **예외 허용**. 비활성 요소에만 사용(WCAG 비활성 예외) |
+| `textDisabled` | 2.01 | **예외 허용**. 비활성 아이콘 등 비활성 요소에만 사용(WCAG 비활성 예외). 비활성 버튼 라벨은 가독성을 위해 `textTertiary`를 쓴다 |
 
 위 표의 "통과" 조합은 단위 테스트로 4.5:1 이상을 고정한다. 테스트는 hex 값이 아니라 토큰을 참조해, 토큰 값을 바꾸면 테스트도 함께 검증되게 한다. "예외"는 테스트하지 않고, 사용처를 이 표에 적은 범위로 제한한다.
 
@@ -231,7 +231,7 @@
 | 컴포넌트 | 시그니처(요지) | 비고 |
 |---|---|---|
 | `AvTopBar` | `(onBack: (() -> Unit)?, title: String? = null, subtitle: String? = null, actions: @Composable RowScope.() -> Unit = {})` | 탭 루트(`onBack = null`)와 서브화면 모두 사용. 뒤로 아이콘은 `Icons.Rounded.ArrowBackIosNew` 하나로 통일. 상태바 인셋을 직접 처리 |
-| `AvButton` | `(text, onClick, style = Primary, size = Large, enabled = true, loading = false, modifier)` | `AvButtonStyle { Primary, Weak, Secondary, Danger }`, `AvButtonSize { Large(56dp), Medium(48dp), Small(36dp) }`. 높이는 최소 높이(`heightIn(min=)`)로 지정. 라벨은 L=`buttonL`, M=`buttonM`, S=`buttonS`. Primary는 L/M만 허용. Weak=`accentWeak`+`accentText`, Secondary=`surfaceMuted`+`textSecondary`, Danger=`dangerBg`+`dangerText` |
+| `AvButton` | `(text, onClick, style = Primary, size = Large, enabled = true, loading = false, modifier)` | `AvButtonStyle { Primary, Weak, Secondary, Danger }`, `AvButtonSize { Large(56dp), Medium(48dp), Small(36dp) }`. 높이는 최소 높이(`heightIn(min=)`)로 지정. 라벨은 L=`buttonL`, M=`buttonM`, S=`buttonS`. Primary는 L/M만 허용. Weak=`accentWeak`+`accentText`, Secondary=`surfaceMuted`+`textSecondary`, Danger=`dangerBg`+`dangerText`, 비활성=`surfaceMuted`+`textTertiary` |
 | `AvBottomCta` | `(content: @Composable RowScope.() -> Unit)` | 하단 고정 영역. 시스템바·키보드 인셋 처리, 상단 1dp `border` |
 | `AvListRow` | `(title, onClick: (() -> Unit)? = null, subtitle: String? = null, leading: (@Composable () -> Unit)? = null, trailing: (@Composable () -> Unit)? = null)` | 최소 높이 56dp. 클릭 가능하면 `Role.Button`과 눌림 반응 |
 | `AvTextField` | `(value, onValueChange, placeholder, leadingIcon: ImageVector? = null, errorText: String? = null, onClear: (() -> Unit)? = null)` | `surfaceMuted` 채움형. 에러 문구는 필드 아래 `dangerText` |
