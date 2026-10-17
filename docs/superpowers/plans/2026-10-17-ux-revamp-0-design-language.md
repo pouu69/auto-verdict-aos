@@ -35,8 +35,10 @@ export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 ```bash
 SDK="$(grep sdk.dir local.properties | cut -d= -f2)"
 ADB="$SDK/platform-tools/adb"
-"$SDK/emulator/emulator" -list-avds                      # 사용 가능한 AVD 확인 (API 36: Medium_Phone_API_36.0)
-"$SDK/emulator/emulator" -avd <AVD 이름> -no-snapshot-load >/dev/null 2>&1 &
+# 사용자 AVD(Medium_Phone_API_36.0, Galaxy_S24_2, Pixel_8a 등)는 절대 쓰지 않는다. 검증 전용 AVD만 쓴다:
+#   AV_API_26, AV_API_29, AV_API_33, AV_API_36
+# 스냅샷을 읽지도 저장하지도 않는다(-no-snapshot). 사용자 상태를 덮어쓰지 않기 위해서다.
+"$SDK/emulator/emulator" -avd <AV_API_xx> -no-snapshot >/dev/null 2>&1 &
 "$ADB" wait-for-device
 until [ "$("$ADB" shell getprop sys.boot_completed | tr -d '\r')" = "1" ]; do sleep 2; done
 ./gradlew :app:installDebug
@@ -4405,7 +4407,7 @@ Expected: `BUILD SUCCESSFUL`.
 
 - [ ] **Step 5: 에뮬레이터 스모크 확인**
 
-"에뮬레이터 절차"로 `Medium_Phone_API_36.0`을 띄우고 앱을 설치·실행한다. 확인 항목(각각 `"$ADB" exec-out screencap -p > /tmp/av-smoke-<n>.png` 캡처를 Read로 확인하거나 `"$ADB" exec-out uiautomator dump /dev/tty`로 텍스트 확인):
+"에뮬레이터 절차"로 `AV_API_36`을 띄우고 앱을 설치·실행한다. 확인 항목(각각 `"$ADB" exec-out screencap -p > /tmp/av-smoke-<n>.png` 캡처를 Read로 확인하거나 `"$ADB" exec-out uiautomator dump /dev/tty`로 텍스트 확인):
 1. 스플래시가 한 번만(파란 배경) 보이고 홈 탭으로 온다(첫 실행이면 온보딩).
 2. 홈 우상단 설정 아이콘 → 설정 화면 → 뒤로 → 홈.
 3. 저장한 차 탭 → 시스템 뒤로(`"$ADB" shell input keyevent BACK`) → 홈 탭. 홈에서 다시 뒤로 → 앱이 백그라운드로.
@@ -4551,7 +4553,7 @@ git commit -m "refactor(ui): drop raw Color.kt now that all screens use Av token
 
 토스페이스 렌더링 검증은 Task 6A에서 끝났다. 여기서는 새 셸과 컴포넌트를 실제 기기 화면으로 확인한다.
 
-- [ ] **Step 1: 수동 QA (API 36 AVD `Medium_Phone_API_36.0`)**
+- [ ] **Step 1: 수동 QA (API 36 전용 AVD `AV_API_36`)**
 
 "에뮬레이터 절차"로 기기를 띄우고 앱을 설치·실행한다. 화면 이동은 `"$ADB" exec-out uiautomator dump /dev/tty`로 요소의 `bounds`를 찾아 `"$ADB" shell input tap X Y`로 한다.
 
