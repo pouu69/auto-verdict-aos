@@ -46,6 +46,9 @@ internal object DetailKey {
     }
 }
 
+/** Spec 4.1: the detail sheet never grows past half the screen height. */
+internal const val DETAIL_SHEET_MAX_HEIGHT_FRACTION = 0.5f
+
 internal data class DetailTarget(val sheet: DetailSheet, val rule: RuleItem? = null)
 
 /**
@@ -67,7 +70,8 @@ internal fun ResultDetailSheet(
         LaunchedEffect(openKey, report) { onDismiss() }
         return
     }
-    AvBottomSheet(onDismiss = onDismiss) {
+    // Spec 4.1: half the screen at most; DetailSheetContent scrolls the rest.
+    AvBottomSheet(onDismiss = onDismiss, maxHeightFraction = DETAIL_SHEET_MAX_HEIGHT_FRACTION) {
         DetailSheetContent(sheet = target.sheet, rule = target.rule, onCopyQuestion = onCopyQuestion)
     }
 }

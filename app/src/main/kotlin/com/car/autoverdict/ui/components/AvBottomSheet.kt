@@ -18,12 +18,15 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.car.autoverdict.R
+import kotlin.math.roundToInt
 import com.car.autoverdict.ui.theme.AvPalette
 import com.car.autoverdict.ui.theme.AvTheme
 
@@ -33,6 +36,10 @@ import com.car.autoverdict.ui.theme.AvTheme
  * To close from inside the sheet (e.g. a button), animate it out first:
  * `scope.launch { sheetState.hide() }.invokeOnCompletion { onDismiss() }`.
  * Content is not scrollable by default; add `verticalScroll` for long content.
+ *
+ * [maxHeightFraction] caps the whole sheet (drag handle and insets included) at that share of
+ * the screen height; shorter content still wraps. The capped content must scroll by itself.
+ * Null keeps the default, where the sheet grows up to the full screen.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,10 +47,12 @@ fun AvBottomSheet(
     onDismiss: () -> Unit,
     title: String? = null,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    maxHeightFraction: Float? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val colors = AvTheme.colors
     val handleDescription = stringResource(R.string.cd_sheet_handle)
+    val screenHeightDp = LocalConfiguration.current.screenHeightDp
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -61,8 +70,13 @@ fun AvBottomSheet(
             )
         },
     ) {
+        val cap = if (maxHeightFraction == null) {
+            Modifier
+        } else {
+            Modifier.capSheetHeight(maxHeightFraction, screenHeightDp)
+        }
         Column(
-            modifier = Modifier
+            modifier = cap
                 .fillMaxWidth()
                 .padding(start = 20.dp, end = 20.dp, bottom = 24.dp),
         ) {
@@ -78,6 +92,25 @@ fun AvBottomSheet(
             content()
         }
     }
+}
+
+/**
+ * Caps this sheet body so the whole sheet stays within [fraction] of the screen height.
+ * The body may grow to the full screen minus what the sheet adds around it (insets, drag
+ * handle), so that difference is taken off the target height too.
+ */
+private fun Modifier.capSheetHeight(fraction: Float, screenHeightDp: Int): Modifier = layout { measurable, constraints ->
+    val screenHeight = screenHeightDp.dp.toPx()
+    val maxHeight = if (constraints.hasBoundedHeight) {
+        val chrome = (screenHeight - constraints.maxHeight).coerceAtLeast(0f)
+        (screenHeight * fraction - chrome).roundToInt().coerceIn(0, constraints.maxHeight)
+    } else {
+        (screenHeight * fraction).roundToInt()
+    }
+    val placeable = measurable.measure(
+        constraints.copy(minHeight = constraints.minHeight.coerceAtMost(maxHeight), maxHeight = maxHeight),
+    )
+    layout(placeable.width, placeable.height) { placeable.place(0, 0) }
 }
 
 /** Confirm dialog. `destructive` turns the confirm button into the Danger style. */
