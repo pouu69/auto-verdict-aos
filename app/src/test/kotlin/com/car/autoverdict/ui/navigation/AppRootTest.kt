@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -12,6 +13,8 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -22,6 +25,7 @@ import com.car.autoverdict.R
 import com.car.autoverdict.ui.theme.AvTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -36,11 +40,15 @@ class AppRootTest {
 
     private val url = "https://fem.encar.com/cars/detail/41623743"
 
+    /** Every height each route's page reported, in order — a jump shows up as a second entry. */
+    private val pageHeights = mutableMapOf<String, MutableList<Int>>()
+
     @Composable
     private fun FakeScreen(route: Route, host: ScreenHost) {
         var count by rememberSaveable { mutableIntStateOf(0) }
-        Column {
-            Text("route:${RouteCodec.encode(route)}")
+        val key = RouteCodec.encode(route)
+        Column(Modifier.fillMaxSize().onSizeChanged { pageHeights.getOrPut(key) { mutableListOf() } += it.height }) {
+            Text("route:$key")
             Text("last:${host.lastAnalyzedUrl}")
             Text("count:$count")
             TextButton(onClick = { count++ }) { Text("increment") }
@@ -102,6 +110,44 @@ class AppRootTest {
         rule.onNodeWithText("홈").assertExists()
         rule.onNodeWithText("open-result").performClick()
         rule.onNodeWithText("홈").assertDoesNotExist()
+    }
+
+    @Test fun `push and pop keep page heights steady while the tab chrome animates with the tab page`() {
+        rule.setContent { Root(onboardingComplete = true, pending = null, onConsumed = {}) }
+        rule.waitForIdle()
+        val homeHeight = pageHeights.getValue("home").last()
+        pageHeights.clear()
+
+        rule.mainClock.autoAdvance = false
+        rule.onNodeWithText("open-settings").performClick()
+        rule.mainClock.advanceTimeByFrame()
+        rule.mainClock.advanceTimeBy(100)
+        // Mid-push: both pages are composed and the chrome is still leaving with the home page.
+        rule.onNodeWithText("route:settings").assertExists()
+        rule.onNodeWithText("route:home").assertExists()
+        rule.onNodeWithText("홈").assertExists()
+        rule.mainClock.advanceTimeBy(400)
+        rule.onNodeWithText("홈").assertDoesNotExist()
+        rule.onNodeWithText("route:home").assertDoesNotExist()
+
+        assertEquals(emptyList<Int>(), pageHeights["home"].orEmpty())
+        val settingsHeights = pageHeights.getValue("settings")
+        assertEquals(1, settingsHeights.size)
+        // Sub-screens get the full height; tab roots stop above the chrome.
+        assertTrue(settingsHeights.single() > homeHeight)
+
+        pageHeights.clear()
+        rule.onNodeWithText("go-back").performClick()
+        rule.mainClock.advanceTimeByFrame()
+        rule.mainClock.advanceTimeBy(100)
+        rule.onNodeWithText("홈").assertExists()
+        rule.mainClock.advanceTimeBy(400)
+        rule.mainClock.autoAdvance = true
+        rule.waitForIdle()
+
+        rule.onNodeWithText("route:home").assertExists()
+        assertEquals(listOf(homeHeight), pageHeights["home"])
+        assertEquals(emptyList<Int>(), pageHeights["settings"].orEmpty())
     }
 
     @Test fun `invalid share shows a toast`() {

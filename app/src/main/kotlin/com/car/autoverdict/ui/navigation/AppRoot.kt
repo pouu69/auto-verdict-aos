@@ -3,10 +3,13 @@ package com.car.autoverdict.ui.navigation
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -34,6 +37,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.car.autoverdict.R
 import com.car.autoverdict.ui.components.AvTabBar
 import com.car.autoverdict.ui.components.AvToastHost
@@ -114,45 +118,55 @@ fun AppRoot(
     )
     val top = navState.top
     val currentTab = top.tabOrNull()
+    // While the chrome animates out with a tab page it keeps showing that tab as selected.
+    var lastTab by remember { mutableStateOf(currentTab ?: MainTab.Home) }
+    if (currentTab != null) lastTab = currentTab
+    val animateChrome = transition == NavTransition.Push || transition == NavTransition.Pop
 
     CompositionLocalProvider(LocalAvToast provides toast) {
         Box(modifier = Modifier.fillMaxSize().background(AvTheme.colors.background)) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                AnimatedContent(
-                    targetState = top,
+            // Pages always get the full height, so nothing resizes when the chrome comes or goes.
+            AnimatedContent(
+                targetState = top,
+                modifier = Modifier.fillMaxSize(),
+                transitionSpec = { transitionFor(transition) },
+                label = "route",
+            ) { route ->
+                // Opaque, so a page sliding in hides whatever is under it (the chrome included).
+                Box(
                     modifier = Modifier
-                        .weight(1f)
-                        // Tab roots end above the banner + tab bar; consume that height so a
-                        // screen's imePadding() only adds the part of the keyboard overlapping it.
-                        .then(
-                            if (currentTab != null) {
-                                Modifier.consumeWindowInsets(PaddingValues(bottom = bottomChromeHeight))
-                            } else {
-                                Modifier
-                            },
-                        ),
-                    transitionSpec = { transitionFor(transition) },
-                    label = "route",
-                ) { route ->
+                        .fillMaxSize()
+                        .then(pageInsets(route, bottomChromeHeight))
+                        .background(AvTheme.colors.background),
+                ) {
                     saveableStateHolder.SaveableStateProvider(RouteCodec.encode(route)) {
                         screenContent(route, hostFor(route))
                     }
                 }
-                // Outside AnimatedContent so switching tabs keeps the same AdView (spec 10);
-                // pushing a sub-screen removes this slot, which releases (destroys) the AdView.
-                if (currentTab != null) {
-                    Column(
-                        modifier = Modifier.onSizeChanged {
-                            bottomChromeHeight = with(density) { it.height.toDp() }
-                        },
-                    ) {
-                        adBanner()
-                        AvTabBar(
-                            selected = currentTab,
-                            onSelect = { dispatch(NavEvent.SelectTab(it)) },
-                            savedCount = savedCount,
-                        )
-                    }
+            }
+            // Outside AnimatedContent so switching tabs keeps the same AdView (spec 10). On push it
+            // slides out with the tab page (then the AdView is released); on pop it comes back with
+            // it. Drawn under the pages so an incoming sub-screen slides over it.
+            AnimatedVisibility(
+                visible = currentTab != null,
+                modifier = Modifier.align(Alignment.BottomCenter).zIndex(-1f),
+                enter = if (animateChrome) chromeEnter else EnterTransition.None,
+                exit = if (animateChrome) chromeExit else ExitTransition.None,
+                label = "tabChrome",
+            ) {
+                Column(
+                    modifier = Modifier.onSizeChanged {
+                        // Keep the last real height so tab pages never jump while the chrome is gone.
+                        if (it.height > 0) bottomChromeHeight = with(density) { it.height.toDp() }
+                    },
+                ) {
+                    adBanner()
+                    AvTabBar(
+                        selected = lastTab,
+                        // Taps on the chrome while it leaves belong to a screen that is no longer on top.
+                        onSelect = { if (navState.top.tabOrNull() != null) dispatch(NavEvent.SelectTab(it)) },
+                        savedCount = savedCount,
+                    )
                 }
             }
             AvToastHost(
@@ -164,6 +178,23 @@ fun AppRoot(
         }
     }
 }
+
+/**
+ * Tab roots stop above the banner + tab bar and consume that height, so a screen's imePadding()
+ * only adds the part of the keyboard overlapping it. Other routes run to the bottom edge.
+ */
+private fun pageInsets(route: Route, bottomChromeHeight: Dp): Modifier =
+    if (route.tabOrNull() != null) {
+        Modifier
+            .padding(bottom = bottomChromeHeight)
+            .consumeWindowInsets(PaddingValues(bottom = bottomChromeHeight))
+    } else {
+        Modifier
+    }
+
+// Matches the outgoing tab page's slide on push (and the incoming one's on pop).
+private val chromeEnter = slideInHorizontally(tween(250)) { -it / 4 } + fadeIn(tween(250))
+private val chromeExit = slideOutHorizontally(tween(250)) { -it / 4 } + fadeOut(tween(250))
 
 private fun toastOffset(onTabRoot: Boolean, bottomChromeHeight: Dp): Modifier =
     if (onTabRoot) {
