@@ -126,7 +126,7 @@ class ResultControllerTest {
     // --- collect ---
 
     @Test
-    fun `fast collect holds the loading steps until 7 seconds, then shows Ready and caches`() = runTest {
+    fun `fast collect holds the loading steps until 5 seconds, then shows Ready and caches`() = runTest {
         val c = controller()
         val states = timedHistory(c)
         c.start()
@@ -140,16 +140,16 @@ class ResultControllerTest {
         advanceTimeBy(1_000)
         evaluator.results["raw"] = EngineResult.Success(caution)
         call.result.complete(CollectOutcome.Success("raw"))
-        advanceTimeBy(5_900)
+        advanceTimeBy(3_900)
         assertTrue(c.state.value is ResultUiState.Loading)
         passMinimumLoading()
 
         assertEquals(
             listOf(
                 0L to ResultUiState.Loading(LoadingStage.OpeningPage),
-                2_000L to ResultUiState.Loading(LoadingStage.FetchingHistory),
-                4_500L to ResultUiState.Loading(LoadingStage.Evaluating),
-                7_000L to ResultUiState.Ready(caution, saved = false, banner = null),
+                1_500L to ResultUiState.Loading(LoadingStage.FetchingHistory),
+                3_200L to ResultUiState.Loading(LoadingStage.Evaluating),
+                5_000L to ResultUiState.Ready(caution, saved = false, banner = null),
             ),
             states,
         )
@@ -172,7 +172,7 @@ class ResultControllerTest {
         assertEquals(
             listOf(
                 0L to ResultUiState.Loading(LoadingStage.OpeningPage),
-                2_000L to ResultUiState.Loading(LoadingStage.FetchingHistory),
+                1_500L to ResultUiState.Loading(LoadingStage.FetchingHistory),
                 9_000L to ResultUiState.Loading(LoadingStage.Evaluating),
                 9_000L to ResultUiState.Ready(caution, saved = false, banner = null),
             ),

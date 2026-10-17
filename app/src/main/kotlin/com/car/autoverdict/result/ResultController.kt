@@ -413,12 +413,12 @@ class ResultController(
 
     companion object {
         /** A loading screen with a successful result stays at least this long (spec 5.1). */
-        const val MIN_LOADING_MS = 7_000L
+        const val MIN_LOADING_MS = 5_000L
 
         /** Earliest time the second loading step ("이력·진단 가져오기") shows. */
-        const val STAGE2_AT_MS = 2_000L
+        const val STAGE2_AT_MS = 1_500L
 
         /** Earliest time the third loading step ("평가") shows. */
-        const val STAGE3_AT_MS = 4_500L
+        const val STAGE3_AT_MS = 3_200L
     }
 }
