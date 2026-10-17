@@ -28,4 +28,5 @@
     <string name="tab_home">홈</string>
     <string name="tab_saved_count">저장한 차 %1$d</string>
     <string name="cd_sheet_handle">시트 닫기</string>
+    <string name="toast_invalid_share">엔카 매물 링크만 확인할 수 있어요</string>
 </resources>
