@@ -19,11 +19,6 @@
     <string name="license_material_notice">Material Symbols 아이콘은 Apache License 2.0에 따라 사용합니다.</string>
     <string name="license_show_full">전문 보기</string>
     <string name="license_hide_full">접기</string>
-    <string name="settings_licenses_title">오픈소스 라이선스</string>
-    <string name="settings_licenses_subtitle">폰트·아이콘 라이선스 고지</string>
-    <string name="settings_section_dev">개발</string>
-    <string name="settings_gallery_title">컴포넌트 갤러리</string>
-    <string name="settings_gallery_subtitle">debug 빌드 전용</string>
     <string name="loading_step_done">완료</string>
     <string name="loading_step_active">진행 중</string>
     <string name="loading_step_pending">대기 중</string>

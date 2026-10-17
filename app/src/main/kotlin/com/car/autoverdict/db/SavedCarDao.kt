@@ -20,6 +20,9 @@ interface SavedCarDao {
     @Query("DELETE FROM saved_cars WHERE carId = :carId")
     suspend fun deleteByCarId(carId: String)
 
+    @Query("DELETE FROM saved_cars")
+    suspend fun deleteAll()
+
     @Query("SELECT COUNT(*) FROM saved_cars")
     suspend fun count(): Int
 
