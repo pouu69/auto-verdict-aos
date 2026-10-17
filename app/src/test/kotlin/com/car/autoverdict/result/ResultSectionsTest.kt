@@ -112,6 +112,20 @@ class ResultSectionsTest {
         heading("사기 전에 2가지는 꼭 확인하세요").assertExists()
     }
 
+    @Test fun `verdict header leads with the car name above the summary`() {
+        show(caution)
+        val name = rule.onNodeWithText("BMW 3시리즈 (F30) 320d").fetchSemanticsNode().boundsInRoot
+        val summary = rule.onNodeWithText("2015년 · 12만km · 디젤 · 890만원").fetchSemanticsNode().boundsInRoot
+        assertTrue("name $name should sit above summary $summary", name.bottom <= summary.top)
+        // The listing title stays out of the header when a name is given.
+        rule.onAllNodesWithText("2015 BMW 3시리즈 (F30)").assertCountEquals(0)
+    }
+
+    @Test fun `verdict header falls back to the listing title without a name`() {
+        show(minimal)
+        rule.onNodeWithText("차량 정보 없음").assertExists()
+    }
+
     @Test fun `count chips hide zero counts`() {
         show(caution)
         rule.onNodeWithText("주의 2").assertExists()

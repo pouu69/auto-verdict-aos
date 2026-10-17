@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">AutoVerdict</string>
     <string name="tab_saved">저장한 차</string>
     <string name="verdict_never">피하세요</string>
@@ -30,6 +30,15 @@
     <string name="tab_home">홈</string>
     <string name="tab_saved_count">저장한 차 %1$d</string>
     <string name="cd_sheet_handle">시트 닫기</string>
+    <!-- The app is Korean-only, but Compose falls back to its English defaults on devices in
+         other locales. These override the library strings the bottom sheet reads (scrim,
+         pane title, drag-handle actions) with the libraries' own Korean translations. -->
+    <string name="close_sheet" tools:ignore="PrivateResource">시트 닫기</string>
+    <string name="m3c_bottom_sheet_pane_title" tools:ignore="PrivateResource">하단 시트</string>
+    <string name="m3c_bottom_sheet_dismiss_description" tools:ignore="PrivateResource">하단 시트 닫기</string>
+    <string name="m3c_bottom_sheet_collapse_description" tools:ignore="PrivateResource">하단 시트 접기</string>
+    <string name="m3c_bottom_sheet_expand_description" tools:ignore="PrivateResource">하단 시트 펼치기</string>
+    <string name="m3c_bottom_sheet_drag_handle_description" tools:ignore="PrivateResource">드래그 핸들</string>
     <string name="toast_invalid_share">엔카 매물 링크만 확인할 수 있어요</string>
     <!-- Result screen (sub-project 1) -->
     <string name="result_title">분석 결과</string>

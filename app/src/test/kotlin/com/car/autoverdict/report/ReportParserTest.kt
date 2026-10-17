@@ -25,6 +25,7 @@ class ReportParserTest {
         assertEquals(Tone.Warning, r.issues.first().tone)
         assertEquals(11, r.rules.size)
         assertEquals(8_900_000L, r.car.priceWon)
+        assertEquals("BMW 3시리즈 (F30) 320d", r.car.name)
         assertEquals(31, r.repairs?.systems?.okCount)
     }
 
@@ -33,6 +34,7 @@ class ReportParserTest {
         val r = parseOk("sample-minimal.json")
         assertNull(r.repairs)
         assertNull(r.car.year)
+        assertNull(r.car.name)
         assertNull(r.shareText.sellerQuestions)
         assertEquals(listOf(DataGap(GapSource.Record, GapReason.LoginRequired)), r.dataGaps)
     }

@@ -19,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.car.autoverdict.R
 import com.car.autoverdict.report.EvaluationReport
@@ -29,7 +30,7 @@ import com.car.autoverdict.ui.theme.tone
 import com.car.autoverdict.ui.theme.verdictLabelRes
 
 /**
- * Spec 5.2-3: car summary, verdict badge with a mid-sized score in the verdict tone,
+ * Spec 5.2-3: car name and summary, verdict badge with a mid-sized score in the verdict tone,
  * a thin score bar, then the conclusion sentence as the screen's main message.
  */
 @Composable
@@ -39,7 +40,17 @@ fun VerdictHeader(report: EvaluationReport, modifier: Modifier = Modifier) {
     val tone = AvTone.fromVerdict(report.verdict)
     val toneColors = colors.tone(tone)
     val scoreDescription = stringResource(R.string.result_score_cd, report.score)
+    val carName = report.car.name?.takeIf { it.isNotBlank() } ?: report.car.title
     Column(modifier = modifier.fillMaxWidth().padding(horizontal = AvTheme.spacing.screenHorizontal)) {
+        if (carName.isNotBlank()) {
+            // Wraps rather than truncating; real names fit in two lines.
+            Text(
+                text = carName,
+                style = typography.body1.copy(fontWeight = FontWeight.SemiBold),
+                color = colors.textPrimary,
+            )
+            Spacer(Modifier.height(if (report.car.summary.isNotBlank()) 2.dp else 8.dp))
+        }
         if (report.car.summary.isNotBlank()) {
             Text(text = report.car.summary, style = typography.caption1, color = colors.textSecondary)
             Spacer(Modifier.height(8.dp))
