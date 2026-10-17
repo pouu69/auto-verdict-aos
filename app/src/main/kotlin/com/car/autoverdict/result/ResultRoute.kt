@@ -70,6 +70,17 @@ fun ResultRoute(
     }
 
     val shareText = (state as? ResultUiState.Ready)?.report?.shareText
+
+    // Seller questions, all of them or one from a detail sheet.
+    fun copyQuestions(text: String) {
+        val clipboard = context.getSystemService(ClipboardManager::class.java)
+        clipboard.setPrimaryClip(ClipData.newPlainText(context.getString(R.string.result_clip_label_questions), text))
+        // Android 13+ shows its own copy confirmation; a second one would be noise.
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
+            toast.show(context.getString(R.string.result_toast_copied))
+        }
+    }
+
     val actions = ResultActions(
         onBack = host.back,
         // Canonical detail page: share links carry tracking query params we don't need to reopen.
@@ -85,16 +96,8 @@ fun ResultRoute(
         onUnsave = controller::unsave,
         onShareSummary = { shareText?.summary?.let(context::shareText) },
         onShareQuestions = { shareText?.sellerQuestions?.let(context::shareText) },
-        onCopyQuestions = {
-            shareText?.sellerQuestions?.let { text ->
-                val clipboard = context.getSystemService(ClipboardManager::class.java)
-                clipboard.setPrimaryClip(ClipData.newPlainText(context.getString(R.string.result_clip_label_questions), text))
-                // Android 13+ shows its own copy confirmation; a second one would be noise.
-                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
-                    toast.show(context.getString(R.string.result_toast_copied))
-                }
-            }
-        },
+        onCopyQuestions = { shareText?.sellerQuestions?.let(::copyQuestions) },
+        onCopyQuestion = ::copyQuestions,
     )
     ResultScreen(state = state, actions = actions, bannerAd = bannerAd, loadingAd = loadingAd)
 }

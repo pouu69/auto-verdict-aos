@@ -96,4 +96,8 @@
     <string name="result_toast_retry_failed">다시 가져오지 못했어요</string>
     <string name="result_toast_copied">복사했어요</string>
     <string name="result_clip_label_questions">판매자 질문</string>
+    <string name="result_detail_click_label">자세히 보기</string>
+    <string name="result_repairs_full_inspection">성능점검 전체 보기</string>
+    <string name="result_detail_seller_question">판매자에게 물어보기</string>
+    <string name="result_detail_copy_question">복사</string>
 </resources>

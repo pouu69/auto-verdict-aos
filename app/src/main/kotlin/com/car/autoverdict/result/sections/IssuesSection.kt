@@ -21,13 +21,18 @@ import androidx.compose.ui.unit.dp
 import com.car.autoverdict.R
 import com.car.autoverdict.report.RuleItem
 import com.car.autoverdict.ui.components.AvBadge
+import com.car.autoverdict.ui.components.avPressable
 import com.car.autoverdict.ui.theme.AvTheme
 
-/** Spec 5.2-7: every non-passing rule with its result, why it matters and what to ask. */
+/**
+ * Spec 5.2-7: every non-passing rule with its result, why it matters and what to ask.
+ * Cards with a detail sheet open it through [onOpenDetail] (spec 4.1).
+ */
 @Composable
 fun IssuesSection(
     issues: List<RuleItem>,
     modifier: Modifier = Modifier,
+    onOpenDetail: ((RuleItem) -> Unit)? = null,
     expanded: Boolean = true,
     onToggleExpanded: (() -> Unit)? = null,
 ) {
@@ -45,22 +50,31 @@ fun IssuesSection(
                 .padding(top = 8.dp, bottom = 20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            issues.forEach { IssueCard(it) }
+            issues.forEach { issue ->
+                IssueCard(issue, onClick = onOpenDetail?.takeIf { issue.detail != null }?.let { open -> { open(issue) } })
+            }
         }
     }
 }
 
 @Composable
-private fun IssueCard(issue: RuleItem) {
+private fun IssueCard(issue: RuleItem, onClick: (() -> Unit)?) {
     val colors = AvTheme.colors
     val typography = AvTheme.typography
+    val shape = AvTheme.shapes.tile
+    // The whole card is the touch target; it merges its texts either way.
+    val interaction = if (onClick != null) {
+        Modifier.avPressable(onClick = onClick, onClickLabel = detailClickLabel(), focusShape = shape)
+    } else {
+        Modifier.semantics(mergeDescendants = true) {}
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(AvTheme.shapes.tile)
+            .then(interaction)
+            .clip(shape)
             .background(colors.surfaceSubtle)
-            .padding(16.dp)
-            .semantics(mergeDescendants = true) {},
+            .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             AvBadge(text = issue.label, tone = issue.tone.toAvTone())
@@ -69,7 +83,9 @@ private fun IssueCard(issue: RuleItem) {
                 text = issue.title,
                 style = typography.body1.copy(fontWeight = FontWeight.SemiBold),
                 color = colors.textPrimary,
+                modifier = Modifier.weight(1f),
             )
+            if (onClick != null) DetailChevron()
         }
         Spacer(Modifier.height(6.dp))
         Text(text = issue.message, style = typography.body2, color = colors.textPrimary)

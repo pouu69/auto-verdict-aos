@@ -40,6 +40,7 @@ internal class RecordingActions {
         onShareSummary = { calls += "shareSummary" },
         onShareQuestions = { calls += "shareQuestions" },
         onCopyQuestions = { calls += "copyQuestions" },
+        onCopyQuestion = { calls += "copyQuestion:$it" },
     )
 
     fun count(name: String) = calls.count { it == name }

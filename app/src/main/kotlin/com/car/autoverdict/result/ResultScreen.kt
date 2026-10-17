@@ -55,6 +55,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.car.autoverdict.R
 import com.car.autoverdict.report.EvaluationReport
+import com.car.autoverdict.report.RuleItem
+import com.car.autoverdict.report.TimelineEntry
 import com.car.autoverdict.result.sections.AllRulesSection
 import com.car.autoverdict.result.sections.CountChips
 import com.car.autoverdict.result.sections.ExcludedSection
@@ -94,6 +96,8 @@ data class ResultActions(
     val onShareSummary: () -> Unit,
     val onShareQuestions: () -> Unit,
     val onCopyQuestions: () -> Unit,
+    /** Copies one seller question, from a rule's detail sheet. */
+    val onCopyQuestion: (String) -> Unit,
 )
 
 /**
@@ -253,6 +257,8 @@ private fun ReadyBody(
     }
     val scope = rememberCoroutineScope()
     val questions = remember(state.report) { state.report.issues.mapNotNull { it.sellerQuestion } }
+    // Not keyed by report: a refresh keeps the sheet open while the new report still has it.
+    var openDetail by rememberSaveable { mutableStateOf<String?>(null) }
     Box(modifier = modifier.fillMaxWidth()) {
         Column(modifier = Modifier.fillMaxSize()) {
             // Pinned above the list: "update available" only appears after the user has scrolled,
@@ -275,6 +281,7 @@ private fun ReadyBody(
                     hasBanner = state.banner != null,
                     actions = actions,
                     listState = listState,
+                    openDetail = { openDetail = it },
                 )
             }
         }
@@ -284,6 +291,12 @@ private fun ReadyBody(
             RefreshingBar(modifier = Modifier.align(Alignment.TopCenter))
         }
     }
+    ResultDetailSheet(
+        report = state.report,
+        openKey = openDetail,
+        onDismiss = { openDetail = null },
+        onCopyQuestion = actions.onCopyQuestion,
+    )
 }
 
 @Composable
@@ -306,7 +319,8 @@ private fun RefreshingBar(modifier: Modifier) {
 /**
  * Spec 5.2 items 3-11, top to bottom. Sections start expanded and fold from their titles; a long
  * timeline also starts with only the newest five. The verdict header block always shows.
- * Empty sections are left out with their divider.
+ * Empty sections are left out with their divider. Tappable rows open a detail sheet by its
+ * [DetailKey] through [openDetail].
  */
 private fun LazyListScope.reportSections(
     report: EvaluationReport,
@@ -314,7 +328,9 @@ private fun LazyListScope.reportSections(
     hasBanner: Boolean,
     actions: ResultActions,
     listState: LazyListState,
+    openDetail: (String) -> Unit,
 ) {
+    val openRule: (RuleItem) -> Unit = { openDetail(DetailKey.rule(it.ruleId)) }
     item(key = "header") {
         Column(modifier = Modifier.padding(top = if (hasBanner) 4.dp else 8.dp, bottom = 24.dp)) {
             VerdictHeader(report)
@@ -327,15 +343,28 @@ private fun LazyListScope.reportSections(
         }
     }
     report.repairs?.let { repairs ->
-        section("repairs", listState) { fold -> RepairsSection(repairs, expanded = fold.expanded, onToggleExpanded = fold.toggle) }
+        section("repairs", listState) { fold ->
+            RepairsSection(
+                repairs,
+                expanded = fold.expanded,
+                onToggleExpanded = fold.toggle,
+                onOpenInspection = { openDetail(DetailKey.REPAIRS) },
+            )
+        }
     }
     if (report.issues.isNotEmpty()) {
-        section("issues", listState) { fold -> IssuesSection(report.issues, expanded = fold.expanded, onToggleExpanded = fold.toggle) }
+        section("issues", listState) { fold ->
+            IssuesSection(report.issues, expanded = fold.expanded, onToggleExpanded = fold.toggle, onOpenDetail = openRule)
+        }
     }
     if (report.timeline.isNotEmpty()) {
-        section(TIMELINE_KEY, listState) { fold -> FoldableTimeline(report, listState, fold) }
+        section(TIMELINE_KEY, listState) { fold ->
+            FoldableTimeline(report, listState, fold, onOpenEntry = { openDetail(DetailKey.timeline(it)) })
+        }
     }
-    section("rules", listState) { fold -> AllRulesSection(report.rules, expanded = fold.expanded, onToggleExpanded = fold.toggle) }
+    section("rules", listState) { fold ->
+        AllRulesSection(report.rules, expanded = fold.expanded, onToggleExpanded = fold.toggle, onOpenDetail = openRule)
+    }
     if (report.excluded.isNotEmpty()) {
         section("excluded", listState) { fold ->
             ExcludedSection(report.excluded, expanded = fold.expanded, onToggleExpanded = fold.toggle)
@@ -364,7 +393,12 @@ private class SectionFold(val expanded: Boolean, val toggle: () -> Unit)
  * it survives recreation and is independent of folding the whole section from its title.
  */
 @Composable
-private fun FoldableTimeline(report: EvaluationReport, listState: LazyListState, fold: SectionFold) {
+private fun FoldableTimeline(
+    report: EvaluationReport,
+    listState: LazyListState,
+    fold: SectionFold,
+    onOpenEntry: (TimelineEntry) -> Unit,
+) {
     var showOlder by rememberSaveable(report) { mutableStateOf(false) }
     TimelineSection(
         entries = report.timeline,
@@ -375,6 +409,7 @@ private fun FoldableTimeline(report: EvaluationReport, listState: LazyListState,
         },
         expanded = fold.expanded,
         onToggleExpanded = fold.toggle,
+        onOpenEntry = onOpenEntry,
     )
 }
 
