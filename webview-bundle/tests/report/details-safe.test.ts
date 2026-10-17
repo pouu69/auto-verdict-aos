@@ -9,6 +9,7 @@ const { boom } = vi.hoisted(() => ({
   },
 }));
 vi.mock('../../src/report/details/rules', () => ({ buildRuleDetail: boom }));
+vi.mock('../../src/report/rule-summary', () => ({ ruleSummary: boom, unknownSummary: boom }));
 vi.mock('../../src/report/details/inspection', () => ({ buildInspectionSheet: boom }));
 vi.mock('../../src/report/details/timeline', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../src/report/details/timeline')>()),
@@ -25,6 +26,8 @@ describe('detail sheet isolation', () => {
     expect(report.score).toBe(out.report.score);
     expect(report.rules).toHaveLength(out.report.results.length);
     expect(report.rules.every((r) => r.detail === null)).toBe(true);
+    // A broken summary falls back to the sentence.
+    expect(report.rules.every((r) => r.summary === r.message)).toBe(true);
     expect(report.repairs).not.toBeNull();
     expect(report.repairs!.sheet).toBeNull();
     expect(report.timeline.length).toBeGreaterThan(5);

@@ -7,9 +7,10 @@ import type { ChecklistFacts } from '@core/types/ChecklistFacts.js';
 import type { FieldStatus } from '@core/types/FieldStatus.js';
 import type { MobileOrchestratorResult } from '../orchestrate-mobile';
 import type { RuleLabel, Tone } from './types';
-import { RULE_META, type RuleSource } from './rule-meta';
+import { RULE_META } from './rule-meta';
 import type { FrameSource } from './frame-source';
-import { formatMan, josa, koreanMonth } from './format';
+import { formatMan, josa, koreanMonth, partName } from './format';
+import { reasonMessage } from './reasons';
 
 export interface RuleCopy {
   message: string;
@@ -49,8 +50,6 @@ export const gapDuration = (months: number): string => {
   return m === 0 ? `${y}년` : `${y}년 ${m}개월`;
 };
 
-/** "실린더 블록 / 오일팬" -> "실린더 블록·오일팬". */
-export const leakPart = (part: string): string => part.trim().replace(/\s*\/\s*/g, '·');
 
 /** Strip the trailing "(상태)" group that the core appends to outer panel names. */
 const panelName = (part: string): string =>
@@ -191,7 +190,7 @@ export function ruleCopy(result: RuleResult, facts: ChecklistFacts, frameSource:
       const items = evidenceOf(result, 'oilLeak', facts.oilLeak)?.items ?? [];
       const last = items[items.length - 1];
       if (!last) return issue('누유가 있어요', '누유 부위는 수리했나요?');
-      const list = items.map((i) => `${leakPart(i.part)}에 ${i.status}`).join(', ');
+      const list = items.map((i) => `${partName(i.part)}에 ${i.status}`).join(', ');
       return issue(`${list}${josa(last.status, '이', '가')} 있어요`, '누유 부위는 수리했나요?');
     }
     default:
@@ -216,12 +215,6 @@ const FACT_FIELD: Record<string, keyof ChecklistFacts> = {
   R12: 'oilLeak',
 };
 
-const NOT_FOUND_BY_SOURCE: Record<RuleSource, string> = {
-  record: '엔카에 이 차의 보험 이력이 없어요',
-  inspection: '엔카에 성능점검 기록이 없어요',
-  diagnosisOrInspection: '프레임 상태를 확인할 자료가 없어요',
-  page: '정보를 확인하지 못했어요',
-};
 
 /** Most actionable first when several source APIs failed. */
 const REASON_PRIORITY = ['login_required', 'api_fetch_error', 'not_fetched', 'no_report_for_personal'];
@@ -231,24 +224,6 @@ const reasonRank = (s: FieldStatus<unknown>): number => {
   return i === -1 ? REASON_PRIORITY.length : i;
 };
 
-const statusMessage = (status: FieldStatus<unknown>, source: RuleSource): string => {
-  if (status.kind === 'hidden_by_dealer') return '딜러가 공개하지 않았어요';
-  if (status.kind === 'loading' || status.kind === 'timeout') return '엔카에서 정보를 받지 못했어요';
-  if (status.kind !== 'parse_failed') return '정보를 확인하지 못했어요';
-  switch (status.reason) {
-    case 'login_required':
-      return '엔카에 로그인하면 확인할 수 있어요';
-    case 'api_fetch_error':
-    case 'not_fetched':
-      return '엔카에서 정보를 받지 못했어요';
-    case 'no_report_for_personal':
-      return NOT_FOUND_BY_SOURCE[source];
-    case 'not_applicable_personal':
-      return '개인 매물은 엔카진단을 받을 수 없어요';
-    default:
-      return '정보를 확인하지 못했어요';
-  }
-};
 
 /**
  * Why a rule is 미확인. API failures only survive in `out.parsed.raw.*Api`
@@ -258,7 +233,7 @@ const statusMessage = (status: FieldStatus<unknown>, source: RuleSource): string
 export function unknownMessage(result: RuleResult, out: MobileOrchestratorResult): string {
   const meta = RULE_META[result.ruleId];
   const status = unknownStatus(result, out);
-  return meta && status ? statusMessage(status, meta.source) : '정보를 확인하지 못했어요';
+  return meta && status ? reasonMessage(status, meta.source) : '정보를 확인하지 못했어요';
 }
 
 /** The status behind a 미확인 rule (see [unknownMessage]); null if none can be named. */

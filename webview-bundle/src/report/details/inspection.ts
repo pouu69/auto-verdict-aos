@@ -5,8 +5,8 @@
  */
 import type { MobileOrchestratorResult } from '../../orchestrate-mobile';
 import type { DetailBlock, DetailRow, DetailSheet, Tone } from '../types';
-import { buildRepairs, codeTone, partName } from '../repairs';
-import { groupDigits } from '../format';
+import { buildRepairs, codeTone } from '../repairs';
+import { groupDigits, partName } from '../format';
 import { arr, isObj, num, str, type Obj } from '../raw';
 import { block, fullDate, inspectionOf, row } from './common';
 

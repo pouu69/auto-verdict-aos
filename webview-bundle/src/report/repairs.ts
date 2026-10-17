@@ -5,6 +5,7 @@
 import type { MobileOrchestratorResult } from '../orchestrate-mobile';
 import type { RepairPanel, Repairs, SystemItem, Tone } from './types';
 import { arr, isObj, str } from './raw';
+import { partName } from './format';
 
 const RANKS: Record<string, { rank: string; tone: Tone; order: number }> = {
   RANK_A: { rank: 'A랭크', tone: 'danger', order: 0 },
@@ -46,9 +47,6 @@ const toPanel = (o: unknown): (RepairPanel & { order: number }) | null => {
     order: rank?.order ?? NO_RANK_ORDER,
   };
 };
-
-/** "실린더 블록 / 오일팬" -> "실린더 블록·오일팬", as R12 writes it; "자동변속기(A/T)" stays. */
-export const partName = (title: string): string => title.replace(/\s+\/\s+/g, '·');
 
 /** 성능점검 `statusType.code` -> tone (code table in core api-inspection.ts `InnerNode`). */
 const CODE_TONE: Record<string, Tone> = {

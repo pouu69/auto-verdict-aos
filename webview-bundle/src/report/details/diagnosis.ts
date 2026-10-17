@@ -92,7 +92,9 @@ export function diagnosisBlocks(out: MobileOrchestratorResult): DetailBlock[] | 
     if (isComment(name)) continue;
     const result = (str(i, 'result') ?? '').trim() || '기록 없음';
     const code = typeof i.resultCode === 'string' ? i.resultCode : null;
-    parts.push(row(diagnosisPartName(name) ?? '기타 부위', result, partTone(result, code)));
+    // Unmapped parts keep their code in readable form so rows stay distinct.
+    const label = diagnosisPartName(name) ?? (name.replace(/_/g, ' ').trim() || '기타 부위');
+    parts.push(row(label, result, partTone(result, code)));
   }
 
   return [

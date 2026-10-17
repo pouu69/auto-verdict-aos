@@ -84,7 +84,9 @@ describe('rule detail sheets', () => {
     const { raw } = load('39339524');
     const rec = raw.recordJson as { myAccidentCost: number; otherAccidentCost: number };
     const d = detailOf(reportOf('39339524'), 'R10');
-    expect(blockOf(d, '보험 처리 합계').rows).toEqual([
+    const sums = blockOf(d, '수리비 합계');
+    expect(sums.note).toBe('부품비·공임·도장비 합계예요');
+    expect(sums.rows).toEqual([
       { label: '내차 피해', value: '7건 · 11,258,480원', tone: 'warning' },
       { label: '타차 가해', value: '2건 · 5,886,670원', tone: 'warning' },
       { label: '기준 금액', value: '수입 400만원', tone: null },
@@ -162,6 +164,30 @@ describe('rule detail sheets', () => {
     expect(monthsOf(rows[rows.length - 1]!.value)).toBe(gap.value.totalMonths);
   });
 
+  it('R12 rows match the engine oilLeak items (restated OIL_LEAK_CODES)', () => {
+    const check = (report: EvaluationReport, items: unknown[], label: string) => {
+      const rows = blockOf(detailOf(report, 'R12'), '누유 항목').rows;
+      const leaks = rows.filter((r) => r.label !== '누유 항목');
+      expect(leaks, label).toHaveLength(items.length);
+    };
+    for (const id of FIXTURE_IDS) {
+      const { raw, out } = load(id);
+      const r12 = out.report.results.find((r) => r.ruleId === 'R12');
+      if (!r12 || r12.severity === 'unknown') continue;
+      const ev = r12.evidence.find((e) => e.field === 'oilLeak')!.value as { items: unknown[] };
+      check(buildReport(raw, out), ev.items, id);
+    }
+    // 미세누유 (6) counts, 미세누수 (4) does not.
+    const raw = rawOf('42264483');
+    const inners = (raw.inspectionJson as { inners: Array<{ children?: Array<{ statusType: unknown }> }> }).inners;
+    inners[1]!.children![0]!.statusType = { code: '6', title: '미세누유' };
+    inners[6]!.children![0]!.statusType = { code: '4', title: '미세누수' };
+    const out = orchestrateMobile(raw);
+    const ev = out.report.results.find((r) => r.ruleId === 'R12')!.evidence[0]!.value as { items: unknown[] };
+    expect(ev.items).toHaveLength(2);
+    check(buildReport(raw, out), ev.items, 'synthetic');
+  });
+
   it('42264483 R12: the leaking part with its group, danger tone', () => {
     const rows = blockOf(detailOf(reportOf('42264483'), 'R12'), '누유 항목').rows;
     expect(rows).toEqual([{ label: '오일누유 · 실린더 블록·오일팬', value: '누유', tone: 'danger' }]);
@@ -184,10 +210,17 @@ describe('rule detail evidence rows', () => {
       ['렌트 이력', '없음'],
       ['영업용 이력', '없음'],
       ['관용 이력', '없음'],
-      ['용도 변경', '없음'],
     ]);
     expect(blockOf(detailOf(r, 'R06'), '전손·침수·도난').rows.map((x) => x.value)).toEqual(['없음', '없음', '없음', '없음']);
-    expect(blockOf(detailOf(r, 'R09'), '수리비 확정').note).toBe('보험 처리한 사고 2건 모두 수리비가 기록돼 있어요');
+    // Only the engine's own call and the claim count: no per-claim judgement the engine never made.
+    expect(blockOf(detailOf(r, 'R09'), '수리비 확정')).toEqual({
+      title: '수리비 확정',
+      rows: [
+        { label: '수리비 미확정 사고', value: '없음', tone: 'success' },
+        { label: '보험 처리 사고', value: '2건', tone: null },
+      ],
+      note: null,
+    });
     // 920만원 against a 5,000만원 new car: 18%, below the 45% bound.
     expect(blockOf(detailOf(pricedReport(5000), 'R11'), '가격 비교').rows).toEqual([
       { label: '신차 가격', value: '50,000,000원', tone: null },
@@ -222,9 +255,36 @@ describe('rule detail edge cases', () => {
     raw.recordJson = undefined;
     raw.httpStatus = { ...raw.httpStatus, recordJson: 'unauthorized' };
     const login = buildReport(raw, orchestrateMobile(raw));
-    expect(blockOf(detailOf(login, 'R08'), '확인하지 못한 이유').rows).toEqual([
-      { label: '엔카 보험이력', value: '로그인 필요', tone: 'neutral' },
-    ]);
+    expect(blockOf(detailOf(login, 'R08'), '확인하지 못한 이유')).toEqual({
+      title: '확인하지 못한 이유',
+      rows: [{ label: '엔카 보험이력', value: '로그인 필요', tone: 'neutral' }],
+      note: null,
+    });
+  });
+
+  it('미확인 with every source read: the note names the reason', () => {
+    // Diagnosis without a verdict and a 성능점검 without master.accdient: both read, R04 still undecided.
+    const raw = rawOf('41878112');
+    raw.diagnosisJson = { items: [] };
+    delete (raw.inspectionJson as { master?: unknown }).master;
+    (raw.preloadedState as { cars: { detailFlags: Record<string, unknown> } }).cars.detailFlags.isDiagnosisExist = false;
+    const report = buildReport(raw, orchestrateMobile(raw));
+    const item = report.rules.find((r) => r.ruleId === 'R04')!;
+    expect(item.label).toBe('미확인');
+    const reason = blockOf(item.detail!, '확인하지 못한 이유');
+    expect(reason.rows.map((r) => r.value)).toEqual(['확인 완료', '확인 완료', '확인 완료']);
+    expect(reason.note).toBe('자료는 받았지만 판단할 값을 찾지 못했어요. 사유: 정보 없음');
+    expect(item.summary).toBe('확인 불가 · 정보 없음');
+  });
+
+  it('unmapped diagnosis parts keep a readable, distinct label', () => {
+    const raw = rawOf('41878112');
+    const items = (raw.diagnosisJson as { items: Array<Record<string, unknown>> }).items;
+    items.push({ code: '1', name: 'REAR_WHEEL_HOUSE_LEFT', result: '정상', resultCode: 'NORMAL' });
+    items.push({ code: '2', name: 'MYSTERY_PART', result: '교환', resultCode: 'REPLACEMENT' });
+    const parts = blockOf(detailOf(buildReport(raw, orchestrateMobile(raw)), 'R03'), '진단 부위').rows;
+    expect(parts).toContainEqual({ label: '리어 휠하우스(좌)', value: '정상', tone: 'success' });
+    expect(parts).toContainEqual({ label: 'MYSTERY PART', value: '교환', tone: 'warning' });
   });
 });
 

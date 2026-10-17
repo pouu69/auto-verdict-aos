@@ -5,11 +5,11 @@
  * the same way [ruleCopy] reads them.
  */
 import type { RuleResult } from '@core/types/RuleTypes.js';
-import type { FieldStatus } from '@core/types/FieldStatus.js';
 import type { MobileOrchestratorResult } from '../orchestrate-mobile';
 import type { FrameSource } from './frame-source';
-import { formatMan } from './format';
-import { evidenceOf, gapDuration, leakPart, lossHits, unknownStatus, usageKinds } from './rule-copy';
+import { formatMan, partName } from './format';
+import { evidenceOf, gapDuration, lossHits, unknownStatus, usageKinds } from './rule-copy';
+import { reasonShort } from './reasons';
 
 const FRAME_KILLER: Record<FrameSource, string> = {
   diagnosis: '엔카진단 프레임 손상',
@@ -80,7 +80,7 @@ export function ruleSummary(result: RuleResult, out: MobileOrchestratorResult, f
       const items = evidenceOf(result, 'oilLeak', facts.oilLeak)?.items ?? [];
       const first = items[0];
       if (!first) return '누유 있음';
-      const head = `${leakPart(first.part)} ${first.status}`;
+      const head = `${partName(first.part)} ${first.status}`;
       // Keep one line: the sheet lists every item.
       return items.length > 1 ? `${head} 외 ${items.length - 1}곳` : head;
     }
@@ -89,23 +89,8 @@ export function ruleSummary(result: RuleResult, out: MobileOrchestratorResult, f
   }
 }
 
-const SHORT_REASON: Record<string, string> = {
-  login_required: '로그인 필요',
-  api_fetch_error: '받지 못함',
-  not_fetched: '받지 못함',
-  no_report_for_personal: '자료 없음',
-  not_applicable_personal: '개인 매물',
-};
-
-const shortReason = (s: FieldStatus<unknown> | null): string => {
-  if (!s) return '정보 없음';
-  if (s.kind === 'hidden_by_dealer') return '딜러 비공개';
-  if (s.kind === 'loading' || s.kind === 'timeout') return '받지 못함';
-  if (s.kind === 'parse_failed') return SHORT_REASON[s.reason] ?? '정보 없음';
-  return '정보 없음';
-};
-
 /** "확인 불가 · 로그인 필요" — same reason [unknownMessage] explains in full. */
 export function unknownSummary(result: RuleResult, out: MobileOrchestratorResult): string {
-  return `확인 불가 · ${shortReason(unknownStatus(result, out))}`;
+  const status = unknownStatus(result, out);
+  return `확인 불가 · ${status ? reasonShort(status) : '정보 없음'}`;
 }

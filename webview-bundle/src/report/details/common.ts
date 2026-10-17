@@ -7,6 +7,7 @@ import type { MobileOrchestratorResult } from '../../orchestrate-mobile';
 import type { DetailBlock, DetailRow, Tone } from '../types';
 import { groupDigits } from '../format';
 import { isObj, type Obj } from '../raw';
+import { reasonShort } from '../reasons';
 
 export const row = (label: string, value: string, tone: Tone | null = null): DetailRow => ({ label, value, tone });
 
@@ -65,32 +66,6 @@ const SOURCE_NAME: Record<SourceKey, string> = {
   diagnosis: '엔카진단',
 };
 
-/** Collection status in plain words; the reason codes come from orchestrate-mobile. */
-export const statusText = (s: FieldStatus<unknown>): string => {
-  switch (s.kind) {
-    case 'value':
-      return '확인 완료';
-    case 'hidden_by_dealer':
-      return '딜러 비공개';
-    case 'loading':
-    case 'timeout':
-      return '받지 못함';
-    case 'parse_failed':
-      switch (s.reason) {
-        case 'login_required':
-          return '로그인 필요';
-        case 'no_report_for_personal':
-          return '자료 없음';
-        case 'api_fetch_error':
-          return '받지 못함';
-        case 'not_fetched':
-          return '조회 안 함';
-        default:
-          return '읽지 못함';
-      }
-  }
-};
-
 const sourceStatus = (key: SourceKey, out: MobileOrchestratorResult): FieldStatus<unknown> => {
   const raw = out.parsed.raw;
   switch (key) {
@@ -108,7 +83,7 @@ const sourceStatus = (key: SourceKey, out: MobileOrchestratorResult): FieldStatu
 
 export const sourceRow = (key: SourceKey, out: MobileOrchestratorResult): DetailRow => {
   const status = sourceStatus(key, out);
-  return row(SOURCE_NAME[key], statusText(status), status.kind === 'value' ? null : 'neutral');
+  return row(SOURCE_NAME[key], reasonShort(status), status.kind === 'value' ? null : 'neutral');
 };
 
 export const sourceBlock = (keys: SourceKey[], out: MobileOrchestratorResult): DetailBlock =>
@@ -116,3 +91,7 @@ export const sourceBlock = (keys: SourceKey[], out: MobileOrchestratorResult): D
     '데이터 출처',
     keys.map((k) => sourceRow(k, out)),
   );
+
+/** True when every listed source was read. */
+export const sourcesOk = (keys: SourceKey[], out: MobileOrchestratorResult): boolean =>
+  keys.every((k) => sourceStatus(k, out).kind === 'value');

@@ -10,12 +10,14 @@ import { RULE_META } from '../rule-meta';
 import type { FrameSource } from '../frame-source';
 import { formatMan, koreanMonth } from '../format';
 import { arr, num } from '../raw';
+import { reasonShort } from '../reasons';
+import { unknownStatus } from '../rule-copy';
 import { walkSystems, codeTone } from '../repairs';
 import { accidentRecords } from '../timeline';
-import { block, duration, fullDate, inspectionOf, recordOf, row, sourceBlock, times, won, type SourceKey } from './common';
+import { block, duration, fullDate, inspectionOf, recordOf, row, sourceBlock, sourcesOk, times, won, type SourceKey } from './common';
 import { diagnosisBlocks } from './diagnosis';
 import { accidentRows, panelBlock } from './inspection';
-import { accidentBlocks, repairCost } from './timeline';
+import { accidentBlocks } from './timeline';
 
 /**
  * Thresholds restated from core rules/index.ts, where they are module-private
@@ -164,9 +166,6 @@ const r05 = ({ out }: Ctx): DetailBlock[] => {
     const n = num(rec, key) ?? 0;
     return row(label, times(n), n > 0 ? bad : 'success');
   };
-  // carInfoUse1s/2s hold one entry per registration record (like carInfoChanges),
-  // so entries beyond the first are usage changes.
-  const useEntries = Math.max(arr(rec.carInfoUse1s).length, arr(rec.carInfoUse2s).length);
   return [
     block('용도 이력', [
       // Same wording as the 용도 fact tile.
@@ -174,7 +173,6 @@ const r05 = ({ out }: Ctx): DetailBlock[] => {
       count('렌트 이력', 'loan', 'danger'),
       count('영업용 이력', 'business', 'danger'),
       count('관용 이력', 'government', 'warning'),
-      row('용도 변경', times(Math.max(useEntries - 1, 0))),
     ]),
   ];
 };
@@ -234,17 +232,14 @@ const r09 = ({ out }: Ctx): DetailBlock[] => {
   const rec = recordOf(out);
   const u = out.facts.unconfirmedAccident;
   if (!rec || u.kind !== 'value') return [];
-  const records = accidentRecords(rec);
-  const missing = records.filter((a) => repairCost(a) === 0);
-  const rows = [row('수리비 미확정 사고', u.value ? '있음' : '없음', u.value ? 'warning' : 'success')];
-  for (const a of missing) rows.push(row(`${fullDate(a.date) ?? a.date} · ${a.side}`, '수리비 기록 없음', 'warning'));
-  const note =
-    records.length === 0
-      ? '보험 처리한 사고가 없어요'
-      : missing.length === 0
-        ? `보험 처리한 사고 ${records.length}건 모두 수리비가 기록돼 있어요`
-        : null;
-  return [block('수리비 확정', rows, note)];
+  // Only what the engine decided plus the claim count; per-claim amounts are in the R10 sheet.
+  const claims = accidentRecords(rec).length;
+  return [
+    block('수리비 확정', [
+      row('수리비 미확정 사고', u.value ? '있음' : '없음', u.value ? 'warning' : 'success'),
+      row('보험 처리 사고', claims > 0 ? `${claims}건` : '없음'),
+    ]),
+  ];
 };
 
 const r10 = ({ out }: Ctx): DetailBlock[] => {
@@ -259,13 +254,13 @@ const r10 = ({ out }: Ctx): DetailBlock[] => {
   };
   return [
     block(
-      '보험 처리 합계',
+      '수리비 합계',
       [
         side('내차 피해', 'myAccidentCnt', d.value.ownDamageWon),
         side('타차 가해', 'otherAccidentCnt', d.value.otherDamageWon),
         row('기준 금액', `${d.value.domestic ? '국산' : '수입'} ${formatMan(ceiling)}`),
       ],
-      '금액은 보험금이 아니라 수리비(부품비·공임·도장비) 합계예요',
+      '부품비·공임·도장비 합계예요',
     ),
     ...accidentBlocks(accidentRecords(rec)),
   ];
@@ -306,6 +301,17 @@ const EVIDENCE: Record<string, (ctx: Ctx) => DetailBlock[]> = {
   R12: r12,
 };
 
+/**
+ * 미확인: each source's status. When every source was read the gap is in the
+ * data itself, so the note names the reason the rows cannot show.
+ */
+const unknownBlock = (result: RuleResult, out: MobileOrchestratorResult, sources: SourceKey[]): DetailBlock => {
+  const status = unknownStatus(result, out);
+  const note =
+    sourcesOk(sources, out) && status ? `자료는 받았지만 판단할 값을 찾지 못했어요. 사유: ${reasonShort(status)}` : null;
+  return { ...sourceBlock(sources, out), title: '확인하지 못한 이유', note };
+};
+
 const DECIDED: ReadonlySet<Severity> = new Set(['killer', 'fail', 'warn', 'pass']);
 
 /**
@@ -322,7 +328,7 @@ export function buildRuleDetail(result: RuleResult, out: MobileOrchestratorResul
   const decided = DECIDED.has(result.severity);
   const blocks = decided
     ? [...(EVIDENCE[id]?.({ result, out, frameSource }) ?? []), ...(criteria ? [criteria] : []), sourceBlock(sources, out)]
-    : [{ ...sourceBlock(sources, out), title: '확인하지 못한 이유' }, ...(criteria ? [criteria] : [])];
+    : [unknownBlock(result, out, sources), ...(criteria ? [criteria] : [])];
   return {
     title: RULE_META[id]?.title ?? result.title,
     subtitle: decided && id === 'R04' ? `근거: ${FRAME_SOURCE_NAME[frameSource]}` : null,

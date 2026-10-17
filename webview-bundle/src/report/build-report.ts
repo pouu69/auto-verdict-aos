@@ -36,7 +36,10 @@ const toItem = (r: RuleResult, out: MobileOrchestratorResult, frameSource: Frame
     tone,
     label: labelFor(r.severity),
     message: copy ? copy.message : unknownMessage(r, out),
-    summary: copy ? ruleSummary(r, out, frameSource) : unknownSummary(r, out),
+    summary: safe(
+      () => (copy ? ruleSummary(r, out, frameSource) : unknownSummary(r, out)),
+      copy?.message ?? labelFor(r.severity),
+    ),
     why: issue ? (meta?.why ?? null) : null,
     sellerQuestion: issue && (tone === 'danger' || tone === 'warning') ? (copy?.sellerQuestion ?? null) : null,
     detail: safe(() => buildRuleDetail(r, out, frameSource), null),
