@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -71,14 +72,23 @@ fun AppRoot(
     var lastAnalyzedUrl by rememberSaveable { mutableStateOf<String?>(null) }
     var bottomChromeHeight by remember { mutableStateOf(0.dp) }
     val toast = rememberAvToastState()
+    // Keeps each stacked screen's rememberSaveable state while it is covered (spec 7.2).
+    val saveableStateHolder = rememberSaveableStateHolder()
     val density = LocalDensity.current
     val invalidShareMessage = stringResource(R.string.toast_invalid_share)
 
     fun dispatch(event: NavEvent) {
-        if (event == NavEvent.OnboardingFinished) onOnboardingComplete()
-        val result = AppNavigator.reduce(navState, event)
+        val previous = navState
+        val result = AppNavigator.reduce(previous, event)
         navState = result.state
         transition = result.transition
+        val onboardingClosed = previous.top == Route.Onboarding && result.state.top != Route.Onboarding
+        if (event == NavEvent.OnboardingFinished && onboardingClosed) {
+            onOnboardingComplete()
+        }
+        // Routes that left the stack must start fresh if opened again.
+        val remaining = result.state.stack.mapTo(HashSet(), RouteCodec::encode)
+        previous.stack.map(RouteCodec::encode).filterNot { it in remaining }.forEach(saveableStateHolder::removeState)
         if (result.message == NavMessage.InvalidShare) {
             toast.show(invalidShareMessage)
         }
@@ -124,9 +134,12 @@ fun AppRoot(
                     transitionSpec = { transitionFor(transition) },
                     label = "route",
                 ) { route ->
-                    screenContent(route, hostFor(route))
+                    saveableStateHolder.SaveableStateProvider(RouteCodec.encode(route)) {
+                        screenContent(route, hostFor(route))
+                    }
                 }
-                // Outside AnimatedContent so switching tabs keeps the same AdView (spec 10).
+                // Outside AnimatedContent so switching tabs keeps the same AdView (spec 10);
+                // pushing a sub-screen removes this slot, which releases (destroys) the AdView.
                 if (currentTab != null) {
                     Column(
                         modifier = Modifier.onSizeChanged {

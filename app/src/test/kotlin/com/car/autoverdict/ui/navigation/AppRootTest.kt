@@ -1,19 +1,27 @@
 package com.car.autoverdict.ui.navigation
 
 import android.app.Application
+import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.junit4.StateRestorationTester
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.test.core.app.ApplicationProvider
+import com.car.autoverdict.R
 import com.car.autoverdict.ui.theme.AvTheme
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -24,27 +32,36 @@ import org.robolectric.annotation.Config
 @Config(application = Application::class)
 class AppRootTest {
 
-    @get:Rule val rule = createComposeRule()
+    @get:Rule val rule = createAndroidComposeRule<ComponentActivity>()
 
     private val url = "https://fem.encar.com/cars/detail/41623743"
 
     @Composable
     private fun FakeScreen(route: Route, host: ScreenHost) {
+        var count by rememberSaveable { mutableIntStateOf(0) }
         Column {
             Text("route:${RouteCodec.encode(route)}")
             Text("last:${host.lastAnalyzedUrl}")
+            Text("count:$count")
+            TextButton(onClick = { count++ }) { Text("increment") }
             TextButton(onClick = { host.onAnalyzed(url); host.navigate(Route.Result(url, fromSaved = false)) }) { Text("open-result") }
+            TextButton(onClick = { host.navigate(Route.Settings) }) { Text("open-settings") }
             TextButton(onClick = host.back) { Text("go-back") }
             TextButton(onClick = host.finishOnboarding) { Text("finish-onboarding") }
         }
     }
 
     @Composable
-    private fun Root(onboardingComplete: Boolean, pending: NavEvent?, onConsumed: () -> Unit) {
+    private fun Root(
+        onboardingComplete: Boolean,
+        pending: NavEvent?,
+        onConsumed: () -> Unit,
+        onOnboardingComplete: () -> Unit = {},
+    ) {
         AvTheme {
             AppRoot(
                 onboardingComplete = onboardingComplete,
-                onOnboardingComplete = {},
+                onOnboardingComplete = onOnboardingComplete,
                 pendingNavEvent = pending,
                 onPendingNavEventConsumed = onConsumed,
                 savedCount = 0,
@@ -88,10 +105,80 @@ class AppRootTest {
     }
 
     @Test fun `invalid share shows a toast`() {
-        val message = "엔카 매물 링크만 확인할 수 있어요"
+        val message = ApplicationProvider.getApplicationContext<Context>().getString(R.string.toast_invalid_share)
         rule.setContent { Root(onboardingComplete = true, pending = NavEvent.InvalidShare, onConsumed = {}) }
         rule.waitUntil(timeoutMillis = 3_000) {
             rule.onAllNodesWithText(message).fetchSemanticsNodes().isNotEmpty()
         }
+    }
+
+    @Test fun `screen state below the top survives a push and pop`() {
+        rule.setContent { Root(onboardingComplete = true, pending = null, onConsumed = {}) }
+        rule.onNodeWithText("increment").performClick()
+        rule.onNodeWithText("count:1").assertExists()
+
+        rule.onNodeWithText("open-settings").performClick()
+        rule.onNodeWithText("route:settings").assertExists()
+        rule.onNodeWithText("go-back").performClick()
+
+        rule.onNodeWithText("route:home").assertExists()
+        rule.onNodeWithText("count:1").assertExists()
+    }
+
+    @Test fun `popped screen starts fresh when opened again`() {
+        rule.setContent { Root(onboardingComplete = true, pending = null, onConsumed = {}) }
+        rule.onNodeWithText("open-settings").performClick()
+        rule.onNodeWithText("increment").performClick()
+        rule.onNodeWithText("count:1").assertExists()
+        rule.onNodeWithText("go-back").performClick()
+        rule.onNodeWithText("route:home").assertExists()
+
+        rule.onNodeWithText("open-settings").performClick()
+        rule.onNodeWithText("route:settings").assertExists()
+        rule.onNodeWithText("count:0").assertExists()
+    }
+
+    @Test fun `double tap on back while the screen animates out pops only once`() {
+        rule.setContent { Root(onboardingComplete = true, pending = null, onConsumed = {}) }
+        rule.onNodeWithText("open-settings").performClick()
+        rule.onNodeWithText("open-result").performClick()
+        rule.onNodeWithText("route:result|0|$url").assertExists()
+
+        rule.mainClock.autoAdvance = false
+        val resultBack = rule.onAllNodesWithText("go-back")[0]
+        resultBack.performClick()
+        resultBack.performClick()
+        rule.mainClock.autoAdvance = true
+        rule.waitForIdle()
+
+        rule.onNodeWithText("route:settings").assertExists()
+        rule.onNodeWithText("route:home").assertDoesNotExist()
+    }
+
+    @Test fun `system back pops a sub-screen and is not handled on home`() {
+        rule.setContent { Root(onboardingComplete = true, pending = null, onConsumed = {}) }
+        rule.onNodeWithText("open-settings").performClick()
+        rule.onNodeWithText("route:settings").assertExists()
+
+        rule.runOnUiThread { rule.activity.onBackPressedDispatcher.onBackPressed() }
+        rule.waitForIdle()
+
+        rule.onNodeWithText("route:home").assertExists()
+        rule.runOnUiThread { assertFalse(rule.activity.onBackPressedDispatcher.hasEnabledCallbacks()) }
+    }
+
+    @Test fun `onboarding completion is reported only when onboarding actually closes`() {
+        var completions = 0
+        rule.setContent {
+            Root(onboardingComplete = false, pending = null, onConsumed = {}, onOnboardingComplete = { completions++ })
+        }
+        rule.onNodeWithText("finish-onboarding").performClick()
+        rule.onNodeWithText("route:home").assertExists()
+        assertEquals(1, completions)
+
+        // Home's host still exposes finishOnboarding; the reducer ignores it and so must the callback.
+        rule.onNodeWithText("finish-onboarding").performClick()
+        rule.waitForIdle()
+        assertEquals(1, completions)
     }
 }
