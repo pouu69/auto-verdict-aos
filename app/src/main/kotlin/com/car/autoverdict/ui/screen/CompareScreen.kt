@@ -36,7 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -53,6 +52,9 @@ import java.util.Locale
 private val LABEL_COL_WIDTH = 72.dp
 private val SIDE_PADDING = 16.dp
 private val COLUMN_GAP = 10.dp
+
+/** OpenType tabular figures so numbers line up across columns (Pretendard supports tnum). */
+private const val TNUM = "tnum"
 
 @Composable
 fun CompareScreen(
@@ -104,7 +106,7 @@ fun CompareScreen(
                             modifier = Modifier.weight(1f),
                             text = car.year?.let { "${it}년" } ?: "—",
                             isBest = car.carId == winners.bestYearId,
-                            mono = true,
+                            tabular = true,
                         )
                     }
                 }
@@ -114,7 +116,7 @@ fun CompareScreen(
                             modifier = Modifier.weight(1f),
                             text = car.mileageKm?.let { "${numberFormat.format(it)}km" } ?: "—",
                             isBest = car.carId == winners.bestMileageId,
-                            mono = true,
+                            tabular = true,
                         )
                     }
                 }
@@ -124,7 +126,7 @@ fun CompareScreen(
                             modifier = Modifier.weight(1f),
                             text = car.priceWon?.let { "${numberFormat.format(it / 10000)}만원" } ?: "—",
                             isBest = car.carId == winners.bestPriceId,
-                            mono = true,
+                            tabular = true,
                             emphasize = true,
                         )
                     }
@@ -246,8 +248,8 @@ private fun EmptyLoadingState() {
             Text(
                 text = "01",
                 style = MaterialTheme.typography.headlineMedium.copy(
-                    fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold,
+                    fontFeatureSettings = TNUM,
                 ),
                 color = colors.textSecondary.copy(alpha = 0.5f),
             )
@@ -255,7 +257,7 @@ private fun EmptyLoadingState() {
         Spacer(Modifier.height(20.dp))
         Text(
             text = "매물 정보를 불러오는 중",
-            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
             color = colors.textPrimary,
         )
         Spacer(Modifier.height(4.dp))
@@ -321,9 +323,9 @@ private fun HeroCarCard(
             Text(
                 text = "0$index".takeLast(2),
                 style = MaterialTheme.typography.labelSmall.copy(
-                    fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.8.sp,
+                    fontFeatureSettings = TNUM,
                 ),
                 color = colors.textSecondary,
             )
@@ -338,10 +340,8 @@ private fun HeroCarCard(
                     Text(
                         text = "TOP",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            fontFamily = FontFamily.Monospace,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 0.6.sp,
-                            fontSize = 10.sp,
                         ),
                         color = accent,
                     )
@@ -363,9 +363,12 @@ private fun HeroCarCard(
         Row(verticalAlignment = Alignment.Bottom) {
             Text(
                 text = "${car.score}",
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Bold,
-                fontSize = 32.sp,
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 32.sp,
+                    lineHeight = 40.sp,
+                    fontFeatureSettings = TNUM,
+                ),
                 color = accent,
                 maxLines = 1,
             )
@@ -373,7 +376,7 @@ private fun HeroCarCard(
             Text(
                 text = "/100",
                 style = MaterialTheme.typography.labelSmall.copy(
-                    fontFamily = FontFamily.Monospace,
+                    fontFeatureSettings = TNUM,
                 ),
                 color = colors.textSecondary,
                 modifier = Modifier.padding(bottom = 6.dp),
@@ -461,7 +464,7 @@ private fun MetricRow(
                 Text(
                     text = label,
                     style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.Medium,
+                        fontWeight = FontWeight.Normal,
                         letterSpacing = 0.3.sp,
                     ),
                     color = colors.textSecondary,
@@ -484,7 +487,7 @@ private fun ValueCell(
     modifier: Modifier,
     text: String,
     isBest: Boolean,
-    mono: Boolean = false,
+    tabular: Boolean = false,
     emphasize: Boolean = false,
 ) {
     val colors = AvTheme.colors
@@ -503,7 +506,7 @@ private fun ValueCell(
             if (isBest) {
                 Text(
                     text = "▲",
-                    fontSize = 9.sp,
+                    fontSize = 11.sp,
                     color = colors.accentText,
                 )
                 Spacer(Modifier.width(4.dp))
@@ -511,10 +514,10 @@ private fun ValueCell(
             Text(
                 text = text,
                 style = MaterialTheme.typography.bodyMedium.copy(
-                    fontFamily = if (mono) FontFamily.Monospace else FontFamily.Default,
+                    fontFeatureSettings = if (tabular) TNUM else null,
                     fontWeight = when {
                         isBest -> FontWeight.SemiBold
-                        emphasize -> FontWeight.Medium
+                        emphasize -> FontWeight.SemiBold
                         else -> FontWeight.Normal
                     },
                 ),
@@ -555,23 +558,24 @@ private fun ScoreCell(
             if (isBest) {
                 Text(
                     text = "▲",
-                    fontSize = 10.sp,
+                    fontSize = 11.sp,
                     color = accent,
                     modifier = Modifier.padding(end = 4.dp, bottom = 5.dp),
                 )
             }
             Text(
                 text = "$score",
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Bold,
-                fontSize = 22.sp,
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontFeatureSettings = TNUM,
+                ),
                 color = accent,
                 maxLines = 1,
             )
             Spacer(Modifier.width(2.dp))
             Text(
                 text = "점",
-                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                style = MaterialTheme.typography.labelSmall,
                 color = colors.textSecondary,
                 modifier = Modifier.padding(bottom = 3.dp),
             )
@@ -649,7 +653,7 @@ private fun CountCell(
             if (isBest) {
                 Text(
                     text = "▲",
-                    fontSize = 9.sp,
+                    fontSize = 11.sp,
                     color = colors.successText,
                 )
                 Spacer(Modifier.width(4.dp))
@@ -664,8 +668,8 @@ private fun CountCell(
                     Text(
                         text = "$count",
                         style = MaterialTheme.typography.bodySmall.copy(
-                            fontFamily = FontFamily.Monospace,
                             fontWeight = FontWeight.SemiBold,
+                            fontFeatureSettings = TNUM,
                         ),
                         color = textColor,
                     )
@@ -674,7 +678,7 @@ private fun CountCell(
                 Text(
                     text = "0",
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        fontFamily = FontFamily.Monospace,
+                        fontFeatureSettings = TNUM,
                     ),
                     color = colors.textSecondary.copy(alpha = 0.6f),
                 )
@@ -743,8 +747,8 @@ private fun DiagnosisStackBar(
         Text(
             text = "총 ${total}건 점검",
             style = MaterialTheme.typography.labelSmall.copy(
-                fontFamily = FontFamily.Monospace,
                 letterSpacing = 0.2.sp,
+                fontFeatureSettings = TNUM,
             ),
             color = colors.textSecondary,
             textAlign = TextAlign.Center,
