@@ -111,6 +111,8 @@ data class RuleItem(
     /** 위험 | 비공개 | 주의 | 통과 | 미확인 */
     val label: String,
     val message: String,
+    /** Short noun phrase for the all-rules list (e.g. "누유 없음"); older reports fall back to [message]. */
+    val summary: String? = null,
     val why: String?,
     val sellerQuestion: String?,
     /** Source data behind the result, shown in a bottom sheet (spec 4.1). Absent in older reports. */

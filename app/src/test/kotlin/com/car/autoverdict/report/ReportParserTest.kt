@@ -72,6 +72,22 @@ class ReportParserTest {
     }
 
     @Test
+    fun `parses rule summaries, absent in older reports`() {
+        val caution = parseOk("sample-caution.json")
+        val summaries = caution.rules.associate { it.ruleId to it.summary }
+        assertEquals("엔카진단 통과 차량", summaries["R03"])
+        assertEquals("누유 없음", summaries["R12"])
+        assertEquals("소유자 변경 5회", summaries["R07"])
+        assertEquals("자차보험 공백 6개월 · 2구간", summaries["R08"])
+        assertNull(summaries["R02"])
+        // Issue cards keep the full sentence only.
+        assertTrue(caution.issues.all { it.summary == null })
+
+        val minimal = parseOk("sample-minimal.json")
+        assertTrue((minimal.rules + minimal.issues).all { it.summary == null })
+    }
+
+    @Test
     fun `detail fields default when omitted inside a sheet`() {
         val text = resource("sample-minimal.json").replaceFirst(
             "\"sellerQuestion\"",

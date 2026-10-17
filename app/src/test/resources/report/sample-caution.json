@@ -56,12 +56,12 @@
         { "title": "데이터 출처", "rows": [ { "label": "출처", "value": "엔카 보험이력" } ], "note": null } ] } }
   ],
   "rules": [
-    { "ruleId": "R03", "category": "차량 상태", "title": "엔카진단", "tone": "success", "label": "통과", "message": "엔카진단을 통과했어요", "why": null, "sellerQuestion": null },
+    { "ruleId": "R03", "category": "차량 상태", "title": "엔카진단", "tone": "success", "label": "통과", "message": "엔카진단을 통과했어요", "summary": "엔카진단 통과 차량", "why": null, "sellerQuestion": null },
     { "ruleId": "R04", "category": "차량 상태", "title": "프레임/외판", "tone": "success", "label": "통과", "message": "프레임 손상은 없어요", "why": null, "sellerQuestion": null },
-    { "ruleId": "R12", "category": "차량 상태", "title": "누유", "tone": "success", "label": "통과", "message": "누유는 없어요", "why": null, "sellerQuestion": null },
+    { "ruleId": "R12", "category": "차량 상태", "title": "누유", "tone": "success", "label": "통과", "message": "누유는 없어요", "summary": "누유 없음", "why": null, "sellerQuestion": null },
     { "ruleId": "R05", "category": "이력", "title": "렌트·택시 이력", "tone": "success", "label": "통과", "message": "렌트·택시·영업용 이력은 없어요", "why": null, "sellerQuestion": null },
     { "ruleId": "R06", "category": "이력", "title": "전손·침수·도난", "tone": "success", "label": "통과", "message": "전손·침수·도난 이력은 없어요", "why": null, "sellerQuestion": null },
-    { "ruleId": "R07", "category": "이력", "title": "소유자 변경", "tone": "warning", "label": "주의", "message": "주인이 5번 바뀌었어요", "why": "소유자가 자주 바뀐 차는 고장이나 하자 때문에 빨리 되판 경우가 있어요.", "sellerQuestion": "주인이 5번 바뀐 이유를 알 수 있을까요?",
+    { "ruleId": "R07", "category": "이력", "title": "소유자 변경", "tone": "warning", "label": "주의", "message": "주인이 5번 바뀌었어요", "summary": "소유자 변경 5회", "why": "소유자가 자주 바뀐 차는 고장이나 하자 때문에 빨리 되판 경우가 있어요.", "sellerQuestion": "주인이 5번 바뀐 이유를 알 수 있을까요?",
       "detail": { "title": "소유자 변경", "subtitle": "주인이 5번 바뀌었어요", "blocks": [
         { "title": "소유자 변경 기록", "rows": [
           { "label": "변경 횟수", "value": "5회", "tone": "warning" },
@@ -72,7 +72,7 @@
           { "label": "1번째", "value": "2018년 4월" } ], "note": null },
         { "title": "판정 기준", "rows": [ { "label": "주의", "value": "소유자 변경 3회부터" } ], "note": null },
         { "title": "데이터 출처", "rows": [ { "label": "출처", "value": "엔카 보험이력" } ], "note": "보험이력 조회 시점 기준이에요" } ] } },
-    { "ruleId": "R08", "category": "이력", "title": "자차보험 공백", "tone": "warning", "label": "주의", "message": "자차보험 없이 운행한 기간이 6개월 있어요", "why": "보험이 없던 기간의 사고는 기록에 남지 않아요.", "sellerQuestion": "2023년 11월~2024년 1월, 2026년 4월~7월에 보험 없이 운행했나요?",
+    { "ruleId": "R08", "category": "이력", "title": "자차보험 공백", "tone": "warning", "label": "주의", "message": "자차보험 없이 운행한 기간이 6개월 있어요", "summary": "자차보험 공백 6개월 · 2구간", "why": "보험이 없던 기간의 사고는 기록에 남지 않아요.", "sellerQuestion": "2023년 11월~2024년 1월, 2026년 4월~7월에 보험 없이 운행했나요?",
       "detail": { "title": "자차보험 공백", "subtitle": "자차보험 없이 운행한 기간이 6개월 있어요", "blocks": [
         { "title": "보험 미가입 기간", "rows": [
           { "label": "2023-11~2024-01", "value": "3개월", "tone": "warning" },

@@ -12,6 +12,7 @@ import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
@@ -46,12 +47,14 @@ import com.car.autoverdict.ui.theme.AvTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 /** Tall screen so the LazyColumn composes every section (off-screen items have no nodes). */
 @RunWith(RobolectricTestRunner::class)
@@ -137,8 +140,10 @@ class ResultSectionsTest {
         rule.onNodeWithText("그 외", substring = true).assertDoesNotExist()
         // Issues
         heading("확인할 것 2").assertExists()
-        // Issues repeat in the full rule list on purpose (spec 4), so the message shows twice.
-        rule.onAllNodesWithText("주인이 5번 바뀌었어요", substring = true).assertCountEquals(2)
+        // Issues repeat in the full rule list on purpose (spec 4): the card keeps the sentence,
+        // the rule row shows the short summary.
+        rule.onAllNodesWithText("주인이 5번 바뀌었어요", substring = true).assertCountEquals(1)
+        rule.onAllNodesWithText("소유자 변경 5회", substring = true).assertCountEquals(1)
         rule.onAllNodesWithText("왜 중요한가요").assertCountEquals(2)
         rule.onNodeWithText("판매자에게: 주인이 5번 바뀐 이유를 알 수 있을까요?").assertExists()
         // Timeline
@@ -344,6 +349,39 @@ class ResultSectionsTest {
         rule.onNodeWithText("미확인 1").assertExists()
         // No facts, no car summary.
         rule.onAllNodesWithText("소유자 변경").assertCountEquals(2) // the issue card and the rule row only
+    }
+
+    @Test fun `all-rules rows show the short summary and cards keep the sentence`() {
+        show(caution)
+        rule.onNode(hasText("엔카진단") and hasText("엔카진단 통과 차량")).assertExists()
+        rule.onNodeWithText("엔카진단을 통과했어요").assertDoesNotExist()
+        rule.onNode(hasText("누유") and hasText("누유 없음")).assertExists()
+        rule.onNodeWithText("누유는 없어요").assertDoesNotExist()
+        rule.onNode(hasText("자차보험 공백") and hasText("자차보험 공백 6개월 · 2구간")).assertExists()
+        // The issue card for the same rule still reads the full sentence.
+        rule.onNode(hasText("자차보험 없이 운행한 기간이 6개월 있어요") and hasText("왜 중요한가요")).assertExists()
+        // No summary: the row falls back to the message.
+        rule.onNode(hasText("성능점검 공개") and hasText("성능점검 기록을 공개했어요")).assertExists()
+    }
+
+    @Test fun `all-rules rows fall back to the message in reports without summaries`() {
+        show(minimal)
+        // The issue card and the rule row both read the message.
+        rule.onAllNodesWithText("엔카에 로그인하면 확인할 수 있어요", substring = true).assertCountEquals(2)
+        rule.onNode(hasText("보험이력 공개") and hasText("보험이력을 공개했어요")).assertExists()
+    }
+
+    // Legacy Robolectric graphics measure text as nearly zero-width, so nothing would ever wrap.
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Test fun `a long summary wraps instead of being cut`() {
+        val long = "엔카진단 통과 차량 · 프레임 정상 · 외판 교환 없음 · 주요 장치 31개 항목 양호 · 성능점검 기록 공개"
+        show(caution.copy(rules = caution.rules.map { if (it.ruleId == "R03") it.copy(summary = long) else it }))
+        val layouts = mutableListOf<TextLayoutResult>()
+        rule.onNode(hasText(long), useUnmergedTree = true)
+            .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+        val layout = layouts.single()
+        assertTrue("lines=${layout.lineCount}", layout.lineCount > 1)
+        assertFalse(layout.hasVisualOverflow)
     }
 
     @Test fun `repairs list panels and flagged systems`() {

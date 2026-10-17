@@ -26,8 +26,9 @@ import com.car.autoverdict.ui.theme.AvTheme
 
 /**
  * Spec 5.2-9: every evaluated rule, grouped under a category label wherever the category
- * changes. The report already orders rules by category, so no re-sorting here. Rows with a
- * detail sheet open it through [onOpenDetail] (spec 4.1).
+ * changes. The report already orders rules by category, so no re-sorting here. Rows show the
+ * rule's short summary (its message in older reports); rows with a detail sheet open it
+ * through [onOpenDetail] (spec 4.1).
  */
 @Composable
 fun AllRulesSection(
@@ -96,7 +97,8 @@ private fun RuleRow(rule: RuleItem, onClick: (() -> Unit)?) {
                 style = typography.body2.copy(fontWeight = FontWeight.SemiBold),
                 color = colors.textPrimary,
             )
-            Text(text = rule.message, style = typography.body2, color = colors.textSecondary)
+            // The short summary fits one line on most phones; long ones wrap rather than ellipsize.
+            Text(text = rule.summary ?: rule.message, style = typography.body2, color = colors.textSecondary)
         }
         if (onClick != null) {
             Spacer(Modifier.width(8.dp))

@@ -98,8 +98,8 @@ class ResultDetailSheetTest {
 
     @Test fun `rule rows without a sheet are not clickable`() {
         show()
-        rule.onNode(hasText("엔카진단을 통과했어요")).assert(notClickable)
-        rule.onNode(hasText("엔카진단을 통과했어요")).performClick()
+        rule.onNode(hasText("엔카진단 통과 차량")).assert(notClickable)
+        rule.onNode(hasText("엔카진단 통과 차량")).performClick()
         assertNoSheet()
     }
 
