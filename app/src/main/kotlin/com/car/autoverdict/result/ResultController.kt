@@ -10,6 +10,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -177,28 +179,59 @@ class ResultController(
 
     // --- loading ---
 
-    /** Step ③ with no report on screen: visible loading steps, then Ready / Error / Deleted. */
-    private suspend fun collectFresh(id: String, gen: Int) {
+    /**
+     * Step ③ with no report on screen: visible loading steps, then Ready / Error / Deleted.
+     *
+     * A successful result is held until [MIN_LOADING_MS] after loading started, and each step
+     * shows no earlier than its minimum time point (spec 5.1). Failures show immediately.
+     */
+    private suspend fun collectFresh(id: String, gen: Int): Unit = coroutineScope {
         shown = null
         _state.value = ResultUiState.Loading(LoadingStage.OpeningPage)
+        // Shown step = the earlier of real progress and what the elapsed time allows; both only grow.
+        var reached = LoadingStage.OpeningPage
+        var allowed = LoadingStage.OpeningPage
+        fun showStage() {
+            if (gen == generation) _state.value = ResultUiState.Loading(minOf(reached, allowed))
+        }
+        val minimumHold = launch {
+            delay(STAGE2_AT_MS)
+            allowed = LoadingStage.FetchingHistory
+            showStage()
+            delay(STAGE3_AT_MS - STAGE2_AT_MS)
+            allowed = LoadingStage.Evaluating
+            showStage()
+            delay(MIN_LOADING_MS - STAGE3_AT_MS)
+        }
         val outcome = collect(id) { stage ->
-            if (gen == generation) _state.value = ResultUiState.Loading(stage.toLoadingStage())
+            reached = maxOf(reached, stage.toLoadingStage())
+            showStage()
         }
         when (outcome) {
             is CollectOutcome.Success -> {
-                _state.value = ResultUiState.Loading(LoadingStage.Evaluating)
+                reached = LoadingStage.Evaluating
+                showStage()
                 val report = evaluate(outcome.rawJson)
                 if (report == null) {
+                    minimumHold.cancel()
                     _state.value = ResultUiState.Error(ResultErrorKind.EngineFailed)
                 } else {
                     val fresh = Evaluated(report, outcome.rawJson)
+                    // Write before the hold, so leaving the screen during it still keeps the result.
+                    persist(fresh)
+                    minimumHold.join()
                     soldOut = false
                     display(fresh)
-                    persist(fresh)
                 }
             }
-            is CollectOutcome.Failed -> _state.value = ResultUiState.Error(outcome.kind.toResultErrorKind())
-            CollectOutcome.Deleted -> _state.value = ResultUiState.Deleted
+            is CollectOutcome.Failed -> {
+                minimumHold.cancel()
+                _state.value = ResultUiState.Error(outcome.kind.toResultErrorKind())
+            }
+            CollectOutcome.Deleted -> {
+                minimumHold.cancel()
+                _state.value = ResultUiState.Deleted
+            }
         }
     }
 
@@ -376,5 +409,16 @@ class ResultController(
         CollectErrorKind.Network -> ResultErrorKind.Network
         CollectErrorKind.Timeout -> ResultErrorKind.Timeout
         CollectErrorKind.PageUnreadable -> ResultErrorKind.PageUnreadable
+    }
+
+    companion object {
+        /** A loading screen with a successful result stays at least this long (spec 5.1). */
+        const val MIN_LOADING_MS = 7_000L
+
+        /** Earliest time the second loading step ("이력·진단 가져오기") shows. */
+        const val STAGE2_AT_MS = 2_000L
+
+        /** Earliest time the third loading step ("평가") shows. */
+        const val STAGE3_AT_MS = 4_500L
     }
 }
