@@ -18,7 +18,6 @@ import androidx.compose.ui.test.isHeading
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
@@ -27,6 +26,7 @@ import com.car.autoverdict.report.EvaluationReport
 import com.car.autoverdict.report.TimelineEntry
 import com.car.autoverdict.report.Tone
 import com.car.autoverdict.result.sections.DetailSheetContent
+import com.car.autoverdict.ui.components.sheetHandle
 import com.car.autoverdict.ui.theme.AvTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -68,7 +68,7 @@ class ResultDetailSheetTest {
     private fun assertOwnerSheetOpen() = heading("소유자 변경 기록").assertExists()
 
     private fun assertNoSheet() {
-        rule.onNodeWithContentDescription("시트 닫기").assertDoesNotExist()
+        rule.onNode(sheetHandle).assertDoesNotExist()
     }
 
     @Test fun `tapping an issue card opens its sheet with every block`() {
@@ -76,7 +76,7 @@ class ResultDetailSheetTest {
         assertNoSheet()
         rule.onNode(ownerIssueCard).performClick()
 
-        rule.onNodeWithContentDescription("시트 닫기").assertExists()
+        rule.onNode(sheetHandle).assertExists()
         heading("소유자 변경").assertExists()
         // Why it matters, then each block with its rows and note.
         rule.onNode(hasText("왜 중요한가요") and isHeading()).assertExists()
@@ -174,7 +174,7 @@ class ResultDetailSheetTest {
         rule.onNode(ownerIssueCard).performClick()
         assertOwnerSheetOpen()
 
-        rule.onNodeWithContentDescription("시트 닫기").performSemanticsAction(SemanticsActions.Dismiss)
+        rule.onNode(sheetHandle).performSemanticsAction(SemanticsActions.Dismiss)
         rule.waitForIdle()
         heading("소유자 변경 기록").assertDoesNotExist()
         assertNoSheet()
