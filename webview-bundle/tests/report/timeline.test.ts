@@ -67,16 +67,19 @@ describe('buildTimeline', () => {
       expect(total('타차 가해'), `${id} 타차`).toBe(rec.otherAccidentCost);
       expect(total('내차 피해'), `${id} 내차 = R10`).toBe(damages.value.ownDamageWon);
       expect(total('타차 가해'), `${id} 타차 = R10`).toBe(damages.value.otherDamageWon);
-      // Every grouped accident row shows its group's repair cost.
-      const details = buildTimeline(raw, out)
+      // Every grouped accident row shows its group's repair cost (order-independent).
+      const key = (date: string, label: string, detail: string | null) => `${date}|${label}|${detail}`;
+      const rows = buildTimeline(raw, out)
         .filter((e) => e.label.startsWith('사고'))
-        .map((e) => e.detail);
-      expect(details, id).toEqual(
-        groups
-          .slice()
-          .sort((a, b) => (a.ym < b.ym ? -1 : a.ym > b.ym ? 1 : a.side === '내차 피해' ? -1 : 1))
-          .map((g) => (Math.round(g.won / 10_000) > 0 ? `수리비 합계 ${formatMan(g.won)}` : null)),
+        .map((e) => key(e.date, e.label, e.detail));
+      const expected = groups.map((g) =>
+        key(
+          g.ym,
+          g.count > 1 ? `사고 ${g.count}건 · ${g.side}` : `사고 · ${g.side}`,
+          Math.round(g.won / 10_000) > 0 ? `수리비 합계 ${formatMan(g.won)}` : null,
+        ),
       );
+      expect([...rows].sort(), id).toEqual([...expected].sort());
       checked += 1;
     }
     expect(checked).toBe(3);
