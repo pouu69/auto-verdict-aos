@@ -143,6 +143,20 @@ class CollectorWebViewTest {
     }
 
     @Test
+    fun renderProcessGone_endsWithPageUnreadableAndKeepsAppAlive() {
+        collect()
+        commitVisible()
+
+        // false would let the shared renderer crash take the whole app down
+        assertTrue(shadow.webViewClient.onRenderProcessGone(null, null))
+        val error = results.single() as CollectorWebView.Result.Error
+        assertEquals(CollectErrorKind.PageUnreadable, error.kind)
+
+        idle(60)
+        assertEquals(1, results.size)
+    }
+
+    @Test
     fun unparseableState_reportsPageUnreadable() {
         collect()
         commitVisible()

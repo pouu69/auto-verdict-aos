@@ -6,6 +6,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.webkit.JavascriptInterface
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -115,6 +116,13 @@ class CollectorWebView(context: Context) {
                 failingUrl: String?,
             ) {
                 guardedCallback(Result.Error(CollectErrorKind.Network, "페이지 로드 실패: $description"))
+            }
+
+            // 렌더러 프로세스는 앱의 WebView들이 공유하므로 false를 반환하면 앱 전체가 죽는다.
+            // 이 수집은 실패로 끝내고, WebView 파기는 호출자(destroy)에게 맡긴다.
+            override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
+                guardedCallback(Result.Error(CollectErrorKind.PageUnreadable, "렌더러 종료 (crash=${detail?.didCrash()})"))
+                return true
             }
         }
 
