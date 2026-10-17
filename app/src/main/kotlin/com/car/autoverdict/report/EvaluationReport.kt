@@ -91,6 +91,7 @@ data class Fact(val id: String, val label: String, val value: String, val tone: 
 @Serializable
 data class RepairPanel(val name: String, val status: String, val rank: String?, val tone: Tone)
 
+/** [group] is the immediate parent node title in the inners tree, e.g. "오일누유". */
 @Serializable
 data class SystemItem(val group: String, val name: String, val status: String, val tone: Tone)
 

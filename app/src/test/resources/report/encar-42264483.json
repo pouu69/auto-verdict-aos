@@ -1,0 +1,330 @@
+{
+  "schemaVersion": 1,
+  "carId": "42264483",
+  "url": "https://fem.encar.com/cars/detail/42264483",
+  "car": {
+    "title": "2010 쉐보레(GM대우) 라세티 프리미어",
+    "year": 2010,
+    "mileageKm": 47968,
+    "priceWon": 2800000,
+    "fuel": "가솔린",
+    "summary": "2010년 · 4.8만km · 가솔린 · 280만원"
+  },
+  "verdict": "NEVER",
+  "score": 72,
+  "headline": "사고(프레임 손상) 이력이 있어 사지 않는 게 좋아요",
+  "counts": {
+    "danger": 1,
+    "hidden": 0,
+    "warning": 3,
+    "pass": 6,
+    "unknown": 0,
+    "excluded": 2
+  },
+  "dataGaps": [],
+  "facts": [
+    {
+      "id": "accidents",
+      "label": "사고",
+      "value": "내차 4건 · 타차 4건",
+      "tone": "warning"
+    },
+    {
+      "id": "owners",
+      "label": "소유자 변경",
+      "value": "2회",
+      "tone": "neutral"
+    },
+    {
+      "id": "usage",
+      "label": "용도",
+      "value": "자가용",
+      "tone": "neutral"
+    },
+    {
+      "id": "floodLoss",
+      "label": "침수·전손",
+      "value": "없음",
+      "tone": "neutral"
+    }
+  ],
+  "repairs": {
+    "panels": [
+      {
+        "name": "리어 패널",
+        "status": "교환",
+        "rank": "A랭크",
+        "tone": "danger"
+      },
+      {
+        "name": "쿼터 패널(우)",
+        "status": "판금·용접",
+        "rank": "2랭크",
+        "tone": "warning"
+      },
+      {
+        "name": "프론트 휀더(우)",
+        "status": "교환",
+        "rank": "1랭크",
+        "tone": "warning"
+      },
+      {
+        "name": "트렁크 리드",
+        "status": "교환",
+        "rank": "1랭크",
+        "tone": "warning"
+      },
+      {
+        "name": "프론트 휀더(좌)",
+        "status": "교환",
+        "rank": "1랭크",
+        "tone": "warning"
+      }
+    ],
+    "systems": {
+      "flagged": [
+        {
+          "group": "오일누유",
+          "name": "실린더 블록 / 오일팬",
+          "status": "누유",
+          "tone": "danger"
+        },
+        {
+          "group": "동력전달",
+          "name": "등속조인트",
+          "status": "불량",
+          "tone": "danger"
+        }
+      ],
+      "okCount": 29
+    }
+  },
+  "issues": [
+    {
+      "ruleId": "R04",
+      "category": "차량 상태",
+      "title": "프레임/외판",
+      "tone": "danger",
+      "label": "위험",
+      "message": "프레임까지 손상된 사고 이력이 있어요",
+      "why": "프레임은 차의 뼈대예요. 여기가 손상됐다는 건 충격이 뼈대까지 갔다는 뜻이라 주행 안정성과 되팔 때 가격에 큰 영향을 줘요. 그래서 위험으로 분류해요. 문·펜더 같은 바깥 패널 교환은 상대적으로 가벼운 편이에요.",
+      "sellerQuestion": "프레임 수리 내역과 사진을 볼 수 있을까요?"
+    },
+    {
+      "ruleId": "R08",
+      "category": "이력",
+      "title": "자차보험 공백",
+      "tone": "warning",
+      "label": "주의",
+      "message": "자차보험 없이 운행한 기간이 9개월 있어요",
+      "why": "보험에 가입하지 않은 기간에 난 사고는 이력에 남지 않아요. 이력이 깨끗해 보여도 숨은 사고가 있을 수 있는 공백 구간이에요.",
+      "sellerQuestion": "2025년 11월~2026년 7월에 보험 없이 운행했나요?"
+    },
+    {
+      "ruleId": "R10",
+      "category": "사고",
+      "title": "보험처리 규모",
+      "tone": "warning",
+      "label": "주의",
+      "message": "보험 처리 금액이 커요 · 내차 518만원 · 타차 422만원",
+      "why": "사고가 있어도 금액이 작으면 가벼운 접촉 수준이에요. 하지만 국산 200만원, 수입 400만원을 넘으면 단순 접촉을 넘어선 사고일 수 있어 주의로 봐요.",
+      "sellerQuestion": "보험 처리한 사고는 어느 부위를 어떻게 수리했나요?"
+    },
+    {
+      "ruleId": "R12",
+      "category": "차량 상태",
+      "title": "누유 여부",
+      "tone": "warning",
+      "label": "주의",
+      "message": "실린더 블록 / 오일팬(누유)가 있어요",
+      "why": "엔진·미션에서 기름이 새면 그대로 두었을 때 큰 수리비로 이어지는 경우가 많아요. 지금 당장 괜찮아 보여도 정비 비용을 미리 생각해 두는 게 좋아요.",
+      "sellerQuestion": "누유 부위는 수리했나요?"
+    }
+  ],
+  "rules": [
+    {
+      "ruleId": "R04",
+      "category": "차량 상태",
+      "title": "프레임/외판",
+      "tone": "danger",
+      "label": "위험",
+      "message": "프레임까지 손상된 사고 이력이 있어요",
+      "why": "프레임은 차의 뼈대예요. 여기가 손상됐다는 건 충격이 뼈대까지 갔다는 뜻이라 주행 안정성과 되팔 때 가격에 큰 영향을 줘요. 그래서 위험으로 분류해요. 문·펜더 같은 바깥 패널 교환은 상대적으로 가벼운 편이에요.",
+      "sellerQuestion": "프레임 수리 내역과 사진을 볼 수 있을까요?"
+    },
+    {
+      "ruleId": "R12",
+      "category": "차량 상태",
+      "title": "누유 여부",
+      "tone": "warning",
+      "label": "주의",
+      "message": "실린더 블록 / 오일팬(누유)가 있어요",
+      "why": "엔진·미션에서 기름이 새면 그대로 두었을 때 큰 수리비로 이어지는 경우가 많아요. 지금 당장 괜찮아 보여도 정비 비용을 미리 생각해 두는 게 좋아요.",
+      "sellerQuestion": "누유 부위는 수리했나요?"
+    },
+    {
+      "ruleId": "R05",
+      "category": "이력",
+      "title": "렌트·택시 이력",
+      "tone": "success",
+      "label": "통과",
+      "message": "렌트·영업용 이력이 없어요",
+      "why": null,
+      "sellerQuestion": null
+    },
+    {
+      "ruleId": "R06",
+      "category": "이력",
+      "title": "전손·침수·도난",
+      "tone": "success",
+      "label": "통과",
+      "message": "전손·침수·도난 이력이 없어요",
+      "why": null,
+      "sellerQuestion": null
+    },
+    {
+      "ruleId": "R07",
+      "category": "이력",
+      "title": "소유자 변경",
+      "tone": "success",
+      "label": "통과",
+      "message": "소유자 변경 2회로 정상 범위예요",
+      "why": null,
+      "sellerQuestion": null
+    },
+    {
+      "ruleId": "R08",
+      "category": "이력",
+      "title": "자차보험 공백",
+      "tone": "warning",
+      "label": "주의",
+      "message": "자차보험 없이 운행한 기간이 9개월 있어요",
+      "why": "보험에 가입하지 않은 기간에 난 사고는 이력에 남지 않아요. 이력이 깨끗해 보여도 숨은 사고가 있을 수 있는 공백 구간이에요.",
+      "sellerQuestion": "2025년 11월~2026년 7월에 보험 없이 운행했나요?"
+    },
+    {
+      "ruleId": "R09",
+      "category": "사고",
+      "title": "수리비 확정",
+      "tone": "success",
+      "label": "통과",
+      "message": "수리비가 확정되지 않은 사고는 없어요",
+      "why": null,
+      "sellerQuestion": null
+    },
+    {
+      "ruleId": "R10",
+      "category": "사고",
+      "title": "보험처리 규모",
+      "tone": "warning",
+      "label": "주의",
+      "message": "보험 처리 금액이 커요 · 내차 518만원 · 타차 422만원",
+      "why": "사고가 있어도 금액이 작으면 가벼운 접촉 수준이에요. 하지만 국산 200만원, 수입 400만원을 넘으면 단순 접촉을 넘어선 사고일 수 있어 주의로 봐요.",
+      "sellerQuestion": "보험 처리한 사고는 어느 부위를 어떻게 수리했나요?"
+    },
+    {
+      "ruleId": "R01",
+      "category": "투명성",
+      "title": "보험이력 공개",
+      "tone": "success",
+      "label": "통과",
+      "message": "딜러가 보험이력을 공개했어요",
+      "why": null,
+      "sellerQuestion": null
+    },
+    {
+      "ruleId": "R02",
+      "category": "투명성",
+      "title": "성능점검 공개",
+      "tone": "success",
+      "label": "통과",
+      "message": "성능점검 기록이 공개돼 있어요",
+      "why": null,
+      "sellerQuestion": null
+    }
+  ],
+  "excluded": [
+    {
+      "ruleId": "R03",
+      "title": "엔카진단",
+      "reason": "엔카진단을 받지 않은 차예요(감점 없음)"
+    },
+    {
+      "ruleId": "R11",
+      "title": "가격 적정성",
+      "reason": "신차 가격 정보가 없어 평가하지 않았어요"
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2010-02",
+      "label": "신차 등록",
+      "detail": null,
+      "tone": "neutral"
+    },
+    {
+      "date": "2016-12",
+      "label": "사고 · 타차 가해",
+      "detail": "보험 처리 합계 58만원",
+      "tone": "warning"
+    },
+    {
+      "date": "2017-11",
+      "label": "소유자 변경",
+      "detail": null,
+      "tone": "neutral"
+    },
+    {
+      "date": "2018-01",
+      "label": "사고 2건 · 내차 피해",
+      "detail": "보험 처리 합계 194만원",
+      "tone": "warning"
+    },
+    {
+      "date": "2018-01",
+      "label": "사고 · 타차 가해",
+      "detail": "보험 처리 합계 19만원",
+      "tone": "warning"
+    },
+    {
+      "date": "2019-01",
+      "label": "사고 · 내차 피해",
+      "detail": "보험 처리 합계 51만원",
+      "tone": "warning"
+    },
+    {
+      "date": "2019-01",
+      "label": "사고 · 타차 가해",
+      "detail": "보험 처리 합계 40만원",
+      "tone": "warning"
+    },
+    {
+      "date": "2022-06",
+      "label": "사고 · 내차 피해",
+      "detail": "보험 처리 합계 206만원",
+      "tone": "warning"
+    },
+    {
+      "date": "2022-06",
+      "label": "사고 · 타차 가해",
+      "detail": "보험 처리 합계 250만원",
+      "tone": "warning"
+    },
+    {
+      "date": "2025-11",
+      "label": "보험 미가입",
+      "detail": "2025년 11월~2026년 7월",
+      "tone": "warning"
+    },
+    {
+      "date": "2026-05",
+      "label": "소유자 변경",
+      "detail": null,
+      "tone": "neutral"
+    }
+  ],
+  "shareText": {
+    "summary": "2010 쉐보레(GM대우) 라세티 프리미어\n판정: 피하세요 · 72점\n사고(프레임 손상) 이력이 있어 사지 않는 게 좋아요\n- 프레임/외판: 프레임까지 손상된 사고 이력이 있어요\n- 자차보험 공백: 자차보험 없이 운행한 기간이 9개월 있어요\n- 보험처리 규모: 보험 처리 금액이 커요 · 내차 518만원 · 타차 422만원\n- 누유 여부: 실린더 블록 / 오일팬(누유)가 있어요\nhttps://fem.encar.com/cars/detail/42264483\nAutoVerdict로 분석",
+    "sellerQuestions": "1. 프레임 수리 내역과 사진을 볼 수 있을까요?\n2. 2025년 11월~2026년 7월에 보험 없이 운행했나요?\n3. 보험 처리한 사고는 어느 부위를 어떻게 수리했나요?\n4. 누유 부위는 수리했나요?\nhttps://fem.encar.com/cars/detail/42264483\nAutoVerdict로 분석"
+  }
+}

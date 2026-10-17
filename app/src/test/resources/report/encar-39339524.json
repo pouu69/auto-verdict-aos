@@ -1,0 +1,278 @@
+{
+  "schemaVersion": 1,
+  "carId": "39339524",
+  "url": "https://fem.encar.com/cars/detail/39339524",
+  "car": {
+    "title": "2012 BMW 3시리즈 (F30)",
+    "year": 2012,
+    "mileageKm": 112919,
+    "priceWon": 5990000,
+    "fuel": "디젤",
+    "summary": "2012년 · 11.3만km · 디젤 · 599만원"
+  },
+  "verdict": "NEVER",
+  "score": 85,
+  "headline": "사고(프레임 손상) 이력이 있어 사지 않는 게 좋아요",
+  "counts": {
+    "danger": 1,
+    "hidden": 0,
+    "warning": 1,
+    "pass": 9,
+    "unknown": 0,
+    "excluded": 1
+  },
+  "dataGaps": [],
+  "facts": [
+    {
+      "id": "accidents",
+      "label": "사고",
+      "value": "내차 7건 · 타차 2건",
+      "tone": "warning"
+    },
+    {
+      "id": "owners",
+      "label": "소유자 변경",
+      "value": "1회",
+      "tone": "neutral"
+    },
+    {
+      "id": "usage",
+      "label": "용도",
+      "value": "자가용",
+      "tone": "neutral"
+    },
+    {
+      "id": "floodLoss",
+      "label": "침수·전손",
+      "value": "없음",
+      "tone": "neutral"
+    }
+  ],
+  "repairs": {
+    "panels": [
+      {
+        "name": "쿼터 패널(우)",
+        "status": "판금·용접 · 용접·절단",
+        "rank": "2랭크",
+        "tone": "warning"
+      },
+      {
+        "name": "트렁크 리드",
+        "status": "교환",
+        "rank": "1랭크",
+        "tone": "warning"
+      }
+    ],
+    "systems": {
+      "flagged": [],
+      "okCount": 30
+    }
+  },
+  "issues": [
+    {
+      "ruleId": "R04",
+      "category": "차량 상태",
+      "title": "프레임/외판",
+      "tone": "danger",
+      "label": "위험",
+      "message": "프레임까지 손상된 사고 이력이 있어요",
+      "why": "프레임은 차의 뼈대예요. 여기가 손상됐다는 건 충격이 뼈대까지 갔다는 뜻이라 주행 안정성과 되팔 때 가격에 큰 영향을 줘요. 그래서 위험으로 분류해요. 문·펜더 같은 바깥 패널 교환은 상대적으로 가벼운 편이에요.",
+      "sellerQuestion": "프레임 수리 내역과 사진을 볼 수 있을까요?"
+    },
+    {
+      "ruleId": "R10",
+      "category": "사고",
+      "title": "보험처리 규모",
+      "tone": "warning",
+      "label": "주의",
+      "message": "보험 처리 금액이 커요 · 내차 1,126만원 · 타차 589만원",
+      "why": "사고가 있어도 금액이 작으면 가벼운 접촉 수준이에요. 하지만 국산 200만원, 수입 400만원을 넘으면 단순 접촉을 넘어선 사고일 수 있어 주의로 봐요.",
+      "sellerQuestion": "보험 처리한 사고는 어느 부위를 어떻게 수리했나요?"
+    }
+  ],
+  "rules": [
+    {
+      "ruleId": "R03",
+      "category": "차량 상태",
+      "title": "엔카진단",
+      "tone": "success",
+      "label": "통과",
+      "message": "엔카진단을 통과한 차예요",
+      "why": null,
+      "sellerQuestion": null
+    },
+    {
+      "ruleId": "R04",
+      "category": "차량 상태",
+      "title": "프레임/외판",
+      "tone": "danger",
+      "label": "위험",
+      "message": "프레임까지 손상된 사고 이력이 있어요",
+      "why": "프레임은 차의 뼈대예요. 여기가 손상됐다는 건 충격이 뼈대까지 갔다는 뜻이라 주행 안정성과 되팔 때 가격에 큰 영향을 줘요. 그래서 위험으로 분류해요. 문·펜더 같은 바깥 패널 교환은 상대적으로 가벼운 편이에요.",
+      "sellerQuestion": "프레임 수리 내역과 사진을 볼 수 있을까요?"
+    },
+    {
+      "ruleId": "R12",
+      "category": "차량 상태",
+      "title": "누유 여부",
+      "tone": "success",
+      "label": "통과",
+      "message": "누유가 없어요",
+      "why": null,
+      "sellerQuestion": null
+    },
+    {
+      "ruleId": "R05",
+      "category": "이력",
+      "title": "렌트·택시 이력",
+      "tone": "success",
+      "label": "통과",
+      "message": "렌트·영업용 이력이 없어요",
+      "why": null,
+      "sellerQuestion": null
+    },
+    {
+      "ruleId": "R06",
+      "category": "이력",
+      "title": "전손·침수·도난",
+      "tone": "success",
+      "label": "통과",
+      "message": "전손·침수·도난 이력이 없어요",
+      "why": null,
+      "sellerQuestion": null
+    },
+    {
+      "ruleId": "R07",
+      "category": "이력",
+      "title": "소유자 변경",
+      "tone": "success",
+      "label": "통과",
+      "message": "소유자 변경 1회로 정상 범위예요",
+      "why": null,
+      "sellerQuestion": null
+    },
+    {
+      "ruleId": "R08",
+      "category": "이력",
+      "title": "자차보험 공백",
+      "tone": "success",
+      "label": "통과",
+      "message": "자차보험 공백이 없어요",
+      "why": null,
+      "sellerQuestion": null
+    },
+    {
+      "ruleId": "R09",
+      "category": "사고",
+      "title": "수리비 확정",
+      "tone": "success",
+      "label": "통과",
+      "message": "수리비가 확정되지 않은 사고는 없어요",
+      "why": null,
+      "sellerQuestion": null
+    },
+    {
+      "ruleId": "R10",
+      "category": "사고",
+      "title": "보험처리 규모",
+      "tone": "warning",
+      "label": "주의",
+      "message": "보험 처리 금액이 커요 · 내차 1,126만원 · 타차 589만원",
+      "why": "사고가 있어도 금액이 작으면 가벼운 접촉 수준이에요. 하지만 국산 200만원, 수입 400만원을 넘으면 단순 접촉을 넘어선 사고일 수 있어 주의로 봐요.",
+      "sellerQuestion": "보험 처리한 사고는 어느 부위를 어떻게 수리했나요?"
+    },
+    {
+      "ruleId": "R01",
+      "category": "투명성",
+      "title": "보험이력 공개",
+      "tone": "success",
+      "label": "통과",
+      "message": "딜러가 보험이력을 공개했어요",
+      "why": null,
+      "sellerQuestion": null
+    },
+    {
+      "ruleId": "R02",
+      "category": "투명성",
+      "title": "성능점검 공개",
+      "tone": "success",
+      "label": "통과",
+      "message": "성능점검 기록이 공개돼 있어요",
+      "why": null,
+      "sellerQuestion": null
+    }
+  ],
+  "excluded": [
+    {
+      "ruleId": "R11",
+      "title": "가격 적정성",
+      "reason": "신차 가격 정보가 없어 평가하지 않았어요"
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2012-05",
+      "label": "신차 등록",
+      "detail": null,
+      "tone": "neutral"
+    },
+    {
+      "date": "2013-06",
+      "label": "사고 · 내차 피해",
+      "detail": "보험 처리 합계 154만원",
+      "tone": "warning"
+    },
+    {
+      "date": "2013-07",
+      "label": "사고 · 내차 피해",
+      "detail": "보험 처리 합계 97만원",
+      "tone": "warning"
+    },
+    {
+      "date": "2014-02",
+      "label": "사고 · 내차 피해",
+      "detail": "보험 처리 합계 200만원",
+      "tone": "warning"
+    },
+    {
+      "date": "2014-10",
+      "label": "사고 · 내차 피해",
+      "detail": "보험 처리 합계 457만원",
+      "tone": "warning"
+    },
+    {
+      "date": "2016-02",
+      "label": "사고 · 내차 피해",
+      "detail": "보험 처리 합계 163만원",
+      "tone": "warning"
+    },
+    {
+      "date": "2017-05",
+      "label": "사고 · 내차 피해",
+      "detail": "보험 처리 합계 102만원",
+      "tone": "warning"
+    },
+    {
+      "date": "2021-12",
+      "label": "사고 · 내차 피해",
+      "detail": "보험 처리 합계 101만원",
+      "tone": "warning"
+    },
+    {
+      "date": "2021-12",
+      "label": "사고 2건 · 타차 가해",
+      "detail": "보험 처리 합계 736만원",
+      "tone": "warning"
+    },
+    {
+      "date": "2025-03",
+      "label": "소유자 변경",
+      "detail": null,
+      "tone": "neutral"
+    }
+  ],
+  "shareText": {
+    "summary": "2012 BMW 3시리즈 (F30)\n판정: 피하세요 · 85점\n사고(프레임 손상) 이력이 있어 사지 않는 게 좋아요\n- 프레임/외판: 프레임까지 손상된 사고 이력이 있어요\n- 보험처리 규모: 보험 처리 금액이 커요 · 내차 1,126만원 · 타차 589만원\nhttps://fem.encar.com/cars/detail/39339524\nAutoVerdict로 분석",
+    "sellerQuestions": "1. 프레임 수리 내역과 사진을 볼 수 있을까요?\n2. 보험 처리한 사고는 어느 부위를 어떻게 수리했나요?\nhttps://fem.encar.com/cars/detail/39339524\nAutoVerdict로 분석"
+  }
+}

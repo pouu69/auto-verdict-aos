@@ -8,6 +8,7 @@
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
     "test:watch": "vitest",
+    "gen:contract": "GEN_CONTRACT=1 vitest run tests/contract",
     "copy-to-assets": "rm -rf ../app/src/main/assets/eval-ui && cp -r dist/ ../app/src/main/assets/eval-ui/ && sed -i '' 's/ crossorigin//g' ../app/src/main/assets/eval-ui/index.html"
   },
   "dependencies": {
