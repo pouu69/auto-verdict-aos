@@ -65,6 +65,12 @@ android {
         buildConfig = true
     }
 
+    // The UI is Korean-only; drop library translations (M3, AdMob, ...) so system
+    // labels don't switch language on other-locale devices. Default values/ is Korean.
+    androidResources {
+        localeFilters += listOf("ko")
+    }
+
     testOptions {
         unitTests.isIncludeAndroidResources = true
     }
