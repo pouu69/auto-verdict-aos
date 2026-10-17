@@ -61,7 +61,8 @@ fun AvSectionHeader(
             title,
         )
         Modifier
-            .avPressable(onClick = onToggle, onClickLabel = clickLabel)
+            // Full-width row: keep the focus ring inside so scroll containers don't clip it.
+            .avPressable(onClick = onToggle, onClickLabel = clickLabel, focusRingInside = true)
             .semantics { stateDescription = state }
             .heightIn(min = 48.dp)
     } else {

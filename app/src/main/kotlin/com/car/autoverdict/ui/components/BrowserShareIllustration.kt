@@ -1,7 +1,6 @@
 package com.car.autoverdict.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,8 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.IosShare
 import androidx.compose.material.icons.outlined.Lock
@@ -20,147 +17,146 @@ import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Print
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.car.autoverdict.R
 import com.car.autoverdict.ui.theme.AvTheme
+
+/** Mock address bar text; a URL, not copy, so it stays out of strings.xml. */
+private const val MOCK_URL = "fem.encar.com/cars/detail/..."
 
 /**
  * Code-drawn mock of a mobile browser's address bar + overflow menu, highlighting
- * the "공유 (Share)" item. Teaches users where the browser share entry point is —
- * the step most people get stuck on — before they reach the system share sheet
- * shown by [ShareSheetIllustration]. Browser-agnostic, with a caption noting that
- * the exact location differs per browser (Chrome top-right ⋮ vs Samsung Internet
- * bottom bar).
+ * the share item. Teaches users where the browser share entry point is — the step
+ * most people get stuck on — before they reach the system share sheet shown by
+ * [ShareSheetIllustration]. Browser-agnostic, with a note on where Chrome and
+ * Samsung Internet keep the menu.
+ *
+ * Decorative: cleared from semantics, the guide's step text says the same thing.
  */
 @Composable
 fun BrowserShareIllustration(modifier: Modifier = Modifier) {
     val colors = AvTheme.colors
+    val typography = AvTheme.typography
+    val shapes = AvTheme.shapes
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .border(0.5.dp, colors.border.copy(alpha = 0.6f), RoundedCornerShape(14.dp))
+            .clearAndSetSemantics {}
+            .clip(shapes.tile)
+            .background(colors.surfaceSubtle)
             .padding(12.dp),
     ) {
-        // Address bar with the overflow (⋮) button highlighted.
+        // Address bar with the overflow menu button highlighted.
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(999.dp))
-                .background(colors.border.copy(alpha = 0.12f))
-                .padding(horizontal = 10.dp, vertical = 7.dp),
+                .clip(shapes.chip)
+                .background(colors.background)
+                .padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Icon(
                 imageVector = Icons.Outlined.Lock,
                 contentDescription = null,
-                tint = colors.textSecondary,
+                tint = colors.textTertiary,
                 modifier = Modifier.size(14.dp),
             )
-            Spacer(Modifier.width(8.dp))
             Text(
-                text = "fem.encar.com/cars/detail/...",
-                style = MaterialTheme.typography.labelMedium,
-                color = colors.textSecondary,
+                text = MOCK_URL,
+                style = typography.caption1,
+                color = colors.textTertiary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
-            Spacer(Modifier.width(8.dp))
             Box(
                 modifier = Modifier
-                    .size(30.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(colors.accent)
-                    .border(3.dp, colors.accent.copy(alpha = 0.22f), RoundedCornerShape(11.dp)),
+                    .size(28.dp)
+                    .clip(shapes.chip)
+                    .background(colors.accent),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Outlined.MoreVert,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimary,
+                    tint = colors.onAccent,
                     modifier = Modifier.size(18.dp),
                 )
             }
         }
 
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(8.dp))
         Text(
-            text = "메뉴를 열면 ↓",
-            style = MaterialTheme.typography.labelSmall,
+            text = stringResource(R.string.illus_menu_caption),
+            style = typography.caption2,
             color = colors.accentText,
+            textAlign = TextAlign.End,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(end = 4.dp),
-            textAlign = TextAlign.End,
         )
         Spacer(Modifier.height(6.dp))
 
-        // Overflow menu with the "공유" row highlighted.
+        // Overflow menu with the share row highlighted.
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(10.dp))
-                .border(0.5.dp, colors.border.copy(alpha = 0.5f), RoundedCornerShape(10.dp)),
+                .clip(shapes.tile)
+                .background(colors.background),
         ) {
-            BrowserMenuRow(icon = Icons.Outlined.StarOutline, label = "즐겨찾기", highlighted = false)
-            BrowserMenuRow(icon = Icons.Outlined.IosShare, label = "공유", highlighted = true)
-            BrowserMenuRow(icon = Icons.Outlined.Print, label = "인쇄", highlighted = false)
+            BrowserMenuRow(icon = Icons.Outlined.StarOutline, label = stringResource(R.string.illus_menu_favorite))
+            BrowserMenuRow(
+                icon = Icons.Outlined.IosShare,
+                label = stringResource(R.string.illus_menu_share),
+                highlighted = true,
+            )
+            BrowserMenuRow(icon = Icons.Outlined.Print, label = stringResource(R.string.illus_menu_print))
         }
 
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "크롬은 우측 상단 ⋮ · 삼성 인터넷은 하단 메뉴에 있어요",
-            style = MaterialTheme.typography.labelSmall,
-            color = colors.textSecondary.copy(alpha = 0.8f),
-            modifier = Modifier.fillMaxWidth(),
+            text = stringResource(R.string.illus_browser_note),
+            style = typography.caption1,
+            color = colors.textTertiary,
             textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
 
 @Composable
-private fun BrowserMenuRow(icon: ImageVector, label: String, highlighted: Boolean) {
+private fun BrowserMenuRow(icon: ImageVector, label: String, highlighted: Boolean = false) {
     val colors = AvTheme.colors
+    val typography = AvTheme.typography
+    val content = if (highlighted) colors.accentText else colors.textTertiary
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(if (highlighted) colors.accentWeak else MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 12.dp, vertical = 9.dp),
+            .background(if (highlighted) colors.accentWeak else colors.background)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = if (highlighted) colors.accentText else colors.textSecondary.copy(alpha = 0.6f),
-            modifier = Modifier.size(16.dp),
-        )
-        Spacer(Modifier.width(10.dp))
+        Icon(imageVector = icon, contentDescription = null, tint = content, modifier = Modifier.size(16.dp))
         Text(
             text = label,
-            style = MaterialTheme.typography.labelMedium.copy(
-                fontWeight = if (highlighted) FontWeight.SemiBold else FontWeight.Normal,
-            ),
-            color = if (highlighted) colors.accentText else colors.textPrimary.copy(alpha = 0.6f),
+            style = typography.caption1,
+            color = content,
+            modifier = Modifier.weight(1f),
         )
         if (highlighted) {
-            Spacer(Modifier.weight(1f))
-            Text(
-                text = "← 이것 탭!",
-                style = MaterialTheme.typography.labelSmall,
-                color = colors.accentText,
-            )
+            Text(text = stringResource(R.string.illus_tap_here), style = typography.caption2, color = content)
         }
     }
 }

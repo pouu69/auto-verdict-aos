@@ -63,6 +63,7 @@ fun ComponentGalleryScreen(onBack: () -> Unit) {
     val colors = AvTheme.colors
     val toast = rememberAvToastState()
     var field by remember { mutableStateOf("") }
+    var pasteField by remember { mutableStateOf("") }
     var showSheet by remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
     var tab by remember { mutableStateOf(MainTab.Home) }
@@ -101,8 +102,10 @@ fun ComponentGalleryScreen(onBack: () -> Unit) {
                     trailing = { AvBadge(text = "주의", tone = AvTone.Warning) },
                 )
                 AvListRow(
-                    title = "설정 행",
+                    title = "설정 행 (onClickLabel)",
+                    subtitle = "포커스 링은 행 안쪽에 그려요",
                     onClick = {},
+                    onClickLabel = "설정 열기",
                     trailing = { Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = colors.textTertiary) },
                 )
                 AvListRow(title = "정적 행 (클릭 없음)", subtitle = "부제는 body2")
@@ -127,6 +130,16 @@ fun ComponentGalleryScreen(onBack: () -> Unit) {
                     errorText = if (field.isNotEmpty() && !field.contains("encar")) "엔카 매물 링크가 아니에요" else null,
                     onClear = { field = "" },
                     modifier = Modifier.padding(horizontal = 20.dp),
+                )
+                AvTextField(
+                    value = pasteField,
+                    onValueChange = { pasteField = it },
+                    placeholder = "엔카 매물 링크",
+                    leadingIcon = Icons.Rounded.Link,
+                    onClear = { pasteField = "" },
+                    actionLabel = "붙여넣기",
+                    onAction = { pasteField = "https://fem.encar.com/cars/detail/12345678" },
+                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 12.dp),
                 )
                 AvTextField(
                     value = "https://google.com",
