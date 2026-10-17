@@ -32,10 +32,17 @@ import kotlinx.coroutines.launch
 class AvToastState(private val scope: CoroutineScope) {
     internal val host = SnackbarHostState()
 
-    fun show(message: String, actionLabel: String? = null, onAction: (() -> Unit)? = null) {
+    /** [long] keeps the toast up longer, e.g. for an undo action. */
+    fun show(
+        message: String,
+        actionLabel: String? = null,
+        long: Boolean = false,
+        onAction: (() -> Unit)? = null,
+    ) {
+        val duration = if (long) SnackbarDuration.Long else SnackbarDuration.Short
         scope.launch {
             host.currentSnackbarData?.dismiss()
-            val result = host.showSnackbar(message = message, actionLabel = actionLabel, duration = SnackbarDuration.Short)
+            val result = host.showSnackbar(message = message, actionLabel = actionLabel, duration = duration)
             if (result == SnackbarResult.ActionPerformed) onAction?.invoke()
         }
     }
