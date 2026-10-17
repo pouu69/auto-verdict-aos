@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "carId": "41623744",
+  "url": "https://fem.encar.com/cars/detail/41623744",
+  "car": { "title": "차량 정보 없음", "year": null, "mileageKm": null, "priceWon": null, "fuel": null, "summary": "" },
+  "verdict": "UNKNOWN",
+  "score": 61,
+  "headline": "확인하지 못한 항목이 1개 있어요",
+  "counts": { "danger": 0, "hidden": 0, "warning": 0, "pass": 2, "unknown": 1, "excluded": 0 },
+  "dataGaps": [ { "source": "record", "reason": "loginRequired" } ],
+  "facts": [],
+  "repairs": null,
+  "issues": [
+    { "ruleId": "R07", "category": "이력", "title": "소유자 변경", "tone": "neutral", "label": "미확인",
+      "message": "엔카에 로그인하면 확인할 수 있어요", "why": "소유자가 자주 바뀐 차는 하자 때문에 빨리 되판 경우가 있어요.", "sellerQuestion": null }
+  ],
+  "rules": [
+    { "ruleId": "R07", "category": "이력", "title": "소유자 변경", "tone": "neutral", "label": "미확인", "message": "엔카에 로그인하면 확인할 수 있어요", "why": "소유자가 자주 바뀐 차는 하자 때문에 빨리 되판 경우가 있어요.", "sellerQuestion": null },
+    { "ruleId": "R01", "category": "투명성", "title": "보험이력 공개", "tone": "success", "label": "통과", "message": "보험이력을 공개했어요", "why": null, "sellerQuestion": null },
+    { "ruleId": "R02", "category": "투명성", "title": "성능점검 공개", "tone": "success", "label": "통과", "message": "성능점검 기록을 공개했어요", "why": null, "sellerQuestion": null }
+  ],
+  "excluded": [],
+  "timeline": [],
+  "shareText": { "summary": "차량 정보 없음\n판정: 확인 필요 · 61점\nhttps://fem.encar.com/cars/detail/41623744\nAutoVerdict로 분석", "sellerQuestions": null },
+  "futureField": "ignored"
+}
