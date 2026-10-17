@@ -89,6 +89,9 @@ export function App() {
       setLoading(false);
     };
 
+    // Handshake: native holds payloads until every handler above exists.
+    AndroidBridge.notifyReady();
+
     return () => {
       window.receiveEncarData = undefined;
       window.receiveError = undefined;

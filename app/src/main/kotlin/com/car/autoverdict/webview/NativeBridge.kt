@@ -85,6 +85,24 @@ class NativeBridge(
     @JavascriptInterface
     fun getClipboardUrl(): String? = null
 
+    @Volatile
+    private var onReadyListener: (() -> Unit)? = null
+
+    /** Wired by [EvalWebView.addBridge]; invoked on the main thread. */
+    fun setOnReadyListener(listener: (() -> Unit)?) {
+        onReadyListener = listener
+    }
+
+    /**
+     * Called by the eval-ui once every `window.receive*` handler is registered.
+     * Arrives on the JavaBridge thread, so hop to Main before touching the WebView.
+     */
+    @JavascriptInterface
+    fun onReady() {
+        if (!scope.isActive) return
+        scope.launch(Dispatchers.Main) { onReadyListener?.invoke() }
+    }
+
     companion object {
         const val BRIDGE_NAME = "Android"
         private const val TAG = "NativeBridge"

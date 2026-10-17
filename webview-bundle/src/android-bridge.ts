@@ -22,4 +22,12 @@ export const AndroidBridge = {
   getClipboardUrl(): string | null {
     return window.Android?.getClipboardUrl() ?? null;
   },
+
+  /**
+   * Tell native the window.receive* handlers are registered. Native queues
+   * payloads until this arrives, so it must be called after registration.
+   */
+  notifyReady(): void {
+    window.Android?.onReady?.();
+  },
 } as const;

@@ -10,13 +10,30 @@ import android.webkit.WebViewClient
 import com.car.autoverdict.util.JsEscape
 import org.json.JSONObject
 
+/**
+ * Hosts the React eval-ui bundle.
+ *
+ * Payloads are delivered only once BOTH the page has finished loading AND the JS
+ * side has signalled (via [NativeBridge.onReady]) that all `window.receive*`
+ * handlers are registered. `onPageFinished` alone is not enough: React registers
+ * the handlers in a post-commit `useEffect`, which can run after the page load
+ * event, so an early `window.receiveEncarData?.(...)` would silently no-op.
+ * Anything sent before then is queued (latest value wins) and flushed on ready.
+ *
+ * All methods must be called on the main thread.
+ */
 class EvalWebView(context: Context) {
     val webView: WebView = WebView(context.applicationContext)
     private var pageLoaded = false
+    private var jsReady = false
+    private var destroyed = false
     private var pendingJson: String? = null
     private var pendingError: String? = null
     private var pendingAlreadySaved: Boolean? = null
     private var pendingDeleted: Pair<String, Boolean>? = null
+
+    private val isReady: Boolean
+        get() = pageLoaded && jsReady && !destroyed
 
     init {
         setup()
@@ -41,38 +58,53 @@ class EvalWebView(context: Context) {
                 super.onPageFinished(view, url)
                 Log.d(TAG, "eval-ui loaded: $url")
                 pageLoaded = true
-                pendingJson?.let { json ->
-                    pendingJson = null
-                    sendData(json)
-                }
-                pendingError?.let { msg ->
-                    pendingError = null
-                    sendError(msg)
-                }
-                pendingAlreadySaved?.let { saved ->
-                    pendingAlreadySaved = null
-                    setAlreadySaved(saved)
-                }
-                pendingDeleted?.let { (carId, isSaved) ->
-                    pendingDeleted = null
-                    sendDeleted(carId, isSaved)
-                }
+                flushPending()
             }
         }
     }
 
     fun addBridge(bridge: NativeBridge) {
+        bridge.setOnReadyListener(::onJsReady)
         webView.addJavascriptInterface(bridge, NativeBridge.BRIDGE_NAME)
     }
 
     fun loadEvalUi() {
         pageLoaded = false
+        jsReady = false
         webView.loadUrl("file:///android_asset/eval-ui/index.html")
     }
 
+    /** Called (on the main thread) when the JS side has registered its handlers. */
+    fun onJsReady() {
+        if (destroyed) return
+        Log.d(TAG, "eval-ui JS ready")
+        jsReady = true
+        flushPending()
+    }
+
+    private fun flushPending() {
+        if (!isReady) return
+        pendingJson?.let { json ->
+            pendingJson = null
+            sendData(json)
+        }
+        pendingError?.let { msg ->
+            pendingError = null
+            sendError(msg)
+        }
+        pendingAlreadySaved?.let { saved ->
+            pendingAlreadySaved = null
+            setAlreadySaved(saved)
+        }
+        pendingDeleted?.let { (carId, isSaved) ->
+            pendingDeleted = null
+            sendDeleted(carId, isSaved)
+        }
+    }
+
     fun sendData(json: String) {
-        if (!pageLoaded) {
-            Log.d(TAG, "page not loaded yet, queuing data (${json.length} bytes)")
+        if (!isReady) {
+            Log.d(TAG, "eval-ui not ready, queuing data (${json.length} bytes)")
             pendingJson = json
             return
         }
@@ -81,8 +113,8 @@ class EvalWebView(context: Context) {
     }
 
     fun sendError(message: String) {
-        if (!pageLoaded) {
-            Log.d(TAG, "page not loaded yet, queuing error: $message")
+        if (!isReady) {
+            Log.d(TAG, "eval-ui not ready, queuing error: $message")
             pendingError = message
             return
         }
@@ -91,8 +123,8 @@ class EvalWebView(context: Context) {
     }
 
     fun sendDeleted(carId: String, isSaved: Boolean) {
-        if (!pageLoaded) {
-            Log.d(TAG, "page not loaded yet, queuing deleted: $carId")
+        if (!isReady) {
+            Log.d(TAG, "eval-ui not ready, queuing deleted: $carId")
             pendingDeleted = carId to isSaved
             return
         }
@@ -105,7 +137,7 @@ class EvalWebView(context: Context) {
     }
 
     fun setAlreadySaved(saved: Boolean) {
-        if (!pageLoaded) {
+        if (!isReady) {
             pendingAlreadySaved = saved
             return
         }
@@ -113,6 +145,7 @@ class EvalWebView(context: Context) {
     }
 
     fun destroy() {
+        destroyed = true
         webView.removeJavascriptInterface(NativeBridge.BRIDGE_NAME)
         webView.destroy()
     }

@@ -4,6 +4,8 @@ interface AndroidBridgeInterface {
   deleteSavedCar(carId: string): void;
   showToast(message: string): void;
   getClipboardUrl(): string | null;
+  /** Signals native that all window.receive* handlers are registered. */
+  onReady?(): void;
 }
 
 interface Window {

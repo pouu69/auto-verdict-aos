@@ -47,8 +47,34 @@ describe('AndroidBridge', () => {
     expect(mockClose).toHaveBeenCalled();
   });
 
+  it('notifyReady calls native onReady', () => {
+    const onReady = vi.fn();
+    (window as unknown as Record<string, unknown>).Android = {
+      saveCar: vi.fn(),
+      closeOverlay: vi.fn(),
+      showToast: vi.fn(),
+      getClipboardUrl: vi.fn(),
+      onReady,
+    };
+
+    AndroidBridge.notifyReady();
+    expect(onReady).toHaveBeenCalledTimes(1);
+  });
+
+  it('notifyReady tolerates a bridge without onReady', () => {
+    (window as unknown as Record<string, unknown>).Android = {
+      saveCar: vi.fn(),
+      closeOverlay: vi.fn(),
+      showToast: vi.fn(),
+      getClipboardUrl: vi.fn(),
+    };
+
+    expect(() => AndroidBridge.notifyReady()).not.toThrow();
+  });
+
   it('gracefully handles missing bridge', () => {
     expect(() => AndroidBridge.closeOverlay()).not.toThrow();
     expect(() => AndroidBridge.saveCar({ carId: '1' })).not.toThrow();
+    expect(() => AndroidBridge.notifyReady()).not.toThrow();
   });
 });

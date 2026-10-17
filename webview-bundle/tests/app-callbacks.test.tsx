@@ -10,6 +10,8 @@ describe('App window callbacks', () => {
   afterEach(() => {
     window.receiveEncarData = undefined;
     window.receiveError = undefined;
+    window.receiveDeleted = undefined;
+    window.setAlreadySaved = undefined;
   });
 
   it('registers receiveEncarData on mount', () => {
@@ -94,6 +96,47 @@ describe('App window callbacks', () => {
     });
 
     expect(screen.getByText('알 수 없는 오류')).toBeInTheDocument();
+  });
+
+  it('signals native readiness only after every handler is registered', () => {
+    const seen: Record<string, boolean>[] = [];
+    const onReady = vi.fn(() => {
+      seen.push({
+        receiveEncarData: typeof window.receiveEncarData === 'function',
+        receiveError: typeof window.receiveError === 'function',
+        receiveDeleted: typeof window.receiveDeleted === 'function',
+        setAlreadySaved: typeof window.setAlreadySaved === 'function',
+      });
+    });
+    (window as unknown as Record<string, unknown>).Android = {
+      saveCar: vi.fn(),
+      closeOverlay: vi.fn(),
+      deleteSavedCar: vi.fn(),
+      showToast: vi.fn(),
+      getClipboardUrl: vi.fn(),
+      onReady,
+    };
+
+    render(<App />);
+
+    expect(onReady).toHaveBeenCalledTimes(1);
+    expect(seen[0]).toEqual({
+      receiveEncarData: true,
+      receiveError: true,
+      receiveDeleted: true,
+      setAlreadySaved: true,
+    });
+  });
+
+  it('mounts without error when native bridge lacks onReady', () => {
+    (window as unknown as Record<string, unknown>).Android = {
+      saveCar: vi.fn(),
+      closeOverlay: vi.fn(),
+      deleteSavedCar: vi.fn(),
+      showToast: vi.fn(),
+      getClipboardUrl: vi.fn(),
+    };
+    expect(() => render(<App />)).not.toThrow();
   });
 
   it('cleans up callbacks on unmount', () => {
