@@ -22,7 +22,7 @@
 | Language | Kotlin 2.x |
 | UI | Jetpack Compose, Material 3, Material Icons Extended |
 | Database | Room 2.6 (`@Upsert`) |
-| Web 평가 엔진 | React + TypeScript (WebView 번들) |
+| 평가 엔진 | TypeScript (화면에 보이지 않는 헤드리스 WebView 번들) |
 | 빌드 | Gradle 8 + Kotlin DSL, KSP |
 | 광고 | Google AdMob (Play Services Ads 23.6) |
 | 최소/타겟 SDK | API 26 / API 36 |
@@ -32,24 +32,27 @@
 ### 하이브리드 구조
 
 ```
-사용자 공유 → MainActivity
-  → CollectorWebView (엔카 페이지에서 __PRELOADED_STATE__ + API 응답 수집)
-    → JSON → EvalWebView (window.receiveEncarData)
-      → React App.tsx → orchestrateMobile() → 규칙 엔진 → 결과 렌더
-      → Android.saveCar(json) → NativeBridge → Room DB
+사용자 공유 → MainActivity → ResultRoute / ResultController
+  → 저장한 차 → 24h 캐시 → CollectorWebView 순으로 원본 JSON 확보
+    (CollectorWebView: 엔카 페이지에서 __PRELOADED_STATE__ + API 응답 수집)
+  → RuleEngine (헤드리스 WebView, window.avEvaluate)
+    → orchestrateMobile() + buildReport() → Android.onReport
+  → ReportParser → EvaluationReport → Compose ResultScreen
+  → 저장 → ResultRepository → Room DB
 ```
 
-### Native ↔ WebView 브리지
+### 헤드리스 엔진 브리지
 
-- **Native → JS:** `EvalWebView.sendData(json)` → `evaluateJavascript`로 `window.receiveEncarData()` 호출
-- **JS → Native:** `NativeBridge`의 `@JavascriptInterface` 메서드 (`saveCar`, `closeOverlay`, `showToast`)
-- **Type-safe wrapper:** `android-bridge.ts`
+- **Native → JS:** `RuleEngine` → `WebViewEngineHost`가 `evaluateJavascript`로 `window.avEvaluate(requestId, rawJson)` 호출
+- **JS → Native:** `EngineBridge`의 `@JavascriptInterface` 메서드 (`onReady`, `onReport`, `onEngineError`)
+- **Type-safe wrapper:** `engine-bridge.ts`
+- **계약:** `webview-bundle/src/report/types.ts` ↔ `report/EvaluationReport.kt` (함께 수정, `schemaVersion` 확인)
 
 ### 공유 코어 라이브러리
 
-`webview-bundle`의 TypeScript는 `@core` alias로 sibling 저장소의 코어 평가 로직을 import:
+`webview-bundle`의 TypeScript는 `@core` alias로 저장소 안에 vendoring된 코어 평가 로직을 import (원본은 sibling `daksin-car` 저장소):
 ```
-webview-bundle/src → @core → ../../daksin-car/src/core/
+webview-bundle/src → @core → webview-bundle/src/core/
 ```
 
 `ParsedData`, `ChecklistFacts`, `encarToFacts()` 파서, 규칙 정의, 평가 엔진 포함.
@@ -80,10 +83,10 @@ JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./build-
 ### 부분 빌드
 
 ```bash
-# 1) WebView 번들 (React/TS)
+# 1) WebView 엔진 번들 (TS)
 cd webview-bundle
 npm install             # .npmrc가 공식 npm 레지스트리(registry.npmjs.org)로 고정
-npm run build           # 빌드
+npm run build           # dist/engine.html + engine.js
 npm run copy-to-assets  # dist/ → app/src/main/assets/eval-ui/
 
 # 2) Android Debug APK
@@ -101,11 +104,14 @@ export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 # Kotlin 단위 테스트
 ./gradlew :app:testDebugUnitTest
 
-# TypeScript 테스트 (Vitest)
+# TypeScript 테스트 (Vitest) — 계약 JSON이 어댑터 결과와 다르면 실패
 cd webview-bundle && npx vitest run
+
+# 어댑터 변경 후 계약 JSON(app/src/test/resources/report/) 재생성
+cd webview-bundle && npm run gen:contract
 ```
 
-> ⚠️ **WebView 번들은 Android 빌드 전에 반드시 한 번 빌드해야 합니다.** Gradle이 `webview-bundle/dist/`를 `app/src/main/assets/eval-ui/`로 복사합니다 (gitignored).
+> ⚠️ Gradle `preBuild`가 WebView 번들을 빌드해 `webview-bundle/dist/`를 `app/src/main/assets/eval-ui/`로 복사합니다 (gitignored). npm 경로는 `-PnpmPath` 또는 `local.properties`의 `npmPath=`로 지정할 수 있습니다.
 
 ## 프로젝트 구조
 
@@ -113,27 +119,32 @@ cd webview-bundle && npx vitest run
 .
 ├── app/
 │   ├── src/main/kotlin/com/car/autoverdict/
-│   │   ├── MainActivity.kt              # 라우터 (AppScreen enum + when)
-│   │   ├── collector/CollectorWebView.kt
-│   │   ├── webview/{EvalWebView,NativeBridge}.kt
-│   │   ├── ui/screen/                   # Compose 화면들
+│   │   ├── MainActivity.kt              # 공유 인텐트 파싱 + AppRoot 호스트
+│   │   ├── collector/                   # CollectorWebView (엔카 수집)
+│   │   ├── engine/                      # RuleEngine, WebViewEngineHost, EngineBridge
+│   │   ├── report/EvaluationReport.kt   # 리포트 모델 + ReportParser
+│   │   ├── result/                      # ResultRoute/Controller/Screen, sections/
+│   │   ├── ui/navigation/               # Route, AppNavigator, AppRoot
+│   │   ├── ui/components/               # Av* 공용 컴포넌트
+│   │   ├── ui/screen/                   # 그 밖의 Compose 화면들
 │   │   │   ├── AnalyzeScreen.kt
 │   │   │   ├── SavedListScreen.kt
 │   │   │   ├── CompareScreen.kt
-│   │   │   ├── ResultScreen.kt
 │   │   │   ├── SettingsScreen.kt
 │   │   │   ├── OnboardingScreen.kt
 │   │   │   └── PrivacyPolicyScreen.kt
 │   │   ├── ui/theme/                    # Compose 테마
 │   │   ├── db/                          # Room (SavedCarEntity, CacheEntity)
-│   │   └── util/                        # EncarUrl, JsEscape
+│   │   └── util/                        # EncarUrl, ClipboardUtil
 │   └── build.gradle.kts
 ├── webview-bundle/
 │   ├── src/
-│   │   ├── App.tsx                      # 결과 UI
+│   │   ├── engine.ts                    # 헤드리스 엔진 진입점 (window.avEvaluate)
+│   │   ├── engine-bridge.ts             # window.Android 타입 래퍼
 │   │   ├── orchestrate-mobile.ts        # 평가 오케스트레이터
-│   │   ├── overlay/                     # UI 컴포넌트
-│   │   └── android-bridge.ts            # @JavascriptInterface 타입 래퍼
+│   │   ├── report/                      # 리포트 어댑터 (도메인 문구, types.ts 계약)
+│   │   └── core/                        # vendored 코어 (수정 금지)
+│   ├── public/engine.html               # 엔진 페이지
 │   └── package.json
 ├── docs/
 │   ├── privacy-policy.md                # 공개용 정책
