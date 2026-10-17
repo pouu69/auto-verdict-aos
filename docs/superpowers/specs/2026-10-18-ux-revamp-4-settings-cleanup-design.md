@@ -552,3 +552,23 @@ AvTopBar(onBack, title = 묶음 이름)
 - 3차: T7 → T8(에뮬레이터 QA). 스크린샷 부분은 2·3번 병합 뒤 별도 회차.
 
 각 작업이 끝날 때 `./gradlew :app:testDebugUnitTest`가 통과해야 한다(T4·T6은 문서·리소스 위주라 빌드만 확인).
+
+## 13. 구현 기록 (2026-10-18)
+
+**만든 것**: 상태 없는 `SettingsScreen` + `SettingsRoute`(최근 본 차 지우기·저장한 차 모두 지우기, `AvDialog` 확인, `LocalAvToast`, mailto 문의), 순수 함수 `toastBottomPadding`(설정에서는 배너 위), 해요체 요약 개인정보 처리방침 화면, 새 적응형 아이콘·테마 아이콘·흰 스플래시, 오픈소스 고지 생성 스크립트(`scripts/oss-notices/`)와 목록·상세(`Route.LicenseDetail`) 화면, 스토어 문구·피처 그래픽·스크린샷 틀.
+
+**결정·변경**
+- **아이콘**: 5.2절 path를 조정 없이 그대로 썼다(체크 두께 4.4, 전조등 8×5). `docs/assets/source/app-icon.svg`와 `play-icon-512` 원본·PNG를 새로 만들었다.
+- **고지 수량**: Maven 아티팩트 127개(설계 시 129개 추정) + Pretendard, 묶음 15개. 라이선스는 Apache 2.0·MIT(checker-qual)·OFL 1.1·Android SDK 라이선스(URL만). Play 서비스·UMP AAR에 포함된 구성요소는 71개, 서로 다른 전문 23개다.
+- **개인정보 내용 바로잡기**: "외부 서버로 전송하지 않아요" 같은 문구를 지웠다. AdMob이 광고 ID·앱 세트 ID·IP·기기/앱 정보·광고 상호작용을 Google에 보내고, 엔카는 기기에서 직접 요청(매물 ID·차량번호·접속 정보)을 받는다는 사실을 앱 요약·`docs/privacy-policy.md`·`docs/legal/index.html`·스토어 데이터 안전성 답변에 맞췄다(7df1ffc, 3759fb5). 최종 업데이트는 2026년 10월 18일.
+- **렌더링**: macOS에서는 `PANGOCAIRO_BACKEND=fc`를 함께 줘야 `FONTCONFIG_FILE`이 적용된다. 빠지면 Pretendard 대신 대체 글꼴로 한글이 렌더링된다. 6.1절 명령에도 이 변수가 필요하다(`docs/assets-guide.md`에 반영).
+- **문자열**: 브라우저 없음 토스트는 `strings.xml`의 `common_no_browser` 하나를 방침 화면과 라이선스 상세("웹에서 보기")가 함께 쓴다. 라이선스 상세는 처음에 로그만 남겼으나 문서 마감 때 토스트로 고쳤다.
+- 최근 본 차 개수는 `getRecentFlow` 대신 2번의 `recentViewItems()`를, 저장한 차 개수는 3번의 `SavedCarsRepository.itemCount`를 쓴다(홈 목록·저장 탭과 같은 수).
+- 앱 이름은 `docs/store-listing.md`의 "AutoVerdict — 중고차 매물 평가"로 체크리스트·Play Console 안내를 맞췄다. 릴리스 문서에 고지 재생성 단계를 넣었다(7.5절).
+
+**후속 과제**
+- **광고 동의(UMP) 흐름 미구현.** UMP SDK는 `play-services-ads`를 통해 함께 들어오지만 동의 양식을 띄우는 코드가 없다. EEA·영국에 배포하기 전에 구현해야 한다.
+- Play 데이터 안전성에서 IP 주소를 "대략적인 위치"로 신고할지는 Google AdMob 안내를 보고 사용자가 정한다(`docs/store-listing.md` 표).
+- 스토어 스크린샷(T8): 2·3번이 들어온 새 디자인으로 다시 찍어야 한다. 지금 `docs/assets/screenshots/`는 옛 화면이다.
+- gh-pages 공개 방침 게시, Play Console 업로드, 버전 올리기는 사용자가 직접 한다.
+- 결과 화면 토스트와 하단 CTA·배너 겹침 여부(3.4절), release AAB 크기 변화는 아직 기록하지 않았다.

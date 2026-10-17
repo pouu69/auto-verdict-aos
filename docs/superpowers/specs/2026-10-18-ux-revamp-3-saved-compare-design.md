@@ -385,3 +385,19 @@ vehicleIdOf(raw)   = raw.preloadedState.cars.base.vehicleId   // 숫자 또는 �
 - 4차: **T6** (빌드 + 전체 테스트 + 에뮬레이터 1회)
 
 각 작업 끝에 `./gradlew :app:testDebugUnitTest`가 통과해야 한다. `proguard-rules.pro`는 바뀌지 않는다(새 `@JavascriptInterface`·엔티티 없음).
+
+## 14. 구현 기록 (2026-10-18)
+
+**만든 것**: `saved/`(`SavedIdentity`·`SavedCarsRepository`·`SavedListModel`), `ui/saved/`(`SavedCarRow`·`SavedSortSheet`), 다시 쓴 `SavedListScreen`, `compare/`(`CompareTable`·`CompareController`), 다시 쓴 `CompareScreen`. DAO는 메서드만 추가했고 스키마는 그대로다. `AvToastState.show(long)`과 `AppPreferences`의 정렬 키를 추가했다.
+
+**결정·변경**
+- **묶음 규칙**: 식별자는 `rawJson`의 `preloadedState.cars.base.vehicleId`(숫자 또는 숫자 문자열, 0보다 큼), 없거나 읽을 수 없으면 `carId`. 대표 행은 `updatedAt`이 가장 큰 행 → `carId == 식별자`인 행 → `carId` 사전순. 삭제·되돌리기는 묶음 전체에 적용한다. 탭바 개수와 설정의 "저장한 차 {m}대"도 항목 수를 쓴다(6563ddf).
+- **저장 경로(3.3절 계약)**: 새 저장은 `SavedCarKey.of(rawJson, urlId)` = 원래 vehicle id로 쓴다. `savedIdentity`가 같은 함수를 쓰므로 저장과 묶음 규칙이 하나다. 더미 광고 id로 저장된 옛 행은 옮기거나 지우지 않고 그 id로 계속 갱신한다. 더미 광고 URL은 자기 id로 먼저 찾고 원래 id로 한 번 더 찾는다. 캐시 키는 URL id 그대로다(e1ec6d3, 4b0406e).
+- **위험·비공개 라벨**: 판정이 NEVER가 아니면 `dangerCount`는 모두 "비공개 n", NEVER이고 1개면 "위험 1", NEVER이고 2개 이상이면 "위험·비공개 n"(4.3절 그대로, `savedCountBadges` 테스트).
+- **비교 재평가**: `CompareController`가 고른 행을 구독하고 각 `rawJson`을 엔진으로 다시 평가한다(`carId`+`updatedAt`이 같으면 다시 하지 않음). 실패한 차만 저장 컬럼으로 대체 열을 만든다. 2대 미만이 되면 `TooFew`.
+- 되돌리기는 `SavedCarsRepository.restoreDetached`가 앱 범위에서 실행해 목록 화면을 떠난 뒤에도 동작한다.
+
+**후속 과제**
+- "위험·비공개 n"을 없애려면 저장 컬럼에 `hiddenCount`가 필요하다. 다음 스키마 변경(실제 마이그레이션 포함) 때 검토한다.
+- 더미 광고 쌍둥이 행은 단위 테스트로만 확인했다. DB 쪽 중복 행 정리는 하지 않았다.
+- 밀어서 삭제의 발견성은 실제 사용에서 문제가 되면 선택 모드에 삭제를 추가하는 안을 다시 검토한다(12절).

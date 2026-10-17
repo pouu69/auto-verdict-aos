@@ -378,3 +378,21 @@ AvBottomCta: AvButton Primary L 폭 전체
 
 - T5와 T6은 `AppScreenContent.kt`에서 서로 다른 한 줄씩만 고친다. 충돌이 나면 단순 병합하면 된다.
 - 각 웨이브가 끝날 때 `./gradlew :app:testDebugUnitTest`가 통과해야 다음 웨이브로 넘어간다.
+
+## 14. 구현 기록 (2026-10-18)
+
+**만든 것**: 설계대로 `home/`(`HomeRoute`·상태 없는 `HomeScreen`·`HomeInput`·`RecentViews`·`ShareGuideSheet`)와 `onboarding/OnboardingScreen`(2쪽, `FirstRun`/`Replay`)을 새로 만들고 `ui/screen/AnalyzeScreen.kt`·`ui/screen/OnboardingScreen.kt`를 지웠다. `CacheDao.recentViewsFlow`(열만 고르는 쿼리, `RecentViewRow`)가 `getRecentFlow`를 대체했고 스키마는 바뀌지 않았다. 컴포넌트 파라미터(`AvTextField` 액션, `AvListRow.onClickLabel`, `avPressable(focusRingInside)`)와 갤러리 예시를 추가했다. 일러스트 2종은 토큰·`strings.xml`로 옮겼다.
+
+**결정·변경**
+- 클립보드 자동 읽기를 없앴다. [붙여넣기]를 누를 때만 `ClipboardUtil.readText`로 읽고, `getEncarUrl`은 지웠다(2절).
+- 셸에서 `lastAnalyzedUrl`·`onAnalyzed`를 지우고 `ScreenHost`에 `isFirstRunOnboarding`·`hasPendingShare`를 추가했다. 첫 실행 판단은 `AppNavigator`의 규칙을 `internal`로 열어 함께 쓴다.
+- 1분 주기 재조회와 표시 모델 변환은 `CacheDao.recentViewItems()` 하나로 묶었다. 설정(4번)의 "최근 본 차 {n}대"도 같은 흐름을 써서 홈 목록과 개수가 같다.
+- pop 중 같은 route 재진입은 설계대로 수용했다(코드 변경 없음).
+
+**같은 브랜치에 함께 들어간 수정 (알려진 한계)**
+- 삭제 매물 판정: 페이지가 `cars/GET_BASE` 실패만 표시하면 수집기가 base API(`api.encar.com/v1/readside/vehicle/{id}`)를 다시 요청해 **404일 때만** `Deleted`로 본다. 5xx·네트워크 오류·시간 초과(10초)는 다시 시도할 수 있는 `PageUnreadable`이다(1ecdb02).
+- `webview-bundle/src/normalize-input.ts`: 코어가 예외를 던지던 엔카 응답 형태(`base.category`·`advertisement`·`spec` 누락, 배열이 아닌 점검 목록 등)를 코어에 넘기기 전에 고친다. 정상 입력은 그대로라 계약 JSON이 바뀌지 않는다(b0e9f71, 568c0d2). core는 수정하지 않았다.
+
+**후속 과제**
+- 엔카 앱 공유 문구 형식 확인(11절 리스크). 실제 기기에서 확인하기 전까지는 무효 공유 토스트로 안전하게 실패한다.
+- 404 판별용 base API 재요청은 엔카 페이지 안의 `fetch`로 한다. 404 응답에 CORS 헤더가 없으면 상태 코드를 읽지 못하고 네트워크 오류로 처리되어 삭제 매물이 "다시 시도"로 보일 수 있다. 실제 삭제 매물로 확인해야 한다.
