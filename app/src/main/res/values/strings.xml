@@ -80,4 +80,11 @@
     <string name="result_questions_copy">복사</string>
     <string name="result_questions_share">공유</string>
     <string name="result_refreshing">다시 가져오는 중</string>
+    <string name="result_toast_saved">저장했어요</string>
+    <string name="result_toast_saved_action">보기</string>
+    <string name="result_toast_unsaved">저장을 취소했어요</string>
+    <string name="result_toast_save_failed">저장하지 못했어요</string>
+    <string name="result_toast_retry_failed">다시 가져오지 못했어요</string>
+    <string name="result_toast_copied">복사했어요</string>
+    <string name="result_clip_label_questions">판매자 질문</string>
 </resources>
