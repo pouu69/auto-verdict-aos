@@ -15,6 +15,10 @@ interface CacheDao {
     )
     fun recentViewsFlow(now: Long, limit: Int): Flow<List<RecentViewRow>>
 
+    /** Payloads of [carIds] only, so recent rows' identities are resolved a few rows at a time. */
+    @Query("SELECT carId, rawInputJson FROM cache WHERE carId IN (:carIds)")
+    suspend fun recentIdentitySources(carIds: List<String>): List<RecentIdentitySource>
+
     @Query("SELECT * FROM cache WHERE carId = :carId AND expiresAt > :now")
     suspend fun getValid(carId: String, now: Long = System.currentTimeMillis()): CacheEntity?
 

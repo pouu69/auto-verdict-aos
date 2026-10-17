@@ -4,15 +4,23 @@ import android.content.res.Resources
 import com.car.autoverdict.R
 import com.car.autoverdict.db.CacheDao
 import com.car.autoverdict.db.RecentViewRow
+import com.car.autoverdict.result.SavedCarKey
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 
-/** Rows fetched from the cache; 24h retention means this is rarely reached. */
-const val RECENT_QUERY_LIMIT = 20
+/** Cars shown at most, after collapsing one car's rows into one. */
+const val RECENT_ITEM_LIMIT = 20
+
+/** Rows scanned to find [RECENT_ITEM_LIMIT] cars; 24h retention means this is never reached in practice. */
+const val RECENT_SCAN_LIMIT = 200
 
 /** Rows shown before "{n}대 더 보기" is tapped. */
 const val RECENT_COLLAPSED_COUNT = 5
@@ -94,15 +102,64 @@ fun nowTicker(
 }
 
 /**
- * Recent items re-queried on every tick. Kept as one chained flow so a single
- * `collectAsStateWithLifecycle(initialValue = null)` never falls back to null between ticks,
- * which would make the list flicker every minute.
+ * Recent items re-queried on every tick, one per car (newest row wins). Kept as one chained flow
+ * so a single `collectAsStateWithLifecycle(initialValue = null)` never falls back to null between
+ * ticks, which would make the list flicker every minute. Identities are resolved on [dispatcher]
+ * with a memo per collection, so each row's payload is parsed once rather than every tick.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-fun CacheDao.recentViewItems(ticks: Flow<Long> = nowTicker()): Flow<List<RecentViewItem>> =
-    ticks.flatMapLatest { now ->
-        recentViewsFlow(now, RECENT_QUERY_LIMIT).map { rows -> rows.map { it.toItem(now) } }
+fun CacheDao.recentViewItems(
+    ticks: Flow<Long> = nowTicker(),
+    dispatcher: CoroutineDispatcher = Dispatchers.Default,
+): Flow<List<RecentViewItem>> = flow {
+    val resolver = RecentIdentityResolver(this@recentViewItems)
+    emitAll(
+        ticks.flatMapLatest { now ->
+            recentViewsFlow(now, RECENT_SCAN_LIMIT).map { rows ->
+                resolver.newestPerCar(rows, RECENT_ITEM_LIMIT).map { it.toItem(now) }
+            }
+        },
+    )
+}.flowOn(dispatcher)
+
+/**
+ * Collapses recent rows to one per vehicle identity, the rule the saved list uses
+ * ([SavedCarKey]): Encar can serve one car under a dummy-ad id and its original id, and the cache
+ * is keyed by the URL id. Not thread-safe; calls must be sequential (one collection).
+ */
+private class RecentIdentityResolver(private val dao: CacheDao) {
+    /** (carId, cachedAt) → identity; a re-cached row has a new cachedAt and is parsed again. */
+    private var memo: Map<Pair<String, Long>, String> = emptyMap()
+
+    /** The newest row of each car in [rows] (newest first), up to [limit] cars. */
+    suspend fun newestPerCar(rows: List<RecentViewRow>, limit: Int): List<RecentViewRow> {
+        val known = HashMap(memo)
+        val seen = HashSet<String>()
+        val result = ArrayList<RecentViewRow>(limit)
+        // Payloads can be hundreds of KB, so they are fetched a few rows at a time and only as far as needed.
+        for (chunk in rows.chunked(PAYLOAD_CHUNK)) {
+            if (result.size >= limit) break
+            val missing = chunk.filter { it.key !in known }
+            if (missing.isNotEmpty()) {
+                val payloads = dao.recentIdentitySources(missing.map { it.carId }).associateBy { it.carId }
+                for (row in missing) {
+                    known[row.key] = payloads[row.carId]?.let { SavedCarKey.of(it.rawInputJson, row.carId) } ?: row.carId
+                }
+            }
+            for (row in chunk) {
+                if (result.size >= limit) break
+                if (seen.add(known.getValue(row.key))) result += row
+            }
+        }
+        val current = rows.mapTo(HashSet()) { it.key }
+        memo = known.filterKeys { it in current }
+        return result
     }
+
+    private val RecentViewRow.key get() = carId to cachedAt
+}
+
+private const val PAYLOAD_CHUNK = 5
 
 private const val MINUTE_MS = 60_000L
 private const val HOUR_MS = 60 * MINUTE_MS
