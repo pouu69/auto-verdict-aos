@@ -35,6 +35,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -49,6 +50,16 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.car.autoverdict.R
 import com.car.autoverdict.report.EvaluationReport
+import com.car.autoverdict.result.sections.AllRulesSection
+import com.car.autoverdict.result.sections.CountChips
+import com.car.autoverdict.result.sections.ExcludedSection
+import com.car.autoverdict.result.sections.FactGrid
+import com.car.autoverdict.result.sections.IssuesSection
+import com.car.autoverdict.result.sections.RepairsSection
+import com.car.autoverdict.result.sections.ResultBannerCard
+import com.car.autoverdict.result.sections.SellerQuestionsSection
+import com.car.autoverdict.result.sections.TimelineSection
+import com.car.autoverdict.result.sections.VerdictHeader
 import com.car.autoverdict.ui.components.AvBottomCta
 import com.car.autoverdict.ui.components.AvButton
 import com.car.autoverdict.ui.components.AvButtonSize
@@ -56,12 +67,14 @@ import com.car.autoverdict.ui.components.AvButtonStyle
 import com.car.autoverdict.ui.components.AvDialog
 import com.car.autoverdict.ui.components.AvEmptyState
 import com.car.autoverdict.ui.components.AvLoadingSteps
+import com.car.autoverdict.ui.components.AvSectionDivider
 import com.car.autoverdict.ui.components.AvTopBar
 import com.car.autoverdict.ui.components.LoadingStep
 import com.car.autoverdict.ui.components.StepState
 import com.car.autoverdict.ui.components.avPressable
 import com.car.autoverdict.ui.theme.AvTheme
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 /** Everything the result screen can ask of its host. [ResultScreen] itself holds no data state. */
 data class ResultActions(
@@ -231,20 +244,58 @@ private fun ReadyBody(
         snapshotFlow { listState.isScrollInProgress }.first { it }
         onUserScrolled()
     }
+    val scope = rememberCoroutineScope()
     LazyColumn(state = listState, modifier = modifier.fillMaxWidth()) {
-        reportSections(report = state.report)
+        reportSections(
+            report = state.report,
+            banner = state.banner,
+            actions = actions,
+            onApplyUpdate = {
+                actions.onApplyUpdate()
+                scope.launch { listState.animateScrollToItem(0) }
+            },
+        )
     }
 }
 
-private fun LazyListScope.reportSections(report: EvaluationReport) {
-    item(key = "headline") {
-        Text(
-            text = report.headline,
-            style = AvTheme.typography.title1,
-            color = AvTheme.colors.textPrimary,
-            modifier = Modifier.padding(horizontal = AvTheme.spacing.screenHorizontal),
-        )
+/** Spec 5.2 items 2-11, top to bottom, all expanded. Empty sections are left out with their divider. */
+private fun LazyListScope.reportSections(
+    report: EvaluationReport,
+    banner: ResultBanner?,
+    actions: ResultActions,
+    onApplyUpdate: () -> Unit,
+) {
+    if (banner != null) {
+        item(key = "banner") { ResultBannerCard(banner = banner, onApplyUpdate = onApplyUpdate, onRetry = actions.onRetry) }
     }
+    item(key = "header") {
+        Column(modifier = Modifier.padding(top = if (banner == null) 8.dp else 4.dp, bottom = 24.dp)) {
+            VerdictHeader(report)
+            Spacer(Modifier.height(16.dp))
+            CountChips(report.counts)
+            if (report.facts.isNotEmpty()) {
+                Spacer(Modifier.height(20.dp))
+                FactGrid(report.facts)
+            }
+        }
+    }
+    report.repairs?.let { repairs -> section("repairs") { RepairsSection(repairs) } }
+    if (report.issues.isNotEmpty()) section("issues") { IssuesSection(report.issues) }
+    if (report.timeline.isNotEmpty()) section("timeline") { TimelineSection(report.timeline) }
+    section("rules") { AllRulesSection(report.rules) }
+    if (report.excluded.isNotEmpty()) section("excluded") { ExcludedSection(report.excluded) }
+    val questions = report.issues.mapNotNull { it.sellerQuestion }
+    if (questions.isNotEmpty()) {
+        section("questions") {
+            SellerQuestionsSection(questions = questions, onCopy = actions.onCopyQuestions, onShare = actions.onShareQuestions)
+        }
+    }
+}
+
+/** A grey band, then the section. */
+private fun LazyListScope.section(key: String, content: @Composable () -> Unit) {
+    item(key = "$key-divider") { AvSectionDivider() }
+    item(key = key) { content() }
 }
 
 @Composable
