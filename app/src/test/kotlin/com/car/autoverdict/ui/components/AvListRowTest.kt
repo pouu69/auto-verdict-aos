@@ -2,6 +2,8 @@ package com.car.autoverdict.ui.components
 
 import android.app.Application
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
@@ -33,6 +35,15 @@ class AvListRowTest {
             .assert(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button))
             .performClick()
         assertEquals(1, clicks)
+    }
+
+    @Test fun `onClickLabel names the click action`() {
+        rule.setContent {
+            AvTheme { AvListRow(title = "그랜저 IG", onClick = {}, onClickLabel = "분석 결과 보기") }
+        }
+        rule.onNode(hasText("그랜저 IG")).assert(
+            SemanticsMatcher("click label") { it.config.getOrNull(SemanticsActions.OnClick)?.label == "분석 결과 보기" },
+        )
     }
 
     @Test fun `static row still merges its texts`() {
