@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -186,7 +185,7 @@ fun AppRoot(
                 state = toast,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .then(toastOffset(currentTab != null, bottomChromeHeight)),
+                    .padding(bottom = toastBottomPadding(top, navBarBottom, bottomChromeHeight)),
             )
         }
     }
@@ -216,12 +215,15 @@ private val TabBarRowHeight = 56.dp
 private val chromeEnter = slideInHorizontally(tween(250)) { -it / 4 } + fadeIn(tween(250))
 private val chromeExit = slideOutHorizontally(tween(250)) { -it / 4 } + fadeOut(tween(250))
 
-private fun toastOffset(onTabRoot: Boolean, bottomChromeHeight: Dp): Modifier =
-    if (onTabRoot) {
-        Modifier.padding(bottom = bottomChromeHeight)
-    } else {
-        Modifier.navigationBarsPadding().padding(bottom = 16.dp)
-    }
+/**
+ * Keeps toasts clear of the bottom chrome (spec 3.4): above the banner and tab bar on tab roots,
+ * above the settings banner on Settings, and just off the navigation bar elsewhere.
+ */
+internal fun toastBottomPadding(top: Route, navBar: Dp, bottomChromeHeight: Dp): Dp = when {
+    top.tabOrNull() != null -> bottomChromeHeight
+    top == Route.Settings -> navBar + BannerSlotHeight + 8.dp
+    else -> navBar + 16.dp
+}
 
 private fun AnimatedContentTransitionScope<Route>.transitionFor(transition: NavTransition): ContentTransform =
     when (transition) {

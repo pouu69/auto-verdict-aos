@@ -10,6 +10,7 @@ import com.car.autoverdict.report.GapSource
 import com.car.autoverdict.report.ReportParser
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -39,7 +40,7 @@ class ResultControllerTest {
     private val evaluator = FakeEvaluator()
 
     private fun TestScope.controller(url: String = URL): ResultController =
-        ResultController(url, repo, evaluator, backgroundScope)
+        ResultController(url, repo, evaluator, backgroundScope, keyDispatcher = Dispatchers.Unconfined)
 
     /** Records every state, including the transient ones (Loading steps). */
     private fun TestScope.history(controller: ResultController): List<ResultUiState> {
@@ -350,7 +351,11 @@ class ResultControllerTest {
     fun `cancelling an in-place retry clears refreshing and keeps the report`() = runTest {
         val partial = givenPartialCache()
         val scopeJob = Job()
-        val c = ResultController(URL, repo, evaluator, CoroutineScope(StandardTestDispatcher(testScheduler) + scopeJob))
+        val c = ResultController(
+            URL, repo, evaluator,
+            CoroutineScope(StandardTestDispatcher(testScheduler) + scopeJob),
+            keyDispatcher = Dispatchers.Unconfined,
+        )
         c.start()
         runCurrent()
 
@@ -774,12 +779,51 @@ class ResultControllerTest {
         assertEquals(listOf(ResultEvent.Unsaved), events)
     }
 
+    // --- dummy ad: one car, two Encar ids ---
+
+    /** Opens the dummy-ad URL and lets the collector return its payload. */
+    private fun TestScope.openDummyAd(): ResultController {
+        evaluator.results[DUMMY_RAW] = EngineResult.Success(caution.copy(carId = DUMMY_ID, url = DUMMY_URL))
+        val c = controller(url = DUMMY_URL)
+        c.start()
+        runCurrent()
+        repo.collects.lastOrNull()?.result?.complete(CollectOutcome.Success(DUMMY_RAW))
+        passMinimumLoading()
+        return c
+    }
+
+    @Test
+    fun `dummy-ad url saves under the original vehicle id`() = runTest {
+        val c = openDummyAd()
+        c.save()
+        runCurrent()
+
+        assertEquals(ORIGINAL_ID, repo.saves.single().carId)
+        assertTrue(c.ready().saved)
+    }
+
+    @Test
+    fun `dummy-ad url finds the car saved under either id`() = runTest {
+        // Saved under the original id: found once the payload names it, and refreshed in place.
+        repo.saved = savedEntity(rawJson = "saved-raw", savedAt = SAVED_AT).copy(carId = ORIGINAL_ID)
+        assertTrue(openDummyAd().ready().saved)
+        assertEquals(ORIGINAL_ID, repo.saves.single().carId)
+
+        // Legacy row under the dummy-ad id: found directly; unsave removes both ids.
+        repo.saved = savedEntity(rawJson = DUMMY_RAW, savedAt = SAVED_AT).copy(carId = DUMMY_ID)
+        val legacy = openDummyAd()
+        assertTrue(legacy.ready().saved)
+        legacy.unsave()
+        runCurrent()
+        assertEquals(listOf(DUMMY_ID, ORIGINAL_ID), repo.deletes)
+    }
+
     @Test
     fun `save finishes its write after the screen scope is cancelled`() = runTest {
         repo.cache = "cache-raw"
         evaluator.results["cache-raw"] = EngineResult.Success(caution)
         val screen = CoroutineScope(Job() + StandardTestDispatcher(testScheduler))
-        val c = ResultController(URL, repo, evaluator, screen)
+        val c = ResultController(URL, repo, evaluator, screen, keyDispatcher = Dispatchers.Unconfined)
         val events = events(c)
         c.start()
         runCurrent()
@@ -801,7 +845,7 @@ class ResultControllerTest {
     fun `unsave finishes its delete after the screen scope is cancelled`() = runTest {
         givenSavedCar()
         val screen = CoroutineScope(Job() + StandardTestDispatcher(testScheduler))
-        val c = ResultController(URL, repo, evaluator, screen)
+        val c = ResultController(URL, repo, evaluator, screen, keyDispatcher = Dispatchers.Unconfined)
         c.start()
         runCurrent()
         val gate = CompletableDeferred<Unit>()
@@ -820,7 +864,7 @@ class ResultControllerTest {
     fun `refresh writes both the cache and the saved row after the screen scope is cancelled`() = runTest {
         givenSavedCar()
         val screen = CoroutineScope(Job() + StandardTestDispatcher(testScheduler))
-        val c = ResultController(URL, repo, evaluator, screen)
+        val c = ResultController(URL, repo, evaluator, screen, keyDispatcher = Dispatchers.Unconfined)
         c.start()
         runCurrent()
         val gate = CompletableDeferred<Unit>()
@@ -890,7 +934,12 @@ class ResultControllerTest {
 
     // --- fakes ---
 
-    private data class SaveCall(val report: EvaluationReport, val rawJson: String, val savedAt: Long?)
+    private data class SaveCall(
+        val report: EvaluationReport,
+        val rawJson: String,
+        val savedAt: Long?,
+        val carId: String = CAR_ID,
+    )
 
     private class CollectCall(val url: String, val carId: String, val onStage: (CollectStage) -> Unit) {
         val result = CompletableDeferred<CollectOutcome>()
@@ -914,7 +963,7 @@ class ResultControllerTest {
         override suspend fun savedCar(carId: String): SavedCarEntity? {
             reads += carId
             savedCarReads++
-            return saved
+            return saved?.takeIf { it.carId == carId }
         }
 
         override suspend fun cachedRaw(carId: String): String? {
@@ -938,12 +987,12 @@ class ResultControllerTest {
             cacheWrites += report to rawJson
         }
 
-        override suspend fun save(report: EvaluationReport, rawJson: String, savedAt: Long?): Long {
+        override suspend fun save(report: EvaluationReport, rawJson: String, savedAt: Long?, carId: String): Long {
             writeGate?.await()
             if (failWrites) throw IOException("disk full")
-            saves += SaveCall(report, rawJson, savedAt)
+            saves += SaveCall(report, rawJson, savedAt, carId)
             val written = savedAt ?: NOW
-            saved = savedEntity(rawJson, written)
+            saved = savedEntity(rawJson, written).copy(carId = carId)
             return written
         }
 
@@ -966,6 +1015,13 @@ class ResultControllerTest {
         const val URL = "https://fem.encar.com/cars/detail/$CAR_ID"
         const val SAVED_AT = 111L
         const val NOW = 999L
+
+        // fem.encar.com/cars/detail/42753994 is a dummy ad of vehicle 42751994.
+        const val DUMMY_ID = "42753994"
+        const val ORIGINAL_ID = "42751994"
+        const val DUMMY_URL = "https://fem.encar.com/cars/detail/$DUMMY_ID"
+        const val DUMMY_RAW = """{"carId":"$DUMMY_ID","preloadedState":{"cars":{"base":{""" +
+            """"vehicleId":42751994,"queryCarId":42753994,"manage":{"dummy":true,"dummyVehicleId":42753994}}}}}"""
 
         fun sample(name: String): EvaluationReport {
             val text = requireNotNull(ResultControllerTest::class.java.classLoader?.getResource("report/$name"))

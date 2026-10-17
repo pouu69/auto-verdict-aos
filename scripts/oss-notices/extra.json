@@ -1,0 +1,17 @@
+{
+  "licenses": [
+    {
+      "id": "ofl-1.1",
+      "name": "SIL Open Font License 1.1",
+      "textFile": "texts/ofl-1.1-pretendard.txt"
+    }
+  ],
+  "libraries": [
+    {
+      "id": "pretendard",
+      "name": "Pretendard",
+      "licenseId": "ofl-1.1",
+      "artifacts": ["Pretendard 1.3.9 (Regular, SemiBold, Bold) — app/src/main/res/font"]
+    }
+  ]
+}

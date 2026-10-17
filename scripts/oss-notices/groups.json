@@ -1,0 +1,61 @@
+{
+  "licenses": [
+    {
+      "id": "apache-2.0",
+      "name": "Apache License 2.0",
+      "pomNamePatterns": ["\\bApache\\b.*\\b2\\.0\\b"],
+      "textFile": "texts/apache-2.0.txt"
+    },
+    {
+      "id": "mit",
+      "name": "MIT License",
+      "pomNamePatterns": ["\\bMIT\\b"],
+      "textFromArtifact": true
+    },
+    {
+      "id": "google-android-sdk",
+      "name": "Android 소프트웨어 개발 키트 라이선스",
+      "pomNamePatterns": ["^Android Software Development Kit License$"],
+      "url": "https://developer.android.com/studio/terms.html",
+      "googleThirdPartyNotices": true
+    }
+  ],
+  "artifactLicenseOverrides": {},
+  "groups": [
+    { "id": "jetpack-compose", "name": "Jetpack Compose", "match": ["androidx.compose.*"] },
+    { "id": "androidx-lifecycle", "name": "AndroidX Lifecycle", "match": ["androidx.lifecycle"] },
+    { "id": "androidx-room-sqlite", "name": "AndroidX Room · SQLite", "match": ["androidx.room", "androidx.sqlite"] },
+    {
+      "id": "androidx-activity-fragment-savedstate",
+      "name": "AndroidX Activity · Fragment · SavedState",
+      "match": ["androidx.activity", "androidx.fragment", "androidx.savedstate"]
+    },
+    {
+      "id": "androidx-core",
+      "name": "AndroidX Core",
+      "match": [
+        "androidx.core", "androidx.annotation", "androidx.collection", "androidx.arch.core",
+        "androidx.concurrent", "androidx.versionedparcelable", "androidx.tracing", "androidx.startup",
+        "androidx.profileinstaller", "androidx.emoji2", "androidx.graphics", "androidx.autofill",
+        "androidx.customview", "androidx.interpolator", "androidx.loader", "androidx.viewpager"
+      ]
+    },
+    { "id": "androidx-webkit-browser", "name": "AndroidX WebKit · Browser", "match": ["androidx.webkit", "androidx.browser"] },
+    { "id": "androidx-work", "name": "AndroidX WorkManager", "match": ["androidx.work"] },
+    { "id": "androidx-privacysandbox-ads", "name": "AndroidX Privacy Sandbox Ads", "match": ["androidx.privacysandbox.ads"] },
+    { "id": "kotlin-stdlib", "name": "Kotlin 표준 라이브러리", "match": ["org.jetbrains.kotlin"] },
+    { "id": "kotlinx", "name": "kotlinx.coroutines · kotlinx.serialization", "match": ["org.jetbrains.kotlinx"] },
+    {
+      "id": "guava",
+      "name": "Guava",
+      "match": ["com.google.guava", "com.google.j2objc", "com.google.errorprone", "com.google.code.findbugs"]
+    },
+    { "id": "jetbrains-annotations-jspecify", "name": "JetBrains Annotations · JSpecify", "match": ["org.jetbrains", "org.jspecify"] },
+    { "id": "checker-framework", "name": "Checker Framework", "match": ["org.checkerframework"] },
+    {
+      "id": "google-mobile-ads-play-services",
+      "name": "Google 모바일 광고 SDK · Play 서비스",
+      "match": ["com.google.android.gms", "com.google.android.ump"]
+    }
+  ]
+}

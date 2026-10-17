@@ -19,11 +19,6 @@
     <string name="license_material_notice">Material Symbols 아이콘은 Apache License 2.0에 따라 사용합니다.</string>
     <string name="license_show_full">전문 보기</string>
     <string name="license_hide_full">접기</string>
-    <string name="settings_licenses_title">오픈소스 라이선스</string>
-    <string name="settings_licenses_subtitle">폰트·아이콘 라이선스 고지</string>
-    <string name="settings_section_dev">개발</string>
-    <string name="settings_gallery_title">컴포넌트 갤러리</string>
-    <string name="settings_gallery_subtitle">debug 빌드 전용</string>
     <string name="loading_step_done">완료</string>
     <string name="loading_step_active">진행 중</string>
     <string name="loading_step_pending">대기 중</string>
@@ -116,6 +111,23 @@
     <string name="time_just_now">방금 전</string>
     <string name="time_minutes_ago">%1$d분 전</string>
     <string name="time_hours_ago">%1$d시간 전</string>
+    <!-- Home screen (UX revamp 2, T5) -->
+    <string name="home_headline">어떤 매물을 확인할까요?</string>
+    <string name="home_description">엔카 매물 링크를 넣으면 12가지 기준으로 평가해요</string>
+    <string name="home_input_placeholder">엔카 매물 링크</string>
+    <string name="home_paste">붙여넣기</string>
+    <string name="home_analyze">분석하기</string>
+    <string name="home_share_row_title">엔카에서 바로 공유하기</string>
+    <string name="home_share_row_subtitle">링크를 복사하지 않아도 돼요</string>
+    <string name="home_recent_title">최근 본 차</string>
+    <string name="home_recent_untitled">엔카 매물 %1$s</string>
+    <string name="home_recent_meta">%1$s · %2$s</string>
+    <string name="home_recent_show_more">%1$d대 더 보기</string>
+    <string name="home_recent_fold">접기</string>
+    <string name="home_recent_click_label">분석 결과 보기</string>
+    <string name="home_recent_footnote">분석하고 24시간이 지나면 목록에서 사라져요</string>
+    <string name="home_recent_empty_title">아직 본 차가 없어요</string>
+    <string name="home_recent_empty_description">분석한 매물은 24시간 동안 여기에 남아요</string>
     <!-- saved & compare (sub-project 3) -->
     <string name="saved_count_danger_or_hidden">위험·비공개 %1$d</string>
     <string name="saved_title">저장한 차</string>
@@ -155,6 +167,12 @@
     <string name="compare_row_year">연식</string>
     <string name="compare_row_mileage">주행거리</string>
     <string name="compare_row_fuel">연료</string>
+    <string name="compare_row_danger">위험</string>
+    <string name="compare_row_hidden">비공개</string>
+    <string name="compare_row_warning">주의</string>
+    <string name="compare_row_pass">통과</string>
+    <string name="compare_row_unknown">미확인</string>
+    <string name="compare_row_excluded">평가 제외</string>
     <string name="compare_issues_more">외 %1$d개</string>
     <string name="compare_issues_none">없어요</string>
     <string name="compare_fallback_note">저장 당시 요약이에요</string>
@@ -188,4 +206,21 @@
     <string name="illus_app_messenger">메신저</string>
     <string name="illus_app_message">메시지</string>
     <string name="illus_browser_note">크롬은 오른쪽 위, 삼성 인터넷은 아래쪽 메뉴에 있어요</string>
+
+    <!-- Onboarding (UX revamp 2, T6) -->
+    <string name="onboarding_skip">건너뛰기</string>
+    <string name="onboarding_next">다음</string>
+    <string name="onboarding_start">시작하기</string>
+    <string name="onboarding_close">닫기</string>
+    <string name="onboarding_value_title">엔카 매물, 사기 전에 확인해 보세요</string>
+    <string name="onboarding_value_body">12가지 기준으로 살펴보고 결론부터 알려 드려요</string>
+    <string name="onboarding_value_point_history">사고·침수·전손 이력</string>
+    <string name="onboarding_value_point_owner">소유자 변경·자차보험 공백</string>
+    <string name="onboarding_value_point_inspection">성능점검 교환·수리 부위</string>
+    <string name="onboarding_share_title">엔카에서 공유하면 바로 분석해요</string>
+    <string name="onboarding_share_step_open">엔카 앱이나 브라우저에서 매물을 열어요</string>
+    <string name="onboarding_share_step_pick">공유를 누르고 AutoVerdict를 골라요</string>
+    <string name="onboarding_share_tip">링크를 복사해 홈에 붙여 넣어도 돼요</string>
+    <string name="onboarding_pending_share">공유한 매물은 시작하면 바로 분석해요</string>
+    <string name="onboarding_page_cd">%2$d쪽 중 %1$d쪽</string>
 </resources>
