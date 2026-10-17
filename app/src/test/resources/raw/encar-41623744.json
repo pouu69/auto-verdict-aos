@@ -1,0 +1,147 @@
+{
+  "url": "https://fem.encar.com/cars/detail/41623744",
+  "carId": "41623744",
+  "preloadedState": {
+    "cars": {
+      "base": {
+        "manage": {
+          "dummy": false,
+          "dummyVehicleId": null,
+          "reRegistered": false,
+          "webReserved": false,
+          "registDateTime": "2026-03-09T12:36:05",
+          "firstAdvertisedDateTime": "2026-03-11T13:17:15",
+          "modifyDateTime": "2026-10-02T17:21:59",
+          "subscribeCount": 0,
+          "viewCount": 326
+        },
+        "category": {
+          "type": "CAR",
+          "manufacturerCd": "003",
+          "manufacturerName": "쉐보레(GM대우)",
+          "modelCd": "065",
+          "modelName": "라세티 프리미어",
+          "gradeCd": "017",
+          "gradeName": "1.8 CDX ID",
+          "gradeEnglishName": "1.8 CDX ID",
+          "yearMonth": "201002",
+          "formYear": "2010",
+          "domestic": true,
+          "importType": "NONE_IMPORT_TYPE",
+          "originPrice": 1854,
+          "manufacturerEnglishName": "ChevroletGMDaewoo",
+          "modelGroupCd": "008",
+          "modelGroupName": "라세티",
+          "modelGroupEnglishName": "Lacetti",
+          "gradeDetailCd": "001",
+          "gradeDetailName": "고급형",
+          "gradeDetailEnglishName": "Delxue",
+          "jatoVehicleId": 783965620091001,
+          "warranty": {
+            "userDefined": false,
+            "companyName": null,
+            "bodyMonth": 36,
+            "bodyMileage": 60000,
+            "transmissionMonth": 60,
+            "transmissionMileage": 100000
+          }
+        },
+        "advertisement": {
+          "type": "CAR",
+          "price": 330,
+          "status": "WAIT",
+          "warrantyStyleColor": null,
+          "trust": [],
+          "hotMark": [],
+          "oneLineText": null,
+          "salesStatus": null,
+          "directInspected": false,
+          "preVerified": false,
+          "extendWarranty": false,
+          "deemedExtendWarranty": false,
+          "homeService": false,
+          "meetGo": false,
+          "encarCheck": false,
+          "preDelivery": false,
+          "leaseRentInfo": null,
+          "encarPassType": null,
+          "encarPassCategoryType": null,
+          "hasUnderBodyPhoto": false,
+          "verification": {
+            "version": null,
+            "reportExists": false,
+            "reportVersion": null
+          },
+          "advertisementType": "NORMAL",
+          "diagnosisCar": false
+        },
+        "spec": {
+          "type": "CAR",
+          "mileage": 94560,
+          "displacement": 1796,
+          "transmissionName": "오토",
+          "fuelCd": "001",
+          "fuelName": "가솔린",
+          "colorName": "은색",
+          "customColor": null,
+          "seatCount": 5,
+          "tradeType": "D",
+          "tradeOwnerType": null,
+          "bodyName": "준중형차"
+        },
+        "condition": {
+          "accident": {
+            "recordView": true,
+            "resumeView": true
+          },
+          "inspection": {
+            "formats": [
+              "TABLE"
+            ]
+          },
+          "seizing": {
+            "seizingCount": 0,
+            "pledgeCount": 0
+          }
+        },
+        "vehicleType": "CAR",
+        "vehicleId": 41623744
+      },
+      "detailFlags": {
+        "isAvailableMoveToDummy": false,
+        "isBrandCertification": null,
+        "isBrandCertificationDomestic": false,
+        "isAffiliateRent": false,
+        "isAffiliateLease": false,
+        "isCarVerification": false,
+        "isCompensate": false,
+        "isDealer": true,
+        "isDiagnosisExist": false,
+        "isExtendWarranty": false,
+        "isHomeService": false,
+        "isInsuranceExist": true,
+        "isHistoryView": true,
+        "isMeetgo": false,
+        "isSafetyZoneExpert": false,
+        "isMeetgoCheckupAvailable": false,
+        "isMeetgoVisitAvailable": false,
+        "isTruck": false,
+        "adStatus": "wait",
+        "advertisementType": "AD_NORMAL",
+        "encarDiagnosisTag": null,
+        "inspectType": "INSPECT",
+        "leaseRentType": "NO_TYPE",
+        "encarServiceType": null,
+        "isEncarCheck": false,
+        "isBatteryPass": false,
+        "hasEvBatteryInfo": false,
+        "isBatteryCompensable": false
+      }
+    }
+  },
+  "httpStatus": {
+    "inspectionJson": "not_found",
+    "diagnosisJson": "not_found",
+    "recordJson": "not_found"
+  }
+}

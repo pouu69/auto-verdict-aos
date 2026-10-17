@@ -1,0 +1,1492 @@
+{
+  "url": "https://fem.encar.com/cars/detail/41878112",
+  "carId": "41878112",
+  "preloadedState": {
+    "cars": {
+      "base": {
+        "manage": {
+          "dummy": false,
+          "dummyVehicleId": null,
+          "reRegistered": true,
+          "webReserved": true,
+          "registDateTime": "2026-04-17T13:20:25",
+          "firstAdvertisedDateTime": "2026-08-22T09:19:16",
+          "modifyDateTime": "2026-10-09T14:19:09",
+          "subscribeCount": 5,
+          "viewCount": 211
+        },
+        "category": {
+          "type": "CAR",
+          "manufacturerCd": "012",
+          "manufacturerName": "BMW",
+          "modelCd": "038",
+          "modelName": "3시리즈 (F30)",
+          "gradeCd": "006",
+          "gradeName": "320d ED에디션",
+          "gradeEnglishName": "320d ED Edition",
+          "yearMonth": "201504",
+          "formYear": "2015",
+          "domestic": false,
+          "importType": "REGULAR_IMPORT",
+          "originPrice": 4650,
+          "manufacturerEnglishName": "BMW",
+          "modelGroupCd": "002",
+          "modelGroupName": "3시리즈",
+          "modelGroupEnglishName": "3-Series",
+          "gradeDetailCd": null,
+          "gradeDetailName": null,
+          "gradeDetailEnglishName": null,
+          "jatoVehicleId": 701852720141001,
+          "warranty": {
+            "userDefined": true,
+            "companyName": null,
+            "bodyMonth": 24,
+            "bodyMileage": 999999,
+            "transmissionMonth": 36,
+            "transmissionMileage": 60000
+          }
+        },
+        "advertisement": {
+          "type": "CAR",
+          "price": 920,
+          "status": "ADVERTISE",
+          "warrantyStyleColor": "WHITE",
+          "trust": [
+            "Warranty"
+          ],
+          "hotMark": [],
+          "oneLineText": null,
+          "salesStatus": null,
+          "directInspected": false,
+          "preVerified": false,
+          "extendWarranty": false,
+          "deemedExtendWarranty": false,
+          "homeService": false,
+          "meetGo": false,
+          "encarCheck": false,
+          "preDelivery": false,
+          "leaseRentInfo": null,
+          "encarPassType": null,
+          "encarPassCategoryType": null,
+          "hasUnderBodyPhoto": false,
+          "verification": {
+            "version": null,
+            "reportExists": false,
+            "reportVersion": "1.0"
+          },
+          "advertisementType": "NORMAL",
+          "diagnosisCar": true
+        },
+        "spec": {
+          "type": "CAR",
+          "mileage": 119559,
+          "displacement": 1995,
+          "transmissionName": "오토",
+          "fuelCd": "002",
+          "fuelName": "디젤",
+          "colorName": "흰색",
+          "customColor": null,
+          "seatCount": 5,
+          "tradeType": "D",
+          "tradeOwnerType": null,
+          "bodyName": "준중형차"
+        },
+        "condition": {
+          "accident": {
+            "recordView": true,
+            "resumeView": true
+          },
+          "inspection": {
+            "formats": [
+              "TABLE"
+            ]
+          },
+          "seizing": {
+            "seizingCount": 0,
+            "pledgeCount": 0
+          }
+        },
+        "vehicleType": "CAR",
+        "vehicleId": 41878112
+      },
+      "detailFlags": {
+        "isAvailableMoveToDummy": false,
+        "isBrandCertification": null,
+        "isBrandCertificationDomestic": false,
+        "isAffiliateRent": false,
+        "isAffiliateLease": false,
+        "isCarVerification": false,
+        "isCompensate": false,
+        "isDealer": true,
+        "isDiagnosisExist": true,
+        "isExtendWarranty": false,
+        "isHomeService": false,
+        "isInsuranceExist": true,
+        "isHistoryView": true,
+        "isMeetgo": false,
+        "isDummySafetyZone": false,
+        "isSafetyZoneExpert": false,
+        "isMeetgoCheckupAvailable": false,
+        "isMeetgoVisitAvailable": false,
+        "isTruck": false,
+        "adStatus": "advertise",
+        "advertisementType": "AD_NORMAL",
+        "encarDiagnosisTag": "DIAGNOSIS",
+        "inspectType": "INSPECT",
+        "leaseRentType": "NO_TYPE",
+        "encarServiceType": null,
+        "isEncarCheck": false,
+        "isBatteryPass": false,
+        "hasEvBatteryInfo": false,
+        "isBatteryCompensable": false
+      }
+    }
+  },
+  "recordJson": {
+    "openData": true,
+    "regDate": "2026-10-06T05:39:53.563773",
+    "year": "2015",
+    "maker": "BMW",
+    "carKind": "1",
+    "use": "2",
+    "displacement": "1995",
+    "carName": null,
+    "firstDate": "2015-04-16",
+    "fuel": "디젤",
+    "carShape": null,
+    "model": "3시리즈 (F30)",
+    "transmission": null,
+    "carNameCode": null,
+    "myAccidentCnt": 2,
+    "otherAccidentCnt": 0,
+    "ownerChangeCnt": 5,
+    "robberCnt": 0,
+    "robberDate": null,
+    "totalLossCnt": 0,
+    "totalLossDate": null,
+    "floodTotalLossCnt": 0,
+    "floodPartLossCnt": null,
+    "floodDate": null,
+    "government": 0,
+    "business": 0,
+    "loan": 0,
+    "carNoChangeCnt": 0,
+    "myAccidentCost": 2090550,
+    "otherAccidentCost": 0,
+    "carInfoChanges": [
+      {
+        "date": "2015-04-16"
+      }
+    ],
+    "carInfoUse1s": [
+      "2"
+    ],
+    "carInfoUse2s": [
+      "1"
+    ],
+    "ownerChanges": [
+      "2026-04-01",
+      "2024-09-30",
+      "2024-02-14",
+      "2023-11-14",
+      "2018-04-25"
+    ],
+    "notJoinDate1": "202311~202401",
+    "notJoinDate2": "202604~202607",
+    "notJoinDate3": null,
+    "notJoinDate4": null,
+    "notJoinDate5": null,
+    "accidentCnt": 2,
+    "accidents": [
+      {
+        "type": "1",
+        "date": "2015-09-30",
+        "insuranceBenefit": 1391000,
+        "partCost": 1277600,
+        "laborCost": 80780,
+        "paintingCost": 230550
+      },
+      {
+        "type": "2",
+        "date": "2015-05-23",
+        "insuranceBenefit": 947000,
+        "partCost": 0,
+        "laborCost": 286670,
+        "paintingCost": 214950
+      }
+    ]
+  },
+  "diagnosisJson": {
+    "vehicleId": 41878112,
+    "diagnosisDate": "2026-08-22T00:00:00",
+    "realDiagnosisDate": "2026-08-22T00:00:00",
+    "items": [
+      {
+        "code": "006003",
+        "name": "FRONT_DOOR_LEFT",
+        "result": "정상",
+        "resultCode": "NORMAL"
+      },
+      {
+        "code": "006006",
+        "name": "BACK_DOOR_LEFT",
+        "result": "정상",
+        "resultCode": "NORMAL"
+      },
+      {
+        "code": "006009",
+        "name": "TRUNK_LID",
+        "result": "정상",
+        "resultCode": "NORMAL"
+      },
+      {
+        "code": "006018",
+        "name": "BACK_DOOR_RIGHT",
+        "result": "정상",
+        "resultCode": "NORMAL"
+      },
+      {
+        "code": "006023",
+        "name": "FRONT_DOOR_RIGHT",
+        "result": "정상",
+        "resultCode": "NORMAL"
+      },
+      {
+        "code": "006026",
+        "name": "HOOD",
+        "result": "정상",
+        "resultCode": "NORMAL"
+      },
+      {
+        "code": "006027",
+        "name": "FRONT_FENDER_RIGHT",
+        "result": "정상",
+        "resultCode": "NORMAL"
+      },
+      {
+        "code": "006033",
+        "name": "FRONT_FENDER_LEFT",
+        "result": "정상",
+        "resultCode": "NORMAL"
+      },
+      {
+        "code": "006039",
+        "name": "CHECKER_COMMENT",
+        "result": "본 차량은 엔카의 진단 결과 모든 항목이 정상으로 확인되며,  '무사고' 차량으로 판정합니다.",
+        "resultCode": null
+      },
+      {
+        "code": "006040",
+        "name": "OUTER_PANEL_COMMENT",
+        "result": "본 차량의 진단 결과 외부패널의 교환이 없는 차량입니다.",
+        "resultCode": null
+      }
+    ]
+  },
+  "inspectionJson": {
+    "vehicleId": 41878112,
+    "formats": [
+      "TABLE"
+    ],
+    "master": {
+      "accdient": false,
+      "simpleRepair": false,
+      "registrationDate": "2026-04-20T12:26:33",
+      "detail": {
+        "modelYear": "2015  ",
+        "validityStartDate": "20250525",
+        "validityEndDate": "20270524",
+        "firstRegistrationDate": "20150416",
+        "transmissionType": null,
+        "guarantyType": {
+          "code": "2",
+          "title": "보험사보증"
+        },
+        "boardStateType": {
+          "code": "1",
+          "title": "양호"
+        },
+        "mileage": 119529,
+        "mileageStateType": null,
+        "coout": null,
+        "hcout": null,
+        "smout": "0",
+        "tuning": false,
+        "tuningStateTypes": [],
+        "seriousTypes": [],
+        "usageChangeTypes": [],
+        "colorType": null,
+        "paintPartTypes": [],
+        "mainOptionTypes": [],
+        "recall": true,
+        "recallFullFillTypes": [
+          {
+            "code": "1",
+            "title": "이행"
+          }
+        ],
+        "comments": null,
+        "issueDate": "20260401",
+        "carStateType": {
+          "code": "1",
+          "title": "양호"
+        },
+        "engineCheck": "Y",
+        "trnsCheck": "Y",
+        "waterlog": false,
+        "version": "V200922"
+      }
+    },
+    "price": null,
+    "inners": [
+      {
+        "type": {
+          "code": "S00",
+          "title": "자기진단"
+        },
+        "price": null,
+        "children": [
+          {
+            "type": {
+              "code": "s001",
+              "title": "원동기"
+            },
+            "statusType": {
+              "code": "1",
+              "title": "양호"
+            },
+            "statusItemTypes": [
+              {
+                "code": "1",
+                "title": "양호"
+              },
+              {
+                "code": "10",
+                "title": "불량"
+              }
+            ],
+            "description": null,
+            "children": []
+          },
+          {
+            "type": {
+              "code": "s002",
+              "title": "변속기"
+            },
+            "statusType": {
+              "code": "1",
+              "title": "양호"
+            },
+            "statusItemTypes": [
+              {
+                "code": "1",
+                "title": "양호"
+              },
+              {
+                "code": "10",
+                "title": "불량"
+              }
+            ],
+            "description": null,
+            "children": []
+          }
+        ]
+      },
+      {
+        "type": {
+          "code": "S01",
+          "title": "원동기"
+        },
+        "price": null,
+        "children": [
+          {
+            "type": {
+              "code": "s003",
+              "title": "작동상태(공회전)"
+            },
+            "statusType": {
+              "code": "1",
+              "title": "양호"
+            },
+            "statusItemTypes": [
+              {
+                "code": "1",
+                "title": "양호"
+              },
+              {
+                "code": "10",
+                "title": "불량"
+              }
+            ],
+            "description": null,
+            "children": []
+          },
+          {
+            "type": {
+              "code": "s0102",
+              "title": "오일누유"
+            },
+            "statusType": null,
+            "statusItemTypes": [],
+            "description": null,
+            "children": [
+              {
+                "type": {
+                  "code": "s004",
+                  "title": "실린더 커버(로커암 커버)"
+                },
+                "statusType": {
+                  "code": "3",
+                  "title": "없음"
+                },
+                "statusItemTypes": [
+                  {
+                    "code": "3",
+                    "title": "없음"
+                  },
+                  {
+                    "code": "6",
+                    "title": "미세누유"
+                  },
+                  {
+                    "code": "7",
+                    "title": "누유"
+                  }
+                ],
+                "description": null
+              },
+              {
+                "type": {
+                  "code": "s005",
+                  "title": "실린더 헤드 / 개스킷"
+                },
+                "statusType": {
+                  "code": "3",
+                  "title": "없음"
+                },
+                "statusItemTypes": [
+                  {
+                    "code": "3",
+                    "title": "없음"
+                  },
+                  {
+                    "code": "6",
+                    "title": "미세누유"
+                  },
+                  {
+                    "code": "7",
+                    "title": "누유"
+                  }
+                ],
+                "description": null
+              },
+              {
+                "type": {
+                  "code": "s006",
+                  "title": "실린더 블록 / 오일팬"
+                },
+                "statusType": {
+                  "code": "3",
+                  "title": "없음"
+                },
+                "statusItemTypes": [
+                  {
+                    "code": "3",
+                    "title": "없음"
+                  },
+                  {
+                    "code": "6",
+                    "title": "미세누유"
+                  },
+                  {
+                    "code": "7",
+                    "title": "누유"
+                  }
+                ],
+                "description": null
+              }
+            ]
+          },
+          {
+            "type": {
+              "code": "s007",
+              "title": "오일 유량"
+            },
+            "statusType": {
+              "code": "2",
+              "title": "적정"
+            },
+            "statusItemTypes": [
+              {
+                "code": "2",
+                "title": "적정"
+              },
+              {
+                "code": "8",
+                "title": "부족"
+              }
+            ],
+            "description": null,
+            "children": []
+          },
+          {
+            "type": {
+              "code": "s0104",
+              "title": "냉각수누수"
+            },
+            "statusType": null,
+            "statusItemTypes": [],
+            "description": null,
+            "children": [
+              {
+                "type": {
+                  "code": "s008",
+                  "title": "실린더 헤드 / 개스킷"
+                },
+                "statusType": {
+                  "code": "3",
+                  "title": "없음"
+                },
+                "statusItemTypes": [
+                  {
+                    "code": "3",
+                    "title": "없음"
+                  },
+                  {
+                    "code": "4",
+                    "title": "미세누수"
+                  },
+                  {
+                    "code": "5",
+                    "title": "누수"
+                  }
+                ],
+                "description": null
+              },
+              {
+                "type": {
+                  "code": "s009",
+                  "title": "워터펌프"
+                },
+                "statusType": {
+                  "code": "3",
+                  "title": "없음"
+                },
+                "statusItemTypes": [
+                  {
+                    "code": "3",
+                    "title": "없음"
+                  },
+                  {
+                    "code": "4",
+                    "title": "미세누수"
+                  },
+                  {
+                    "code": "5",
+                    "title": "누수"
+                  }
+                ],
+                "description": null
+              },
+              {
+                "type": {
+                  "code": "s010",
+                  "title": "라디에이터"
+                },
+                "statusType": {
+                  "code": "3",
+                  "title": "없음"
+                },
+                "statusItemTypes": [
+                  {
+                    "code": "3",
+                    "title": "없음"
+                  },
+                  {
+                    "code": "4",
+                    "title": "미세누수"
+                  },
+                  {
+                    "code": "5",
+                    "title": "누수"
+                  }
+                ],
+                "description": null
+              },
+              {
+                "type": {
+                  "code": "s011",
+                  "title": "냉각수 수량"
+                },
+                "statusType": {
+                  "code": "2",
+                  "title": "적정"
+                },
+                "statusItemTypes": [
+                  {
+                    "code": "2",
+                    "title": "적정"
+                  },
+                  {
+                    "code": "8",
+                    "title": "부족"
+                  }
+                ],
+                "description": null
+              }
+            ]
+          },
+          {
+            "type": {
+              "code": "s012",
+              "title": "커먼레일"
+            },
+            "statusType": {
+              "code": "1",
+              "title": "양호"
+            },
+            "statusItemTypes": [
+              {
+                "code": "1",
+                "title": "양호"
+              },
+              {
+                "code": "10",
+                "title": "불량"
+              }
+            ],
+            "description": null,
+            "children": []
+          }
+        ]
+      },
+      {
+        "type": {
+          "code": "S02",
+          "title": "변속기"
+        },
+        "price": null,
+        "children": [
+          {
+            "type": {
+              "code": "s0201",
+              "title": "자동변속기(A/T)"
+            },
+            "statusType": null,
+            "statusItemTypes": [],
+            "description": null,
+            "children": [
+              {
+                "type": {
+                  "code": "s013",
+                  "title": "오일누유"
+                },
+                "statusType": {
+                  "code": "3",
+                  "title": "없음"
+                },
+                "statusItemTypes": [
+                  {
+                    "code": "3",
+                    "title": "없음"
+                  },
+                  {
+                    "code": "4",
+                    "title": "미세누수"
+                  },
+                  {
+                    "code": "5",
+                    "title": "누수"
+                  }
+                ],
+                "description": null
+              },
+              {
+                "type": {
+                  "code": "s014",
+                  "title": "오일유량 및 상태"
+                },
+                "statusType": null,
+                "statusItemTypes": [
+                  {
+                    "code": "2",
+                    "title": "적정"
+                  },
+                  {
+                    "code": "8",
+                    "title": "부족"
+                  },
+                  {
+                    "code": "9",
+                    "title": "과다"
+                  }
+                ],
+                "description": null
+              },
+              {
+                "type": {
+                  "code": "s015",
+                  "title": "작동상태(공회전)"
+                },
+                "statusType": {
+                  "code": "1",
+                  "title": "양호"
+                },
+                "statusItemTypes": [
+                  {
+                    "code": "1",
+                    "title": "양호"
+                  },
+                  {
+                    "code": "10",
+                    "title": "불량"
+                  }
+                ],
+                "description": null
+              }
+            ]
+          },
+          {
+            "type": {
+              "code": "s0202",
+              "title": "수동변속기(M/T)"
+            },
+            "statusType": null,
+            "statusItemTypes": [],
+            "description": null,
+            "children": [
+              {
+                "type": {
+                  "code": "s016",
+                  "title": "오일누유"
+                },
+                "statusType": null,
+                "statusItemTypes": [
+                  {
+                    "code": "3",
+                    "title": "없음"
+                  },
+                  {
+                    "code": "4",
+                    "title": "미세누수"
+                  },
+                  {
+                    "code": "5",
+                    "title": "누수"
+                  }
+                ],
+                "description": null
+              },
+              {
+                "type": {
+                  "code": "s017",
+                  "title": "기어변속장치"
+                },
+                "statusType": null,
+                "statusItemTypes": [
+                  {
+                    "code": "1",
+                    "title": "양호"
+                  },
+                  {
+                    "code": "10",
+                    "title": "불량"
+                  }
+                ],
+                "description": null
+              },
+              {
+                "type": {
+                  "code": "s018",
+                  "title": "오일유량 및 상태"
+                },
+                "statusType": null,
+                "statusItemTypes": [
+                  {
+                    "code": "2",
+                    "title": "적정"
+                  },
+                  {
+                    "code": "8",
+                    "title": "부족"
+                  },
+                  {
+                    "code": "9",
+                    "title": "과다"
+                  }
+                ],
+                "description": null
+              },
+              {
+                "type": {
+                  "code": "s019",
+                  "title": "작동상태(공회전)"
+                },
+                "statusType": null,
+                "statusItemTypes": [
+                  {
+                    "code": "1",
+                    "title": "양호"
+                  },
+                  {
+                    "code": "10",
+                    "title": "불량"
+                  }
+                ],
+                "description": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": {
+          "code": "S03",
+          "title": "동력전달"
+        },
+        "price": null,
+        "children": [
+          {
+            "type": {
+              "code": "s020",
+              "title": "클러치 어셈블리"
+            },
+            "statusType": null,
+            "statusItemTypes": [
+              {
+                "code": "1",
+                "title": "양호"
+              },
+              {
+                "code": "10",
+                "title": "불량"
+              }
+            ],
+            "description": null,
+            "children": []
+          },
+          {
+            "type": {
+              "code": "s021",
+              "title": "등속조인트"
+            },
+            "statusType": {
+              "code": "1",
+              "title": "양호"
+            },
+            "statusItemTypes": [
+              {
+                "code": "1",
+                "title": "양호"
+              },
+              {
+                "code": "10",
+                "title": "불량"
+              }
+            ],
+            "description": null,
+            "children": []
+          },
+          {
+            "type": {
+              "code": "s022",
+              "title": "추친축 및 베어링"
+            },
+            "statusType": null,
+            "statusItemTypes": [
+              {
+                "code": "1",
+                "title": "양호"
+              },
+              {
+                "code": "10",
+                "title": "불량"
+              }
+            ],
+            "description": null,
+            "children": []
+          },
+          {
+            "type": {
+              "code": "s037",
+              "title": "디피렌셜 기어"
+            },
+            "statusType": null,
+            "statusItemTypes": [
+              {
+                "code": "1",
+                "title": "양호"
+              },
+              {
+                "code": "10",
+                "title": "불량"
+              }
+            ],
+            "description": null,
+            "children": []
+          }
+        ]
+      },
+      {
+        "type": {
+          "code": "S04",
+          "title": "조향"
+        },
+        "price": null,
+        "children": [
+          {
+            "type": {
+              "code": "s023",
+              "title": "동력조향 작동 오일 누유"
+            },
+            "statusType": {
+              "code": "3",
+              "title": "없음"
+            },
+            "statusItemTypes": [
+              {
+                "code": "3",
+                "title": "없음"
+              },
+              {
+                "code": "4",
+                "title": "미세누수"
+              },
+              {
+                "code": "5",
+                "title": "누수"
+              }
+            ],
+            "description": null,
+            "children": []
+          },
+          {
+            "type": {
+              "code": "S0402",
+              "title": "작동상태"
+            },
+            "statusType": null,
+            "statusItemTypes": [],
+            "description": null,
+            "children": [
+              {
+                "type": {
+                  "code": "s025",
+                  "title": "스티어링 펌프"
+                },
+                "statusType": null,
+                "statusItemTypes": [
+                  {
+                    "code": "1",
+                    "title": "양호"
+                  },
+                  {
+                    "code": "10",
+                    "title": "불량"
+                  }
+                ],
+                "description": null
+              },
+              {
+                "type": {
+                  "code": "s024",
+                  "title": "스티어링 기어(MDPS포함)"
+                },
+                "statusType": {
+                  "code": "1",
+                  "title": "양호"
+                },
+                "statusItemTypes": [
+                  {
+                    "code": "1",
+                    "title": "양호"
+                  },
+                  {
+                    "code": "10",
+                    "title": "불량"
+                  }
+                ],
+                "description": null
+              },
+              {
+                "type": {
+                  "code": "s038",
+                  "title": "스티어링 조인트"
+                },
+                "statusType": {
+                  "code": "1",
+                  "title": "양호"
+                },
+                "statusItemTypes": [
+                  {
+                    "code": "1",
+                    "title": "양호"
+                  },
+                  {
+                    "code": "10",
+                    "title": "불량"
+                  }
+                ],
+                "description": null
+              },
+              {
+                "type": {
+                  "code": "s039",
+                  "title": "파워고압호스"
+                },
+                "statusType": null,
+                "statusItemTypes": [
+                  {
+                    "code": "1",
+                    "title": "양호"
+                  },
+                  {
+                    "code": "10",
+                    "title": "불량"
+                  }
+                ],
+                "description": null
+              },
+              {
+                "type": {
+                  "code": "s026",
+                  "title": "타이로드엔드 및 볼 조인트"
+                },
+                "statusType": {
+                  "code": "1",
+                  "title": "양호"
+                },
+                "statusItemTypes": [
+                  {
+                    "code": "1",
+                    "title": "양호"
+                  },
+                  {
+                    "code": "10",
+                    "title": "불량"
+                  }
+                ],
+                "description": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": {
+          "code": "S05",
+          "title": "제동"
+        },
+        "price": null,
+        "children": [
+          {
+            "type": {
+              "code": "s027",
+              "title": "브레이크 마스터 실린더오일 누유"
+            },
+            "statusType": {
+              "code": "3",
+              "title": "없음"
+            },
+            "statusItemTypes": [
+              {
+                "code": "3",
+                "title": "없음"
+              },
+              {
+                "code": "4",
+                "title": "미세누수"
+              },
+              {
+                "code": "5",
+                "title": "누수"
+              }
+            ],
+            "description": null,
+            "children": []
+          },
+          {
+            "type": {
+              "code": "s028",
+              "title": "브레이크 오일 누유"
+            },
+            "statusType": {
+              "code": "3",
+              "title": "없음"
+            },
+            "statusItemTypes": [
+              {
+                "code": "3",
+                "title": "없음"
+              },
+              {
+                "code": "4",
+                "title": "미세누수"
+              },
+              {
+                "code": "5",
+                "title": "누수"
+              }
+            ],
+            "description": null,
+            "children": []
+          },
+          {
+            "type": {
+              "code": "s029",
+              "title": "배력장치 상태"
+            },
+            "statusType": {
+              "code": "1",
+              "title": "양호"
+            },
+            "statusItemTypes": [
+              {
+                "code": "1",
+                "title": "양호"
+              },
+              {
+                "code": "10",
+                "title": "불량"
+              }
+            ],
+            "description": null,
+            "children": []
+          }
+        ]
+      },
+      {
+        "type": {
+          "code": "S06",
+          "title": "전기"
+        },
+        "price": null,
+        "children": [
+          {
+            "type": {
+              "code": "s030",
+              "title": "발전기 출력"
+            },
+            "statusType": {
+              "code": "1",
+              "title": "양호"
+            },
+            "statusItemTypes": [
+              {
+                "code": "1",
+                "title": "양호"
+              },
+              {
+                "code": "10",
+                "title": "불량"
+              }
+            ],
+            "description": null,
+            "children": []
+          },
+          {
+            "type": {
+              "code": "s031",
+              "title": "시동 모터"
+            },
+            "statusType": {
+              "code": "1",
+              "title": "양호"
+            },
+            "statusItemTypes": [
+              {
+                "code": "1",
+                "title": "양호"
+              },
+              {
+                "code": "10",
+                "title": "불량"
+              }
+            ],
+            "description": null,
+            "children": []
+          },
+          {
+            "type": {
+              "code": "s032",
+              "title": "와이퍼 모터 기능"
+            },
+            "statusType": {
+              "code": "1",
+              "title": "양호"
+            },
+            "statusItemTypes": [
+              {
+                "code": "1",
+                "title": "양호"
+              },
+              {
+                "code": "10",
+                "title": "불량"
+              }
+            ],
+            "description": null,
+            "children": []
+          },
+          {
+            "type": {
+              "code": "s033",
+              "title": "실내송풍 모터"
+            },
+            "statusType": {
+              "code": "1",
+              "title": "양호"
+            },
+            "statusItemTypes": [
+              {
+                "code": "1",
+                "title": "양호"
+              },
+              {
+                "code": "10",
+                "title": "불량"
+              }
+            ],
+            "description": null,
+            "children": []
+          },
+          {
+            "type": {
+              "code": "s034",
+              "title": "라디에이터 팬 모터"
+            },
+            "statusType": {
+              "code": "1",
+              "title": "양호"
+            },
+            "statusItemTypes": [
+              {
+                "code": "1",
+                "title": "양호"
+              },
+              {
+                "code": "10",
+                "title": "불량"
+              }
+            ],
+            "description": null,
+            "children": []
+          },
+          {
+            "type": {
+              "code": "s035",
+              "title": "윈도우 모터"
+            },
+            "statusType": {
+              "code": "1",
+              "title": "양호"
+            },
+            "statusItemTypes": [
+              {
+                "code": "1",
+                "title": "양호"
+              },
+              {
+                "code": "10",
+                "title": "불량"
+              }
+            ],
+            "description": null,
+            "children": []
+          }
+        ]
+      },
+      {
+        "type": {
+          "code": "S07",
+          "title": "연료"
+        },
+        "price": null,
+        "children": [
+          {
+            "type": {
+              "code": "s036",
+              "title": "연료누출(LP가스포함)"
+            },
+            "statusType": {
+              "code": "3",
+              "title": "없음"
+            },
+            "statusItemTypes": [
+              {
+                "code": "3",
+                "title": "없음"
+              },
+              {
+                "code": "11",
+                "title": "있음"
+              }
+            ],
+            "description": null,
+            "children": []
+          }
+        ]
+      }
+    ],
+    "outers": [],
+    "etcs": [
+      {
+        "type": {
+          "code": "",
+          "title": "수리필요"
+        },
+        "children": [
+          {
+            "type": {
+              "code": "e001",
+              "title": "외장"
+            },
+            "exists": null,
+            "statusTypes": [],
+            "statusItemTypes": []
+          },
+          {
+            "type": {
+              "code": "e002",
+              "title": "내장"
+            },
+            "exists": null,
+            "statusTypes": [],
+            "statusItemTypes": []
+          },
+          {
+            "type": {
+              "code": "e003",
+              "title": "광택"
+            },
+            "exists": null,
+            "statusTypes": [],
+            "statusItemTypes": []
+          },
+          {
+            "type": {
+              "code": "e004",
+              "title": "룸 클리링"
+            },
+            "exists": null,
+            "statusTypes": [],
+            "statusItemTypes": []
+          },
+          {
+            "type": {
+              "code": "e005",
+              "title": "휠"
+            },
+            "exists": null,
+            "statusTypes": [],
+            "statusItemTypes": [
+              {
+                "code": "1",
+                "title": "운전석 전"
+              },
+              {
+                "code": "2",
+                "title": "운전석 후"
+              },
+              {
+                "code": "3",
+                "title": "동반석 전"
+              },
+              {
+                "code": "4",
+                "title": "동반석 후"
+              },
+              {
+                "code": "5",
+                "title": "응급"
+              }
+            ]
+          },
+          {
+            "type": {
+              "code": "e006",
+              "title": "타이어"
+            },
+            "exists": null,
+            "statusTypes": [],
+            "statusItemTypes": [
+              {
+                "code": "1",
+                "title": "운전석 전"
+              },
+              {
+                "code": "2",
+                "title": "운전석 후"
+              },
+              {
+                "code": "3",
+                "title": "동반석 전"
+              },
+              {
+                "code": "4",
+                "title": "동반석 후"
+              },
+              {
+                "code": "5",
+                "title": "응급"
+              }
+            ]
+          },
+          {
+            "type": {
+              "code": "e007",
+              "title": "유리"
+            },
+            "exists": null,
+            "statusTypes": [],
+            "statusItemTypes": []
+          }
+        ]
+      },
+      {
+        "type": {
+          "code": "",
+          "title": "기본품목"
+        },
+        "children": [
+          {
+            "type": {
+              "code": "e008",
+              "title": "보유상태"
+            },
+            "exists": null,
+            "statusTypes": [],
+            "statusItemTypes": [
+              {
+                "code": "1",
+                "title": "사용설명서"
+              },
+              {
+                "code": "2",
+                "title": "안전삼각대"
+              },
+              {
+                "code": "3",
+                "title": "잭"
+              },
+              {
+                "code": "4",
+                "title": "스패너"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "directManagement": null,
+    "inspectionSource": {
+      "code": "PARTNERSHIP",
+      "inspectionVersion": "V200623"
+    }
+  },
+  "httpStatus": {
+    "diagnosisJson": "ok",
+    "recordJson": "ok",
+    "inspectionJson": "ok"
+  }
+}

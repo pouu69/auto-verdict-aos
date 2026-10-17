@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -28,4 +29,21 @@ interface SavedCarDao {
 
     @Query("SELECT * FROM saved_cars WHERE carId IN (:carIds)")
     suspend fun getByCarIds(carIds: List<String>): List<SavedCarEntity>
+
+    @Query("SELECT * FROM saved_cars WHERE carId IN (:carIds)")
+    fun getByCarIdsFlow(carIds: List<String>): Flow<List<SavedCarEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertAll(cars: List<SavedCarEntity>)
+
+    @Query("DELETE FROM saved_cars WHERE carId IN (:carIds)")
+    suspend fun deleteByCarIds(carIds: List<String>)
+
+    /** Deletes the rows and returns them as they were, so the caller can undo (spec 4.6). */
+    @Transaction
+    suspend fun deleteAndReturn(carIds: List<String>): List<SavedCarEntity> {
+        val rows = getByCarIds(carIds)
+        deleteByCarIds(carIds)
+        return rows
+    }
 }
