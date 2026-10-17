@@ -45,11 +45,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.car.autoverdict.ui.components.ShareSheetIllustration
-import com.car.autoverdict.ui.theme.Background
-import com.car.autoverdict.ui.theme.Border
-import com.car.autoverdict.ui.theme.Primary
-import com.car.autoverdict.ui.theme.TextPrimary
-import com.car.autoverdict.ui.theme.TextSecondary
+import com.car.autoverdict.ui.theme.AvTheme
 import kotlinx.coroutines.launch
 
 private data class OnboardingPage(
@@ -84,6 +80,7 @@ private val pages = listOf(
 
 @Composable
 fun OnboardingScreen(onComplete: () -> Unit) {
+    val colors = AvTheme.colors
     val pagerState = rememberPagerState(pageCount = { pages.size })
     val scope = rememberCoroutineScope()
     val isLastPage = pagerState.currentPage == pages.size - 1
@@ -91,7 +88,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Background)
+            .background(colors.surfaceMuted)
             .windowInsetsPadding(WindowInsets.systemBars),
     ) {
         // Skip button (always reserved space to keep layout stable)
@@ -106,7 +103,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                     Text(
                         text = "건너뛰기",
                         style = MaterialTheme.typography.labelLarge,
-                        color = TextSecondary,
+                        color = colors.textSecondary,
                     )
                 }
             } else {
@@ -141,7 +138,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                     modifier = Modifier
                         .size(width = width, height = 8.dp)
                         .clip(CircleShape)
-                        .background(if (isActive) Primary else Border),
+                        .background(if (isActive) colors.accent else colors.border),
                 )
             }
             Spacer(Modifier.weight(1f))
@@ -161,7 +158,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
                 .height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Primary),
+            colors = ButtonDefaults.buttonColors(containerColor = colors.accent),
             shape = RoundedCornerShape(16.dp),
         ) {
             Text(
@@ -184,6 +181,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
 
 @Composable
 private fun OnboardingPageContent(page: OnboardingPage) {
+    val colors = AvTheme.colors
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -208,8 +206,8 @@ private fun OnboardingPageContent(page: OnboardingPage) {
                     .background(
                         brush = Brush.radialGradient(
                             colors = listOf(
-                                Primary.copy(alpha = 0.18f),
-                                Primary.copy(alpha = 0.0f),
+                                colors.accent.copy(alpha = 0.18f),
+                                colors.accent.copy(alpha = 0.0f),
                             ),
                         ),
                     ),
@@ -221,7 +219,7 @@ private fun OnboardingPageContent(page: OnboardingPage) {
                     .clip(RoundedCornerShape(28.dp))
                     .background(
                         brush = Brush.linearGradient(
-                            colors = listOf(Primary, Primary.copy(alpha = 0.85f)),
+                            colors = listOf(colors.accent, colors.accent.copy(alpha = 0.85f)),
                         ),
                     ),
                 contentAlignment = Alignment.Center,
@@ -242,7 +240,7 @@ private fun OnboardingPageContent(page: OnboardingPage) {
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(999.dp))
-                .background(Primary.copy(alpha = 0.08f))
+                .background(colors.accentWeak)
                 .padding(horizontal = 10.dp, vertical = 5.dp),
         ) {
             Text(
@@ -251,7 +249,7 @@ private fun OnboardingPageContent(page: OnboardingPage) {
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.2.sp,
                 ),
-                color = Primary,
+                color = colors.accentText,
             )
         }
 
@@ -263,7 +261,7 @@ private fun OnboardingPageContent(page: OnboardingPage) {
                 fontWeight = FontWeight.Bold,
                 lineHeight = 34.sp,
             ),
-            color = TextPrimary,
+            color = colors.textPrimary,
             textAlign = TextAlign.Center,
         )
 
@@ -272,7 +270,7 @@ private fun OnboardingPageContent(page: OnboardingPage) {
         Text(
             text = page.description,
             style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 24.sp),
-            color = TextSecondary,
+            color = colors.textSecondary,
             textAlign = TextAlign.Center,
         )
     }
