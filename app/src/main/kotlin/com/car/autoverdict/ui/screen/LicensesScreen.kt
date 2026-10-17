@@ -1,5 +1,6 @@
 package com.car.autoverdict.ui.screen
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -21,6 +22,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.car.autoverdict.R
 import com.car.autoverdict.ui.components.AvButton
@@ -58,7 +61,12 @@ private fun LicenseSection(
     val typography = AvTheme.typography
     var expanded by rememberSaveable { mutableStateOf(false) }
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 20.dp)) {
-        Text(text = title, style = typography.body1, color = colors.textPrimary)
+        Text(
+            text = title,
+            style = typography.body1,
+            color = colors.textPrimary,
+            modifier = Modifier.semantics { heading() },
+        )
         Spacer(Modifier.height(4.dp))
         Text(text = notice, style = typography.body2, color = colors.textSecondary)
         Spacer(Modifier.height(12.dp))
@@ -75,5 +83,5 @@ private fun LicenseSection(
     }
 }
 
-private fun readRaw(context: android.content.Context, resId: Int): String =
+private fun readRaw(context: Context, resId: Int): String =
     context.resources.openRawResource(resId).bufferedReader().use { it.readText() }
