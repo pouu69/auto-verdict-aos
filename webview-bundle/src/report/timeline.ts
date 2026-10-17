@@ -4,7 +4,7 @@
  */
 import type { MobileOrchestratorInput, MobileOrchestratorResult } from '../orchestrate-mobile';
 import type { DetailSheet, TimelineEntry } from './types';
-import { formatMan, koreanMonth } from './format';
+import { groupDigits, koreanMonth } from './format';
 import { arr, isObj, num, str, toYearMonth } from './raw';
 import { safe } from './safe';
 import {
@@ -108,6 +108,38 @@ export function accidentGroups(rec: Record<string, unknown>): AccidentGroup[] {
   return [...groups.values()];
 }
 
+/**
+ * Splits [target] 만원 over [wons] by largest remainder: each share is its
+ * floored 만원 plus one for the largest fractions until the target is met.
+ * Rounding each row on its own can drift from the rounded total (39339524
+ * 내차: rows summed to 1,127만원 against R10's 1,126만원).
+ */
+export function allocateMan(wons: number[], target: number): number[] {
+  const exact = wons.map((w) => w / 10_000);
+  const shares = exact.map(Math.floor);
+  let left = target - shares.reduce((s, n) => s + n, 0);
+  const order = exact
+    .map((x, i) => ({ frac: x - Math.floor(x), i }))
+    .sort((a, b) => b.frac - a.frac || a.i - b.i);
+  for (const { i } of order) {
+    if (left <= 0) break;
+    shares[i]! += 1;
+    left -= 1;
+  }
+  return shares;
+}
+
+/** Accident row 만원 per group; each side sums to the rounded side total that R10 shows. */
+const accidentMan = (groups: AccidentGroup[]): Map<AccidentGroup, number> => {
+  const out = new Map<AccidentGroup, number>();
+  for (const side of ['내차 피해', '타차 가해'] as const) {
+    const mine = groups.filter((g) => g.side === side);
+    const total = mine.reduce((s, g) => s + g.won, 0);
+    allocateMan(mine.map((g) => g.won), Math.round(total / 10_000)).forEach((man, i) => out.set(mine[i]!, man));
+  }
+  return out;
+};
+
 export function buildTimeline(raw: MobileOrchestratorInput, out: MobileOrchestratorResult): TimelineEntry[] {
   // Gate on the parsed API; the raw body carries the extra fields RecordApi does not type.
   if (out.parsed.raw.recordApi.kind !== 'value') return [];
@@ -119,9 +151,12 @@ export function buildTimeline(raw: MobileOrchestratorInput, out: MobileOrchestra
   const firstYm = toYearMonth(first);
   if (first && firstYm) rows.push(row(Kind.Registration, firstYm, first, '신차 등록', null, 'neutral'));
 
-  for (const g of accidentGroups(rec)) {
+  const groups = accidentGroups(rec);
+  const man = accidentMan(groups);
+  for (const g of groups) {
     const label = g.count > 1 ? `사고 ${g.count}건 · ${g.side}` : `사고 · ${g.side}`;
-    const detail = Math.round(g.won / 10_000) > 0 ? `수리비 합계 ${formatMan(g.won)}` : null;
+    const shown = man.get(g) ?? 0;
+    const detail = shown > 0 ? `수리비 합계 ${groupDigits(shown)}만원` : null;
     rows.push(row(Kind.Accident, g.ym, g.firstDate, label, detail, 'warning', () => accidentSheet(label, g.records)));
   }
 

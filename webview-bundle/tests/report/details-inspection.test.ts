@@ -40,10 +40,10 @@ describe('Repairs.sheet (성능점검 전체)', () => {
     expect(s.blocks[1]!.rows[0]).toEqual({ label: '리어 패널', value: 'A랭크 교환', tone: 'danger' });
 
     const rows = systemRows(s);
-    expect(rows).toContainEqual({ label: '오일누유 · 실린더 블록 / 오일팬', value: '누유', tone: 'danger' });
+    expect(rows).toContainEqual({ label: '오일누유 · 실린더 블록·오일팬', value: '누유', tone: 'danger' });
     expect(rows).toContainEqual({ label: '등속조인트', value: '불량', tone: 'danger' });
     // Same-named parts under different groups stay apart.
-    expect(rows).toContainEqual({ label: '냉각수누수 · 실린더 헤드 / 개스킷', value: '없음', tone: 'success' });
+    expect(rows).toContainEqual({ label: '냉각수누수 · 실린더 헤드·개스킷', value: '없음', tone: 'success' });
     // Every 양호-type item is listed, matching the summary count.
     expect(rows.filter((r) => r.tone === 'success')).toHaveLength(repairs.systems.okCount);
     for (const f of repairs.systems.flagged) {
@@ -51,6 +51,9 @@ describe('Repairs.sheet (성능점검 전체)', () => {
     }
     // Items the inspector left blank are shown, not dropped.
     expect(rows).toContainEqual({ label: '클러치 어셈블리', value: '기록 없음', tone: null });
+    // " / " joins read like R12 ("실린더 블록·오일팬"); "(A/T)" is kept.
+    expect(rows.some((r) => r.label.includes(' / '))).toBe(false);
+    expect(rows).toContainEqual({ label: '자동변속기(A/T) · 오일누유', value: '없음', tone: 'success' });
   });
 
   it('41878112 / 39339524: success rows equal okCount; empty panel list explained', () => {

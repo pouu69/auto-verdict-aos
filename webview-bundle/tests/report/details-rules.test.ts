@@ -164,7 +164,7 @@ describe('rule detail sheets', () => {
 
   it('42264483 R12: the leaking part with its group, danger tone', () => {
     const rows = blockOf(detailOf(reportOf('42264483'), 'R12'), '누유 항목').rows;
-    expect(rows).toEqual([{ label: '오일누유 · 실린더 블록 / 오일팬', value: '누유', tone: 'danger' }]);
+    expect(rows).toEqual([{ label: '오일누유 · 실린더 블록·오일팬', value: '누유', tone: 'danger' }]);
   });
 });
 

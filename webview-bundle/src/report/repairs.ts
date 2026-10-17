@@ -47,6 +47,9 @@ const toPanel = (o: unknown): (RepairPanel & { order: number }) | null => {
   };
 };
 
+/** "실린더 블록 / 오일팬" -> "실린더 블록·오일팬", as R12 writes it; "자동변속기(A/T)" stays. */
+export const partName = (title: string): string => title.replace(/\s+\/\s+/g, '·');
+
 /** 성능점검 `statusType.code` -> tone (code table in core api-inspection.ts `InnerNode`). */
 const CODE_TONE: Record<string, Tone> = {
   '1': 'success', '2': 'success', '3': 'success',
@@ -67,7 +70,7 @@ export function walkSystems(inners: unknown): Array<SystemItem & { code: string 
   const walk = (nodes: unknown, parent: string): void => {
     for (const n of arr(nodes)) {
       if (!isObj(n)) continue;
-      const name = isObj(n.type) ? (str(n.type, 'title') ?? '') : '';
+      const name = partName(isObj(n.type) ? (str(n.type, 'title') ?? '') : '');
       if (isObj(n.statusType)) {
         const code = String(n.statusType.code ?? '');
         out.push({

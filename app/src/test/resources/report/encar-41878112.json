@@ -139,12 +139,12 @@
               "tone": "success"
             },
             {
-              "label": "오일누유 · 실린더 헤드 / 개스킷",
+              "label": "오일누유 · 실린더 헤드·개스킷",
               "value": "없음",
               "tone": "success"
             },
             {
-              "label": "오일누유 · 실린더 블록 / 오일팬",
+              "label": "오일누유 · 실린더 블록·오일팬",
               "value": "없음",
               "tone": "success"
             },
@@ -154,7 +154,7 @@
               "tone": "success"
             },
             {
-              "label": "냉각수누수 · 실린더 헤드 / 개스킷",
+              "label": "냉각수누수 · 실린더 헤드·개스킷",
               "value": "없음",
               "tone": "success"
             },

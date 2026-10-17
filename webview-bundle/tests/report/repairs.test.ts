@@ -28,7 +28,7 @@ describe('buildRepairs', () => {
       ['프론트 휀더(좌)', '1랭크', 'warning'],
     ]);
     expect(repairs.systems.flagged).toEqual([
-      { group: '오일누유', name: '실린더 블록 / 오일팬', status: '누유', tone: 'danger' },
+      { group: '오일누유', name: '실린더 블록·오일팬', status: '누유', tone: 'danger' },
       { group: '동력전달', name: '등속조인트', status: '불량', tone: 'danger' },
     ]);
   });

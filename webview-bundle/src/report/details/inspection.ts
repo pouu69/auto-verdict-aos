@@ -5,7 +5,7 @@
  */
 import type { MobileOrchestratorResult } from '../../orchestrate-mobile';
 import type { DetailBlock, DetailRow, DetailSheet, Tone } from '../types';
-import { buildRepairs, codeTone } from '../repairs';
+import { buildRepairs, codeTone, partName } from '../repairs';
 import { groupDigits } from '../format';
 import { arr, isObj, num, str, type Obj } from '../raw';
 import { block, fullDate, inspectionOf, row } from './common';
@@ -70,7 +70,7 @@ export function systemBlocks(inners: unknown): DetailBlock[] {
   const blocks: DetailBlock[] = [];
   for (const top of arr(inners)) {
     if (!isObj(top)) continue;
-    const group = (isObj(top.type) ? str(top.type, 'title') : null) ?? '기타';
+    const group = partName((isObj(top.type) ? str(top.type, 'title') : null) ?? '기타');
     const rows: DetailRow[] = [];
     const walk = (n: Obj, path: string[]): void => {
       const children = arr(n.children).filter(isObj);
@@ -81,7 +81,7 @@ export function systemBlocks(inners: unknown): DetailBlock[] {
         rows.push(row(path.join(' · '), '기록 없음'));
       }
       for (const c of children) {
-        const name = (isObj(c.type) ? str(c.type, 'title') : null) ?? '기타';
+        const name = partName((isObj(c.type) ? str(c.type, 'title') : null) ?? '기타');
         walk(c, [...path, name]);
       }
     };
