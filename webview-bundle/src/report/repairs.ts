@@ -34,6 +34,8 @@ const toPanel = (o: unknown): (RepairPanel & { order: number }) | null => {
     const cleaned = t ? cleanStatus(t) : '';
     if (cleaned && !statuses.includes(cleaned)) statuses.push(cleaned);
   }
+  // Only parts with recorded work are listed.
+  if (statuses.length === 0) return null;
   const rankKey = arr(o.attributes).find((a): a is string => typeof a === 'string' && a in RANKS);
   const rank = rankKey ? RANKS[rankKey] : undefined;
   return {

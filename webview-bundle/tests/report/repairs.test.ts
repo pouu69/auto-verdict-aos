@@ -48,6 +48,7 @@ describe('buildRepairs', () => {
       outers: [
         { type: { code: 'P1', title: '후드' }, statusTypes: [{ code: 'X', title: '교환(교체)' }], attributes: ['RANK_Z'] },
         { type: { code: 'P2', title: '도어' }, statusTypes: [{ code: 'A', title: '판금' }, { code: 'A', title: '판금' }], attributes: [] },
+        { type: { code: 'P3', title: '루프' }, statusTypes: [], attributes: ['RANK_A'] },
       ],
       inners: [
         {
