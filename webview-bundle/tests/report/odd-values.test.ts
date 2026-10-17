@@ -110,6 +110,17 @@ describe('malformed dates', () => {
   });
 });
 
+describe('엔카진단 comment rows', () => {
+  it('stay out of the part list when their name is missing', () => {
+    const r = reportWith('39339524', (raw) => {
+      for (const i of (raw.diagnosisJson as { items: Obj[] }).items) if (i.name === 'OUTER_PANEL_COMMENT') delete i.name;
+    });
+    const parts = rule(r, 'R04').detail!.blocks.find((b) => b.title === '진단 부위')!;
+    expect(parts.rows).toHaveLength(8);
+    expect(JSON.stringify(parts)).not.toMatch(/습니다|합니다/);
+  });
+});
+
 describe('성능점검 items without titles', () => {
   it('names untitled flagged items instead of leaving them blank', () => {
     const r = reportWith('39339524', (raw) => {
