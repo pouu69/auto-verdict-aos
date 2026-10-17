@@ -92,6 +92,9 @@ dependencies {
     testImplementation("androidx.test:core-ktx:1.6.1")
     testImplementation("androidx.room:room-testing:2.8.4")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
+    testImplementation(composeBom)
+    testImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
 
 ksp {

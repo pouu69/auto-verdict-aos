@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Edge-to-edge (enableEdgeToEdge) owns the system bar colors, so only the window background is set here. -->
     <style name="Theme.AutoVerdict" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:statusBarColor">@color/background</item>
-        <item name="android:navigationBarColor">@color/surface</item>
+        <item name="android:windowBackground">@color/av_background</item>
         <item name="android:windowLightStatusBar">true</item>
     </style>
 
+    <!-- Accent background: the existing launcher foreground is white, so a white splash would hide it (spec 7.2). -->
     <style name="Theme.AutoVerdict.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/primary</item>
+        <item name="windowSplashScreenBackground">@color/av_accent</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
         <item name="postSplashScreenTheme">@style/Theme.AutoVerdict</item>
     </style>

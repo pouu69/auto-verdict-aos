@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ContactMail
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lock
@@ -27,27 +26,19 @@ import androidx.compose.material.icons.outlined.Policy
 import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material.icons.outlined.PublicOff
 import androidx.compose.material.icons.outlined.Storage
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.car.autoverdict.ui.theme.Background
-import com.car.autoverdict.ui.theme.Border
-import com.car.autoverdict.ui.theme.Primary
-import com.car.autoverdict.ui.theme.TextPrimary
-import com.car.autoverdict.ui.theme.TextSecondary
+import com.car.autoverdict.ui.components.AvTopBar
+import com.car.autoverdict.ui.theme.AvTheme
 
 private data class PolicyEntry(
     val number: Int,
@@ -87,41 +78,16 @@ private val policyEntries = listOf(
     ),
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrivacyPolicyScreen(onBack: () -> Unit) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
+    val colors = AvTheme.colors
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Background)
-            .navigationBarsPadding()
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
+            .background(colors.surfaceMuted)
+            .navigationBarsPadding(),
     ) {
-        LargeTopAppBar(
-            title = {
-                Text(
-                    text = "개인정보 처리방침",
-                    fontWeight = FontWeight.Bold,
-                )
-            },
-            navigationIcon = {
-                IconButton(onClick = onBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                        contentDescription = "뒤로",
-                        tint = TextPrimary,
-                    )
-                }
-            },
-            scrollBehavior = scrollBehavior,
-            colors = TopAppBarDefaults.largeTopAppBarColors(
-                containerColor = Background,
-                scrolledContainerColor = Background,
-                titleContentColor = TextPrimary,
-            ),
-        )
+        AvTopBar(onBack = onBack, title = "개인정보 처리방침")
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -144,11 +110,12 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
 
 @Composable
 private fun PolicyHeroBlock() {
+    val colors = AvTheme.colors
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Primary.copy(alpha = 0.06f))
+            .background(colors.accentWeak)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -156,13 +123,14 @@ private fun PolicyHeroBlock() {
             modifier = Modifier
                 .size(44.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(Primary.copy(alpha = 0.14f)),
+                // Sits on an accentWeak block, so a translucent accent keeps it visible.
+                .background(colors.accent.copy(alpha = 0.14f)),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = Icons.Outlined.Policy,
                 contentDescription = null,
-                tint = Primary,
+                tint = colors.accentText,
                 modifier = Modifier.size(22.dp),
             )
         }
@@ -171,12 +139,12 @@ private fun PolicyHeroBlock() {
             Text(
                 text = "내 기기에만 저장됩니다",
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = Primary,
+                color = colors.accentText,
             )
             Text(
                 text = "외부 서버로 데이터를 전송하지 않아요",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary,
+                color = colors.textSecondary,
             )
         }
     }
@@ -184,6 +152,7 @@ private fun PolicyHeroBlock() {
 
 @Composable
 private fun PolicyCard(entry: PolicyEntry) {
+    val colors = AvTheme.colors
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -196,13 +165,13 @@ private fun PolicyCard(entry: PolicyEntry) {
                 modifier = Modifier
                     .size(36.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(Primary.copy(alpha = 0.1f)),
+                    .background(colors.accentWeak),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = entry.icon,
                     contentDescription = null,
-                    tint = Primary,
+                    tint = colors.accentText,
                     modifier = Modifier.size(18.dp),
                 )
             }
@@ -214,12 +183,12 @@ private fun PolicyCard(entry: PolicyEntry) {
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 0.6.sp,
                     ),
-                    color = TextSecondary,
+                    color = colors.textSecondary,
                 )
                 Text(
                     text = entry.title,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = TextPrimary,
+                    color = colors.textPrimary,
                 )
             }
         }
@@ -227,13 +196,14 @@ private fun PolicyCard(entry: PolicyEntry) {
         Text(
             text = entry.content,
             style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 22.sp),
-            color = TextSecondary,
+            color = colors.textSecondary,
         )
     }
 }
 
 @Composable
 private fun PolicyFooter() {
+    val colors = AvTheme.colors
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -244,19 +214,19 @@ private fun PolicyFooter() {
                 .width(60.dp)
                 .height(2.dp)
                 .clip(RoundedCornerShape(1.dp))
-                .background(Border),
+                .background(colors.border),
         )
         Spacer(Modifier.height(12.dp))
         Text(
             text = "최종 업데이트",
             style = MaterialTheme.typography.labelSmall,
-            color = TextSecondary.copy(alpha = 0.7f),
+            color = colors.textSecondary.copy(alpha = 0.7f),
         )
         Spacer(Modifier.height(2.dp))
         Text(
             text = "2026년 5월 27일",
             style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-            color = TextSecondary,
+            color = colors.textSecondary,
         )
     }
 }

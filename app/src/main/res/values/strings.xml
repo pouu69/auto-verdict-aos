@@ -1,7 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">AutoVerdict</string>
-    <string name="tab_analyze">분석</string>
-    <string name="tab_saved">저장목록</string>
-    <string name="tab_settings">설정</string>
+    <string name="tab_saved">저장한 차</string>
+    <string name="verdict_never">피하세요</string>
+    <string name="verdict_caution">주의</string>
+    <string name="verdict_ok">괜찮아요</string>
+    <string name="verdict_unknown">확인 필요</string>
+    <string name="cd_back">뒤로</string>
+    <string name="cd_clear">지우기</string>
+    <string name="cd_settings">설정</string>
+    <string name="button_loading">진행 중</string>
+    <string name="licenses_title">오픈소스 라이선스</string>
+    <string name="license_pretendard_notice">Pretendard는 SIL Open Font License 1.1에 따라 사용합니다.</string>
+    <string name="license_material_notice">Material Symbols 아이콘은 Apache License 2.0에 따라 사용합니다.</string>
+    <string name="license_show_full">전문 보기</string>
+    <string name="license_hide_full">접기</string>
+    <string name="settings_licenses_title">오픈소스 라이선스</string>
+    <string name="settings_licenses_subtitle">폰트·아이콘 라이선스 고지</string>
+    <string name="settings_section_dev">개발</string>
+    <string name="settings_gallery_title">컴포넌트 갤러리</string>
+    <string name="settings_gallery_subtitle">debug 빌드 전용</string>
+    <string name="loading_step_done">완료</string>
+    <string name="loading_step_active">진행 중</string>
+    <string name="loading_step_pending">대기 중</string>
+    <string name="tab_home">홈</string>
+    <string name="tab_saved_count">저장한 차 %1$d</string>
+    <string name="cd_sheet_handle">시트 닫기</string>
+    <string name="toast_invalid_share">엔카 매물 링크만 확인할 수 있어요</string>
 </resources>

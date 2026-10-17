@@ -31,10 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.car.autoverdict.ui.theme.Border
-import com.car.autoverdict.ui.theme.Primary
-import com.car.autoverdict.ui.theme.TextPrimary
-import com.car.autoverdict.ui.theme.TextSecondary
+import com.car.autoverdict.ui.theme.AvTheme
 
 /**
  * Code-drawn mock of a mobile browser's address bar + overflow menu, highlighting
@@ -46,12 +43,13 @@ import com.car.autoverdict.ui.theme.TextSecondary
  */
 @Composable
 fun BrowserShareIllustration(modifier: Modifier = Modifier) {
+    val colors = AvTheme.colors
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .background(MaterialTheme.colorScheme.surface)
-            .border(0.5.dp, Border.copy(alpha = 0.6f), RoundedCornerShape(14.dp))
+            .border(0.5.dp, colors.border.copy(alpha = 0.6f), RoundedCornerShape(14.dp))
             .padding(12.dp),
     ) {
         // Address bar with the overflow (⋮) button highlighted.
@@ -59,21 +57,21 @@ fun BrowserShareIllustration(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(999.dp))
-                .background(Border.copy(alpha = 0.12f))
+                .background(colors.border.copy(alpha = 0.12f))
                 .padding(horizontal = 10.dp, vertical = 7.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 imageVector = Icons.Outlined.Lock,
                 contentDescription = null,
-                tint = TextSecondary,
+                tint = colors.textSecondary,
                 modifier = Modifier.size(14.dp),
             )
             Spacer(Modifier.width(8.dp))
             Text(
                 text = "fem.encar.com/cars/detail/...",
                 style = MaterialTheme.typography.labelMedium,
-                color = TextSecondary,
+                color = colors.textSecondary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
@@ -83,8 +81,8 @@ fun BrowserShareIllustration(modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .size(30.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Primary)
-                    .border(3.dp, Primary.copy(alpha = 0.22f), RoundedCornerShape(11.dp)),
+                    .background(colors.accent)
+                    .border(3.dp, colors.accent.copy(alpha = 0.22f), RoundedCornerShape(11.dp)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
@@ -100,7 +98,7 @@ fun BrowserShareIllustration(modifier: Modifier = Modifier) {
         Text(
             text = "메뉴를 열면 ↓",
             style = MaterialTheme.typography.labelSmall,
-            color = Primary,
+            color = colors.accentText,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(end = 4.dp),
@@ -113,7 +111,7 @@ fun BrowserShareIllustration(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(10.dp))
-                .border(0.5.dp, Border.copy(alpha = 0.5f), RoundedCornerShape(10.dp)),
+                .border(0.5.dp, colors.border.copy(alpha = 0.5f), RoundedCornerShape(10.dp)),
         ) {
             BrowserMenuRow(icon = Icons.Outlined.StarOutline, label = "즐겨찾기", highlighted = false)
             BrowserMenuRow(icon = Icons.Outlined.IosShare, label = "공유", highlighted = true)
@@ -124,7 +122,7 @@ fun BrowserShareIllustration(modifier: Modifier = Modifier) {
         Text(
             text = "크롬은 우측 상단 ⋮ · 삼성 인터넷은 하단 메뉴에 있어요",
             style = MaterialTheme.typography.labelSmall,
-            color = TextSecondary.copy(alpha = 0.8f),
+            color = colors.textSecondary.copy(alpha = 0.8f),
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
         )
@@ -133,10 +131,11 @@ fun BrowserShareIllustration(modifier: Modifier = Modifier) {
 
 @Composable
 private fun BrowserMenuRow(icon: ImageVector, label: String, highlighted: Boolean) {
+    val colors = AvTheme.colors
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(if (highlighted) Primary.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surface)
+            .background(if (highlighted) colors.accentWeak else MaterialTheme.colorScheme.surface)
             .padding(horizontal = 12.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start,
@@ -144,7 +143,7 @@ private fun BrowserMenuRow(icon: ImageVector, label: String, highlighted: Boolea
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = if (highlighted) Primary else TextSecondary.copy(alpha = 0.6f),
+            tint = if (highlighted) colors.accentText else colors.textSecondary.copy(alpha = 0.6f),
             modifier = Modifier.size(16.dp),
         )
         Spacer(Modifier.width(10.dp))
@@ -153,14 +152,14 @@ private fun BrowserMenuRow(icon: ImageVector, label: String, highlighted: Boolea
             style = MaterialTheme.typography.labelMedium.copy(
                 fontWeight = if (highlighted) FontWeight.SemiBold else FontWeight.Normal,
             ),
-            color = if (highlighted) Primary else TextPrimary.copy(alpha = 0.6f),
+            color = if (highlighted) colors.accentText else colors.textPrimary.copy(alpha = 0.6f),
         )
         if (highlighted) {
             Spacer(Modifier.weight(1f))
             Text(
                 text = "← 이것 탭!",
                 style = MaterialTheme.typography.labelSmall,
-                color = Primary,
+                color = colors.accentText,
             )
         }
     }

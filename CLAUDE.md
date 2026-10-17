@@ -57,8 +57,9 @@ Two entities: `SavedCarEntity` (user-saved evaluations with score/verdict/counts
 
 ## Key Conventions
 
-- Navigation uses Compose state machine (`AppScreen` enum + `when` blocks), not a navigation library
-- Screen-level state is managed via `remember`/`rememberSaveable` in `MainActivity.kt`
-- Sub-screens (ResultScreen, CompareScreen, PrivacyPolicyScreen) render as full-screen replacements via early `return`
+- UI follows the Toss-style design system in `DESIGN.md`: tokens via `AvTheme.colors/typography/shapes/spacing` (`ui/theme`), shared `Av*` components in `ui/components`. Screens never use raw colors.
+- Navigation is a small saveable back stack, not a navigation library: `ui/navigation/Route` destinations, the pure `AppNavigator` reducer (unit-tested), and the `AppRoot` shell. Screens receive a `ScreenHost` and hold no navigation state.
+- `MainActivity` only parses share intents (`ShareIntentParser`, skipped on restore) and hosts `AppRoot`; app-level state (back stack, last analyzed URL) lives in `AppRoot` via `rememberSaveable`.
+- Two tabs (홈, 저장한 차); Settings is a sub-screen opened from the home top bar. The tab bar and banner render only on tab roots.
 - `EncarUrl` utility validates and extracts car IDs from multiple Encar URL formats
 - ProGuard keeps `@JavascriptInterface` methods and Room classes — update `proguard-rules.pro` when adding new bridge methods or entities
