@@ -75,7 +75,7 @@ private val policyEntries = listOf(
     ),
     PolicyEntry(
         5, Icons.Outlined.PhoneAndroid, "권한 사용",
-        "• 인터넷 권한: 엔카 매물 정보를 조회하기 위해 사용합니다.\n• 광고 권한: 배너/전면 광고 표시를 위해 사용합니다.",
+        "• 인터넷 권한: 엔카 매물 정보를 조회하기 위해 사용합니다.\n• 광고 권한: 배너 광고 표시를 위해 사용합니다.",
     ),
     PolicyEntry(
         6, Icons.Outlined.PublicOff, "제3자 제공",

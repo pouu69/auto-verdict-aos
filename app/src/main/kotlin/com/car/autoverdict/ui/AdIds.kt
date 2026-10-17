@@ -13,7 +13,7 @@ import com.car.autoverdict.BuildConfig
  */
 object AdIds {
     private const val TEST_BANNER = "ca-app-pub-3940256099942544/6300978111"
-    private const val REAL_BANNER = "ca-app-pub-5353705048338468/4066384469"
+    private const val REAL_BANNER = "ca-app-pub-5353705048338468/1748874472"
 
     val banner: String = if (BuildConfig.DEBUG) TEST_BANNER else REAL_BANNER
 }

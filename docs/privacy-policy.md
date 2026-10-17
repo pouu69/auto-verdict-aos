@@ -94,7 +94,7 @@ AutoVerdict는 사용자가 입력한 엔카(encar.com) 중고차 매물의 공�
 본 앱은 다음 제3자 SDK를 사용합니다:
 
 ### Google AdMob (Play Services Ads)
-- **목적:** 배너 및 전면 광고 표시
+- **목적:** 배너 광고 표시
 - **데이터:** 광고 ID, 일반 기기 정보
 - **정책:** [Google 개인정보처리방침](https://policies.google.com/privacy)
 

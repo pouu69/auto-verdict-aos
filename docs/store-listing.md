@@ -122,8 +122,7 @@ v1.0.0 첫 출시
 모든 광고는 Google AdMob의 정책에 따라 게재되며, 어린이 대상 콘텐츠는 포함하지 않습니다.
 
 - **AdMob 앱 ID:** ca-app-pub-5353705048338468~6253564104
-- **배너 광고 ID:** ca-app-pub-5353705048338468/9597912744
-- **전면 광고 ID:** ca-app-pub-5353705048338468/4066384469
+- **배너 광고 ID:** ca-app-pub-5353705048338468/1748874472 (`app/src/main/kotlin/com/car/autoverdict/ui/AdIds.kt`의 `REAL_BANNER`)
 
 ## 연락처 정보
 
