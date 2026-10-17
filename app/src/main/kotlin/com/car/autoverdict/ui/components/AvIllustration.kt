@@ -17,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -60,7 +62,13 @@ fun AvEmptyState(
     ) {
         AvIllustrationIcon(icon = icon, tone = tone, size = 64.dp)
         Spacer(Modifier.height(16.dp))
-        Text(text = title, style = typography.title3, color = colors.textPrimary, textAlign = TextAlign.Center)
+        Text(
+            text = title,
+            style = typography.title3,
+            color = colors.textPrimary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.semantics { heading() },
+        )
         if (description != null) {
             Spacer(Modifier.height(6.dp))
             Text(text = description, style = typography.body2, color = colors.textSecondary, textAlign = TextAlign.Center)

@@ -20,12 +20,12 @@ import androidx.compose.material.icons.rounded.Link
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material.icons.rounded.Warning
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,15 +54,13 @@ import com.car.autoverdict.ui.components.rememberAvToastState
 import com.car.autoverdict.ui.navigation.MainTab
 import com.car.autoverdict.ui.theme.AvTheme
 import com.car.autoverdict.ui.theme.AvTone
-import kotlinx.coroutines.launch
 
 /** Debug-only visual check of every shared component and state (spec 6). */
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ComponentGalleryScreen(onBack: () -> Unit) {
     val colors = AvTheme.colors
     val toast = rememberAvToastState()
-    val scope = rememberCoroutineScope()
     var field by remember { mutableStateOf("") }
     var showSheet by remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
@@ -197,7 +195,7 @@ fun ComponentGalleryScreen(onBack: () -> Unit) {
                     AvButton(text = "다이얼로그", onClick = { showDialog = true }, style = AvButtonStyle.Weak, size = AvButtonSize.Medium)
                     AvButton(
                         text = "토스트",
-                        onClick = { scope.launch { toast.show("저장했어요", actionLabel = "보기") } },
+                        onClick = { toast.show("저장했어요", actionLabel = "보기") },
                         style = AvButtonStyle.Weak,
                         size = AvButtonSize.Medium,
                     )

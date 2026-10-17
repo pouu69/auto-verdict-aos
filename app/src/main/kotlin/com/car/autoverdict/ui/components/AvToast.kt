@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,15 +21,23 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.car.autoverdict.ui.theme.AvPalette
 import com.car.autoverdict.ui.theme.AvTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
-/** Owned by AppRoot and handed down via [LocalAvToast] (spec 6). */
+/**
+ * Owned by AppRoot and handed down via [LocalAvToast] (spec 6). Toasts run in the root [scope],
+ * so they survive the caller leaving composition; a new toast replaces the current one.
+ */
 @Stable
-class AvToastState {
+class AvToastState(private val scope: CoroutineScope) {
     internal val host = SnackbarHostState()
 
-    suspend fun show(message: String, actionLabel: String? = null, onAction: (() -> Unit)? = null) {
-        val result = host.showSnackbar(message = message, actionLabel = actionLabel, duration = SnackbarDuration.Short)
-        if (result == SnackbarResult.ActionPerformed) onAction?.invoke()
+    fun show(message: String, actionLabel: String? = null, onAction: (() -> Unit)? = null) {
+        scope.launch {
+            host.currentSnackbarData?.dismiss()
+            val result = host.showSnackbar(message = message, actionLabel = actionLabel, duration = SnackbarDuration.Short)
+            if (result == SnackbarResult.ActionPerformed) onAction?.invoke()
+        }
     }
 }
 
@@ -37,7 +46,10 @@ val LocalAvToast = staticCompositionLocalOf<AvToastState> {
 }
 
 @Composable
-fun rememberAvToastState(): AvToastState = remember { AvToastState() }
+fun rememberAvToastState(): AvToastState {
+    val scope = rememberCoroutineScope()
+    return remember(scope) { AvToastState(scope) }
+}
 
 @Composable
 fun AvToastHost(state: AvToastState, modifier: Modifier = Modifier) {

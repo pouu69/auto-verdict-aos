@@ -12,27 +12,41 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.car.autoverdict.R
 import com.car.autoverdict.ui.theme.AvPalette
 import com.car.autoverdict.ui.theme.AvTheme
 
-/** Modal sheet with a 24dp top radius, drag handle and drag-to-dismiss. */
+/**
+ * Modal sheet with a 24dp top radius, drag handle and drag-to-dismiss.
+ *
+ * To close from inside the sheet (e.g. a button), animate it out first:
+ * `scope.launch { sheetState.hide() }.invokeOnCompletion { onDismiss() }`.
+ * Content is not scrollable by default; add `verticalScroll` for long content.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AvBottomSheet(
     onDismiss: () -> Unit,
     title: String? = null,
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val colors = AvTheme.colors
+    val handleDescription = stringResource(R.string.cd_sheet_handle)
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        sheetState = sheetState,
         shape = AvTheme.shapes.sheetTop,
         containerColor = colors.background,
         scrimColor = colors.scrim,
@@ -42,7 +56,8 @@ fun AvBottomSheet(
                     .padding(top = 12.dp, bottom = 8.dp)
                     .size(width = 36.dp, height = 4.dp)
                     .clip(AvTheme.shapes.chip)
-                    .background(AvPalette.Grey300),
+                    .background(AvPalette.Grey300)
+                    .semantics { contentDescription = handleDescription },
             )
         },
     ) {
@@ -52,7 +67,12 @@ fun AvBottomSheet(
                 .padding(start = 20.dp, end = 20.dp, bottom = 24.dp),
         ) {
             if (title != null) {
-                Text(text = title, style = AvTheme.typography.title3, color = colors.textPrimary)
+                Text(
+                    text = title,
+                    style = AvTheme.typography.title3,
+                    color = colors.textPrimary,
+                    modifier = Modifier.semantics { heading() },
+                )
                 Spacer(Modifier.height(12.dp))
             }
             content()

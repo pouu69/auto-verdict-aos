@@ -1,7 +1,6 @@
 package com.car.autoverdict.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,7 +19,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -65,7 +63,7 @@ fun AvTabBar(
                         .heightIn(min = 56.dp)
                         .selectable(
                             selected = isSelected,
-                            interactionSource = remember { MutableInteractionSource() },
+                            interactionSource = null,
                             indication = null,
                             role = Role.Tab,
                             onClick = { onSelect(tab) },
