@@ -5,14 +5,13 @@ import android.content.Context
 
 object ClipboardUtil {
     /**
-     * Returns a clean, canonical Encar detail URL if the clipboard holds one,
-     * otherwise null. Share text often wraps the link in surrounding words
-     * (e.g. "이 매물 어때? https://.../cars/detail/123?..."), so we extract the
-     * car id and rebuild the URL rather than pasting the raw clipboard text.
+     * Returns the primary clip as text, or null when the clipboard is empty or unreadable.
+     * Call only from a user action (the paste button): Android 10+ returns null to apps
+     * without window focus, and Android 12+ shows a system toast on every read.
      */
-    fun getEncarUrl(context: Context): String? {
+    fun readText(context: Context): String? {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val text = clipboard.primaryClip?.getItemAt(0)?.text?.toString()
-        return EncarUrl.extractCarId(text)?.let { EncarUrl.buildDetailUrl(it) }
+        val clip = clipboard.primaryClip?.takeIf { it.itemCount > 0 } ?: return null
+        return clip.getItemAt(0).coerceToText(context)?.toString()
     }
 }

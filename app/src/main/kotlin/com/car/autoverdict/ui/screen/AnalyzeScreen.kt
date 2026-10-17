@@ -69,7 +69,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.car.autoverdict.AutoVerdictApp
 import com.car.autoverdict.R
-import com.car.autoverdict.db.CacheEntity
+import com.car.autoverdict.db.RecentViewRow
+import com.car.autoverdict.home.HomeInput
+import com.car.autoverdict.home.RECENT_QUERY_LIMIT
 import com.car.autoverdict.ui.components.AvIconButton
 import com.car.autoverdict.ui.components.AvTopBar
 import com.car.autoverdict.ui.components.BrowserShareIllustration
@@ -97,7 +99,9 @@ fun AnalyzeScreen(
     val isValidUrl = EncarUrl.isEncarDetail(urlText)
     val showError = urlText.isNotBlank() && !isValidUrl
     val app = context.applicationContext as AutoVerdictApp
-    val recentFlow: Flow<List<CacheEntity>> = remember { app.database.cacheDao().getRecentFlow() }
+    val recentFlow: Flow<List<RecentViewRow>> = remember {
+        app.database.cacheDao().recentViewsFlow(System.currentTimeMillis(), RECENT_QUERY_LIMIT)
+    }
     val recentItems by recentFlow.collectAsState(initial = emptyList())
     var showGuideSheet by remember { mutableStateOf(false) }
 
@@ -110,7 +114,7 @@ fun AnalyzeScreen(
     // clipboard, making the input look like it never reset.
     LifecycleResumeEffect(lastAnalyzedUrl) {
         if (urlText.isBlank()) {
-            ClipboardUtil.getEncarUrl(context)
+            (HomeInput.paste(ClipboardUtil.readText(context)) as? HomeInput.Paste.Filled)?.url
                 ?.takeIf { EncarUrl.extractCarId(it) != EncarUrl.extractCarId(lastAnalyzedUrl) }
                 ?.let {
                     urlText = it
@@ -528,7 +532,7 @@ private fun RecentSectionHeader() {
 }
 
 @Composable
-private fun RecentItemRow(item: CacheEntity, onClick: () -> Unit) {
+private fun RecentItemRow(item: RecentViewRow, onClick: () -> Unit) {
     val colors = AvTheme.colors
     val dateFormat = remember { SimpleDateFormat("MM/dd HH:mm", Locale.getDefault()) }
 
