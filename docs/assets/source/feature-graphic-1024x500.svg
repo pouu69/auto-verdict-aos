@@ -1,122 +1,52 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
-  <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#E8F1FF"/>
-      <stop offset="60%" stop-color="#F7F8FA"/>
-      <stop offset="100%" stop-color="#FFFFFF"/>
-    </linearGradient>
-    <linearGradient id="scoreCardBg" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#FFFFFF"/>
-      <stop offset="100%" stop-color="#F7F8FA"/>
-    </linearGradient>
-    <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="14"/>
-      <feOffset dx="0" dy="8"/>
-      <feComponentTransfer><feFuncA type="linear" slope="0.18"/></feComponentTransfer>
-      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-  </defs>
+  <!--
+    Google Play feature graphic (1024x500). Spec: docs/superpowers/specs/2026-10-18-ux-revamp-4-settings-cleanup-design.md §6.3
+    Render: see docs/assets-guide.md §2 (Pretendard via PANGOCAIRO_BACKEND=fc + a temporary FONTCONFIG_FILE).
+    Flat Toss blue background; no gradients, decorations or shadows. No "엔카" text in the image.
+  -->
 
-  <!-- Canvas -->
-  <rect width="1024" height="500" fill="url(#bg)"/>
+  <!-- Background: av_accent -->
+  <rect width="1024" height="500" fill="#3182F6"/>
 
-  <!-- Decorative blobs -->
-  <circle cx="900" cy="80" r="160" fill="#0064FF" opacity="0.05"/>
-  <circle cx="80" cy="450" r="120" fill="#0064FF" opacity="0.04"/>
-
-  <!-- Left: Brand + Title -->
-  <g transform="translate(72,128)">
-    <!-- Logo mark — faithful to launcher icon (ic_launcher: flat #3B82F6 + car + check badge),
-         foreground scaled from the 108 adaptive viewport to the 88px box (88/108 = 0.81481). -->
-    <rect x="0" y="0" width="88" height="88" rx="20" fill="#3B82F6" filter="url(#cardShadow)"/>
-    <g transform="scale(0.81481)">
-      <path d="M30,58l4,-8l8,-4l24,0l6,6l6,0l0,6l-2,0a4,4 0 0 1 -8,0l-24,0a4,4 0 0 1 -8,0l-6,0z"
-            fill="none" stroke="#FFFFFF" stroke-width="2.4"
-            stroke-linejoin="round" stroke-linecap="round"/>
-      <circle cx="40" cy="58" r="2.5" fill="#FFFFFF"/>
-      <circle cx="68" cy="58" r="2.5" fill="#FFFFFF"/>
-      <circle cx="70" cy="40" r="6" fill="#FFFFFF"/>
-      <path d="M67,40L69,42.5L73,37.5"
-            fill="none" stroke="#3B82F6" stroke-width="2.4"
-            stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Left: app icon (colors inverted on blue — white tile, blue foreground).
+       Foreground paths are a copy of docs/assets/source/app-icon.svg (108 viewport), scaled 72/108. -->
+  <g transform="translate(72,96)">
+    <rect width="72" height="72" rx="18" fill="#FFFFFF"/>
+    <g transform="scale(0.666667)" fill="#3182F6" fill-rule="evenodd">
+      <path d="M35,51 L39.6,37.2 Q40.5,34 43.8,34 H64.2 Q67.5,34 68.4,37.2 L73,51 Z M42.5,37.5 H65.5 L69.25,47.5 H38.75 Z"/>
+      <path d="M32,50 H76 A6,6 0 0 1 82,56 V64 A6,6 0 0 1 76,70 H32 A6,6 0 0 1 26,64 V56 A6,6 0 0 1 32,50 Z M32.5,55 H35.5 A2.5,2.5 0 0 1 35.5,60 H32.5 A2.5,2.5 0 0 1 32.5,55 Z M72.5,55 H75.5 A2.5,2.5 0 0 1 75.5,60 H72.5 A2.5,2.5 0 0 1 72.5,55 Z M47.56,57.94 L51.50,61.89 L60.94,52.44 A2.2,2.2 0 0 1 64.06,55.56 L51.50,68.11 L44.44,61.06 A2.2,2.2 0 0 1 47.56,57.94 Z"/>
+      <path d="M33.5,68 H38.5 A2.5,2.5 0 0 1 41,70.5 V72.5 A2.5,2.5 0 0 1 38.5,75 H33.5 A2.5,2.5 0 0 1 31,72.5 V70.5 A2.5,2.5 0 0 1 33.5,68 Z"/>
+      <path d="M69.5,68 H74.5 A2.5,2.5 0 0 1 77,70.5 V72.5 A2.5,2.5 0 0 1 74.5,75 H69.5 A2.5,2.5 0 0 1 67,72.5 V70.5 A2.5,2.5 0 0 1 69.5,68 Z"/>
     </g>
-
-    <!-- Title -->
-    <text x="0" y="148" font-family="-apple-system, system-ui, sans-serif"
-          font-size="56" font-weight="800" fill="#1A1A1A" letter-spacing="-1.5">
-      AutoVerdict
-    </text>
-
-    <!-- Tagline -->
-    <text x="0" y="186" font-family="-apple-system, system-ui, sans-serif"
-          font-size="22" font-weight="500" fill="#1A1A1A">
-      중고차 매물 종합 평가
-    </text>
-
-    <!-- Sub copy -->
-    <text x="0" y="220" font-family="-apple-system, system-ui, sans-serif"
-          font-size="16" font-weight="400" fill="#888888">
-      사고이력 · 진단 · 점수를 한눈에
-    </text>
   </g>
 
-  <!-- Right: Score card mockup -->
-  <g transform="translate(688,80)" filter="url(#cardShadow)">
-    <!-- Card background -->
-    <rect width="264" height="340" rx="24" fill="url(#scoreCardBg)" stroke="#E8E8EC" stroke-width="1"/>
+  <!-- Left: headline + subline -->
+  <g font-family="Pretendard" fill="#FFFFFF">
+    <text x="72" y="248" font-size="52" font-weight="700" letter-spacing="-1.5">중고차, 사기 전에</text>
+    <text x="72" y="314" font-size="52" font-weight="700" letter-spacing="-1.5">결론부터 확인하세요</text>
+    <text x="72" y="370" font-size="24" font-weight="400" fill-opacity="0.85">매물 링크 하나로 12가지 기준 점검</text>
+  </g>
 
-    <!-- Card header -->
-    <text x="22" y="44" font-family="-apple-system, monospace"
-          font-size="13" font-weight="700" fill="#888888" letter-spacing="1.2">01</text>
+  <!-- Right: result card miniature -->
+  <g transform="translate(604,96)" font-family="Pretendard">
+    <rect width="348" height="308" rx="24" fill="#FFFFFF"/>
 
-    <g transform="translate(214,28)">
-      <rect width="34" height="20" rx="6" fill="#0064FF" opacity="0.14"/>
-      <text x="17" y="14" text-anchor="middle"
-            font-family="-apple-system, monospace" font-size="10" font-weight="700"
-            fill="#0064FF" letter-spacing="0.8">TOP</text>
-    </g>
+    <!-- AvBadge "주의" (warning) + score -->
+    <rect x="28" y="28" width="52" height="28" rx="14" fill="#FFF4E5"/>
+    <text x="54" y="47.5" text-anchor="middle" font-size="15" font-weight="600" fill="#9A5000">주의</text>
+    <text x="90" y="53" font-size="28" font-weight="700" fill="#9A5000" letter-spacing="-0.5">72점</text>
 
-    <!-- Title placeholder -->
-    <text x="22" y="84" font-family="-apple-system, sans-serif"
-          font-size="16" font-weight="700" fill="#1A1A1A">현대 그랜저</text>
-    <text x="22" y="104" font-family="-apple-system, sans-serif"
-          font-size="13" fill="#888888">2022년식 · 가솔린</text>
+    <!-- Conclusion sentence -->
+    <text x="28" y="114" font-size="26" font-weight="700" fill="#191F28" letter-spacing="-0.5">사기 전에 2가지는</text>
+    <text x="28" y="150" font-size="26" font-weight="700" fill="#191F28" letter-spacing="-0.5">꼭 확인하세요</text>
 
-    <!-- Score -->
-    <text x="22" y="178" font-family="-apple-system, monospace"
-          font-size="64" font-weight="800" fill="#2E7D32">85</text>
-    <text x="120" y="178" font-family="-apple-system, monospace"
-          font-size="14" fill="#888888">/100</text>
+    <!-- Divider -->
+    <rect x="28" y="184" width="292" height="1" fill="#E5E8EB"/>
 
-    <!-- Score bar -->
-    <rect x="22" y="196" width="220" height="6" rx="3" fill="#E8E8EC"/>
-    <rect x="22" y="196" width="187" height="6" rx="3" fill="#2E7D32"/>
-
-    <!-- Severity chips -->
-    <g transform="translate(22,228)">
-      <rect width="60" height="22" rx="6" fill="#FFEBEE"/>
-      <text x="30" y="15" text-anchor="middle" font-family="-apple-system, sans-serif"
-            font-size="11" font-weight="600" fill="#E53935">위험 0</text>
-    </g>
-    <g transform="translate(90,228)">
-      <rect width="60" height="22" rx="6" fill="#FFF3E0"/>
-      <text x="30" y="15" text-anchor="middle" font-family="-apple-system, sans-serif"
-            font-size="11" font-weight="600" fill="#F57C00">주의 2</text>
-    </g>
-    <g transform="translate(158,228)">
-      <rect width="60" height="22" rx="6" fill="#E8F5E9"/>
-      <text x="30" y="15" text-anchor="middle" font-family="-apple-system, sans-serif"
-            font-size="11" font-weight="600" fill="#2E7D32">양호 8</text>
-    </g>
-
-    <!-- Bottom verdict pill -->
-    <g transform="translate(22,272)">
-      <rect width="220" height="38" rx="19" fill="#E8F5E9"/>
-      <text x="110" y="24" text-anchor="middle"
-            font-family="-apple-system, sans-serif"
-            font-size="14" font-weight="700" fill="#2E7D32">
-        구매 추천 매물
-      </text>
-    </g>
+    <!-- Issue rows -->
+    <circle cx="32" cy="224" r="4" fill="#FE9800"/>
+    <text x="46" y="230" font-size="17" font-weight="400" fill="#333D4B">소유자 변경 5회</text>
+    <circle cx="32" cy="264" r="4" fill="#FE9800"/>
+    <text x="46" y="270" font-size="17" font-weight="400" fill="#333D4B">자차보험 공백 7개월</text>
   </g>
 </svg>
