@@ -70,12 +70,64 @@ describe('engine entry', () => {
     expect(message).toMatch(/SyntaxError/);
   });
 
-  it('reports a non-object payload as an engine error', async () => {
+  it.each([
+    ['null', 'null'],
+    ['an array', '[]'],
+    ['a number', '1'],
+    ['a string', '"x"'],
+    ['an object without carId', '{}'],
+    ['an object with a non-string carId', '{"carId":39339524}'],
+  ])('rejects %s as invalid engine input', async (_label, rawJson) => {
     const engine = await loadEngine();
-    engine.handleEvaluate('req-9', 'null');
+    engine.handleEvaluate('req-9', rawJson);
 
     expect(android.onReport).not.toHaveBeenCalled();
-    expect(android.onEngineError).toHaveBeenCalledWith('req-9', expect.any(String));
+    expect(android.onEngineError).toHaveBeenCalledTimes(1);
+    const [id, message] = android.onEngineError.mock.calls[0] as [string, string];
+    expect(id).toBe('req-9');
+    expect(message).toMatch(/^TypeError: invalid engine input/);
+  });
+
+  it('sends the stack with the error, capped at 2000 chars', async () => {
+    const engine = await loadEngine();
+    engine.handleEvaluate('req-10', '[]');
+
+    const [, message] = android.onEngineError.mock.calls[0] as [string, string];
+    expect(message).toMatch(/\n\s+at /);
+    expect(message.length).toBeLessThanOrEqual(2000);
+  });
+
+  describe('when the engine itself throws', () => {
+    afterEach(() => {
+      vi.doUnmock('../src/orchestrate-mobile');
+    });
+
+    const engineThrowing = async (thrown: unknown): Promise<EngineModule> => {
+      vi.resetModules();
+      vi.doMock('../src/orchestrate-mobile', () => ({
+        orchestrateMobile: () => {
+          throw thrown;
+        },
+      }));
+      return import('../src/engine');
+    };
+
+    it('caps a long error message at 2000 chars', async () => {
+      const engine = await engineThrowing(new Error('x'.repeat(5000)));
+      engine.handleEvaluate('req-11', JSON.stringify(rawOf('39339524')));
+
+      const [id, message] = android.onEngineError.mock.calls[0] as [string, string];
+      expect(id).toBe('req-11');
+      expect(message).toBe(`Error: ${'x'.repeat(5000)}`.slice(0, 2000));
+    });
+
+    it('stringifies a non-Error throw', async () => {
+      const engine = await engineThrowing('boom');
+      engine.handleEvaluate('req-12', JSON.stringify(rawOf('39339524')));
+
+      expect(android.onEngineError).toHaveBeenCalledWith('req-12', 'boom');
+      expect(android.onReport).not.toHaveBeenCalled();
+    });
   });
 });
 

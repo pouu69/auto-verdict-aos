@@ -12,13 +12,33 @@ import { buildReport } from './report/build-report';
 import type { EngineWindow } from './engine-bridge';
 import { bridge } from './engine-bridge';
 
+/** Native logs this; the stack is what makes an on-device failure traceable. */
+const MAX_ERROR_LENGTH = 2000;
+
+const errorMessage = (e: unknown): string =>
+  (e instanceof Error ? (e.stack ?? e.message) : String(e)).slice(0, MAX_ERROR_LENGTH);
+
+/** Rejects payloads the collector could never send, before they reach the parsers. */
+const parseInput = (rawJson: string): MobileOrchestratorInput => {
+  const raw: unknown = JSON.parse(rawJson);
+  if (
+    typeof raw !== 'object' ||
+    raw === null ||
+    Array.isArray(raw) ||
+    typeof (raw as { carId?: unknown }).carId !== 'string'
+  ) {
+    throw new TypeError('invalid engine input');
+  }
+  return raw as MobileOrchestratorInput;
+};
+
 export function handleEvaluate(requestId: string, rawJson: string): void {
   let json: string;
   try {
-    const raw = JSON.parse(rawJson) as MobileOrchestratorInput;
+    const raw = parseInput(rawJson);
     json = JSON.stringify(buildReport(raw, orchestrateMobile(raw)));
   } catch (e) {
-    bridge.error(requestId, String(e));
+    bridge.error(requestId, errorMessage(e));
     return;
   }
   // Outside the try so a throwing bridge cannot also send an error for this id.
