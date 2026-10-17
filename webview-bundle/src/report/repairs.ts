@@ -68,13 +68,14 @@ export function walkSystems(inners: unknown): Array<SystemItem & { code: string 
   const walk = (nodes: unknown, parent: string): void => {
     for (const n of arr(nodes)) {
       if (!isObj(n)) continue;
-      const name = partName(isObj(n.type) ? (str(n.type, 'title') ?? '') : '');
+      // Untitled nodes and statuses get the same words as the 성능점검 sheet (details/inspection.ts).
+      const name = partName((isObj(n.type) ? str(n.type, 'title') : null) ?? '기타');
       if (isObj(n.statusType)) {
         const code = String(n.statusType.code ?? '');
         out.push({
           group: parent,
           name,
-          status: str(n.statusType, 'title') ?? '',
+          status: str(n.statusType, 'title') ?? '기록 없음',
           tone: codeTone(code),
           code,
         });

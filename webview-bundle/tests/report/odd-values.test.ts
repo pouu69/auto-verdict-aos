@@ -71,6 +71,21 @@ describe('unreadable numbers', () => {
   });
 });
 
+describe('성능점검 items without titles', () => {
+  it('names untitled flagged items instead of leaving them blank', () => {
+    const r = reportWith('39339524', (raw) => {
+      (raw.inspectionJson as Obj).inners = [
+        { statusType: { code: '5', title: '누수' } },
+        { type: { code: 'b', title: '워터펌프' }, statusType: { code: '10' } },
+      ];
+    });
+    expect(r.repairs!.systems.flagged).toEqual([
+      { group: '', name: '기타', status: '누수', tone: 'danger' },
+      { group: '', name: '워터펌프', status: '기록 없음', tone: 'danger' },
+    ]);
+  });
+});
+
 describe('oil-leak items without names', () => {
   it('keeps the report when a leak item has no status title', () => {
     const r = reportWith('39339524', (raw) => {
