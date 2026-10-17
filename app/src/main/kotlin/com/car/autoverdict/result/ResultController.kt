@@ -8,15 +8,18 @@ import com.car.autoverdict.util.EncarUrl
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 /**
  * Result screen state machine (spec 5.1). Data source order: saved row (then a silent
@@ -136,7 +139,7 @@ class ResultController(
         saving = true
         publishReady()
         scope.launch {
-            val ok = attempt {
+            val ok = write {
                 savedRowLock.withLock {
                     // Read under the lock: an update may have swapped the report since the tap.
                     val current = checkNotNull(shown)
@@ -145,6 +148,8 @@ class ResultController(
                 }
             }
             saving = false
+            // Screen gone: the row is written, but there is nothing left to update or notify.
+            if (!isActive) return@launch
             publishReady()
             _events.trySend(if (ok) ResultEvent.Saved else ResultEvent.SaveFailed)
         }
@@ -156,7 +161,7 @@ class ResultController(
         saving = true
         publishReady()
         scope.launch {
-            val ok = attempt {
+            val ok = write {
                 savedRowLock.withLock {
                     repository.delete(id)
                     saved = false
@@ -164,6 +169,7 @@ class ResultController(
                 }
             }
             saving = false
+            if (!isActive) return@launch
             publishReady()
             _events.trySend(if (ok) ResultEvent.Unsaved else ResultEvent.SaveFailed)
         }
@@ -265,9 +271,9 @@ class ResultController(
     /** Caches gap-free results and refreshes the saved row (keeping savedAt) if still saved. */
     private suspend fun persist(fresh: Evaluated) {
         if (fresh.report.dataGaps.isEmpty()) {
-            attempt { repository.writeCache(fresh.report, fresh.rawJson) }
+            write { repository.writeCache(fresh.report, fresh.rawJson) }
         }
-        attempt {
+        write {
             savedRowLock.withLock {
                 if (saved) savedAt = repository.save(fresh.report, fresh.rawJson, savedAt = savedAt)
             }
@@ -335,15 +341,21 @@ class ResultController(
             null
         }
 
-    /** Runs [block]; false if it threw (cancellation still propagates). */
-    private suspend fun attempt(block: suspend () -> Unit): Boolean =
-        try {
-            block()
-            true
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            false
+    /**
+     * Runs the DB write [block]; false if it threw. Non-cancellable: once started, a save,
+     * delete or cache write finishes even if the user leaves the screen (the scope is cancelled).
+     * Callers skip their UI follow-up when cancelled.
+     */
+    private suspend fun write(block: suspend () -> Unit): Boolean =
+        withContext(NonCancellable) {
+            try {
+                block()
+                true
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                false
+            }
         }
 
     private fun CollectStage.toLoadingStage(): LoadingStage = when (this) {

@@ -28,7 +28,8 @@ import com.car.autoverdict.ui.navigation.ScreenHost
 /**
  * Wires [ResultScreen] to a [ResultController] for [url] and to the platform: share sheet,
  * clipboard, the Encar page and toasts (spec 5.3). The controller lives as long as this route
- * stays composed; leaving the screen cancels its work.
+ * stays composed; leaving the screen cancels collection and evaluation, while DB writes
+ * already started (save, unsave, cache) still finish.
  */
 @Composable
 fun ResultRoute(

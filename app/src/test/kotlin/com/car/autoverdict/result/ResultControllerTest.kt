@@ -12,6 +12,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -649,6 +650,48 @@ class ResultControllerTest {
     }
 
     @Test
+    fun `save finishes its write after the screen scope is cancelled`() = runTest {
+        repo.cache = "cache-raw"
+        evaluator.results["cache-raw"] = EngineResult.Success(caution)
+        val screen = CoroutineScope(Job() + StandardTestDispatcher(testScheduler))
+        val c = ResultController(URL, repo, evaluator, screen)
+        val events = events(c)
+        c.start()
+        runCurrent()
+        val gate = CompletableDeferred<Unit>()
+        repo.writeGate = gate
+
+        c.save()
+        runCurrent()
+        screen.cancel() // user left the screen mid-write
+        gate.complete(Unit)
+        runCurrent()
+
+        assertEquals(listOf(SaveCall(caution, "cache-raw", null)), repo.saves)
+        // Nothing left to show it on.
+        assertTrue(events.isEmpty())
+    }
+
+    @Test
+    fun `unsave finishes its delete after the screen scope is cancelled`() = runTest {
+        givenSavedCar()
+        val screen = CoroutineScope(Job() + StandardTestDispatcher(testScheduler))
+        val c = ResultController(URL, repo, evaluator, screen)
+        c.start()
+        runCurrent()
+        val gate = CompletableDeferred<Unit>()
+        repo.writeGate = gate
+
+        c.unsave()
+        runCurrent()
+        screen.cancel()
+        gate.complete(Unit)
+        runCurrent()
+
+        assertEquals(listOf(CAR_ID), repo.deletes)
+    }
+
+    @Test
     fun `save failure emits SaveFailed and keeps the button usable`() = runTest {
         repo.cache = "cache-raw"
         evaluator.results["cache-raw"] = EngineResult.Success(caution)
@@ -712,6 +755,9 @@ class ResultControllerTest {
         var saved: SavedCarEntity? = null
         var cache: String? = null
         var failWrites = false
+
+        /** When set, writes suspend on it first, so a test can cancel mid-write. */
+        var writeGate: CompletableDeferred<Unit>? = null
         val reads = mutableListOf<String>()
         var savedCarReads = 0
         val collects = mutableListOf<CollectCall>()
@@ -742,10 +788,12 @@ class ResultControllerTest {
         }
 
         override suspend fun writeCache(report: EvaluationReport, rawJson: String) {
+            writeGate?.await()
             cacheWrites += report to rawJson
         }
 
         override suspend fun save(report: EvaluationReport, rawJson: String, savedAt: Long?): Long {
+            writeGate?.await()
             if (failWrites) throw IOException("disk full")
             saves += SaveCall(report, rawJson, savedAt)
             val written = savedAt ?: NOW
@@ -754,6 +802,7 @@ class ResultControllerTest {
         }
 
         override suspend fun delete(carId: String) {
+            writeGate?.await()
             if (failWrites) throw IOException("disk full")
             deletes += carId
             saved = null
