@@ -16,10 +16,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -36,6 +36,7 @@ import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.IosShare
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -50,8 +51,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -63,12 +62,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.car.autoverdict.AutoVerdictApp
+import com.car.autoverdict.R
 import com.car.autoverdict.db.CacheEntity
+import com.car.autoverdict.ui.components.AvIconButton
+import com.car.autoverdict.ui.components.AvTopBar
 import com.car.autoverdict.ui.components.BrowserShareIllustration
 import com.car.autoverdict.ui.components.ShareSheetIllustration
 import com.car.autoverdict.ui.theme.Background
@@ -90,6 +93,7 @@ import java.util.Locale
 fun AnalyzeScreen(
     modifier: Modifier = Modifier,
     lastAnalyzedUrl: String? = null,
+    onOpenSettings: () -> Unit = {},
     onAnalyze: (String) -> Unit,
 ) {
     val context = LocalContext.current
@@ -125,20 +129,19 @@ fun AnalyzeScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Background),
+            .background(Background)
+            .imePadding(),
     ) {
-        TopAppBar(
-            title = {
-                Text(
-                    text = "AutoVerdict",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+        AvTopBar(
+            onBack = null,
+            title = "AutoVerdict",
+            actions = {
+                AvIconButton(
+                    icon = Icons.Rounded.Settings,
+                    contentDescription = stringResource(R.string.cd_settings),
+                    onClick = onOpenSettings,
                 )
             },
-            windowInsets = WindowInsets(0, 0, 0, 0),
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Background,
-                titleContentColor = TextPrimary,
-            ),
         )
 
         LazyColumn(
