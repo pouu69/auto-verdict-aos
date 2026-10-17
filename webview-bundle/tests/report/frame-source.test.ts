@@ -42,7 +42,7 @@ describe('R04 killer copy names its evidence source', () => {
     const report = buildReport(raw, out);
     const r04 = report.issues.find((i) => i.ruleId === 'R04')!;
     expect(report.headline).toBe('성능점검에 사고 이력이 있어 사지 않는 게 좋아요');
-    expect(r04.message).toBe('성능점검에 사고 이력이 있어요 · 외판 트렁크 리드, 쿼터 패널(우) 교환·수리');
+    expect(r04.message).toBe('성능점검에 사고 이력이 있어요');
     expect(r04.sellerQuestion).toBe('성능점검 사고 부위의 수리 내역과 사진을 볼 수 있을까요?');
     expect(report.shareText.summary).toContain('성능점검에 사고 이력이 있어 사지 않는 게 좋아요');
   });

@@ -65,7 +65,7 @@ describe('ruleCopy on fixtures', () => {
   it('39339524 R04 killer and R10 warn', () => {
     const { out } = load('39339524');
     expect(ruleCopy(resultOf('39339524', 'R04'), out.facts, 'inspection')).toEqual({
-      message: '성능점검에 사고 이력이 있어요 · 외판 트렁크 리드, 쿼터 패널(우) 교환·수리',
+      message: '성능점검에 사고 이력이 있어요',
       sellerQuestion: '성능점검 사고 부위의 수리 내역과 사진을 볼 수 있을까요?',
     });
     expect(ruleCopy(resultOf('39339524', 'R10'), out.facts).message).toBe(

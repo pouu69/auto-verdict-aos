@@ -116,14 +116,11 @@ export function ruleCopy(result: RuleResult, facts: ChecklistFacts, frameSource:
     case 'R03':
       return ok('엔카진단을 통과한 차예요');
     case 'R04': {
+      // Killer rows skip the panel list; the repairs section already shows it.
+      if (problem) return FRAME_KILLER[frameSource];
       const frame = evidenceOf(result, 'frameDamage', facts.frameDamage);
       const parts = (frame?.parts ?? []).map(panelName);
-      const panels = parts.length > 0 ? ` · 외판 ${parts.join(', ')} 교환·수리` : '';
-      if (problem) {
-        const copy = FRAME_KILLER[frameSource];
-        return { ...copy, message: `${copy.message}${panels}` };
-      }
-      return ok(`프레임 손상은 없어요${panels}`);
+      return ok(parts.length > 0 ? `프레임 손상은 없어요 · 외판 ${parts.join(', ')} 교환·수리` : '프레임 손상은 없어요');
     }
     case 'R05': {
       if (s === 'killer') {
