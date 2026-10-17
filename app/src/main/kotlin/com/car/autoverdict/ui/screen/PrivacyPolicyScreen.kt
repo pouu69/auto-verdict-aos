@@ -123,7 +123,8 @@ private fun PolicyHeroBlock() {
             modifier = Modifier
                 .size(44.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(colors.accentWeak),
+                // Sits on an accentWeak block, so a translucent accent keeps it visible.
+                .background(colors.accent.copy(alpha = 0.14f)),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
