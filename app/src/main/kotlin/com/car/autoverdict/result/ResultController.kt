@@ -270,12 +270,15 @@ class ResultController(
 
     /** Caches gap-free results and refreshes the saved row (keeping savedAt) if still saved. */
     private suspend fun persist(fresh: Evaluated) {
-        if (fresh.report.dataGaps.isEmpty()) {
-            write { repository.writeCache(fresh.report, fresh.rawJson) }
-        }
-        write {
-            savedRowLock.withLock {
-                if (saved) savedAt = repository.save(fresh.report, fresh.rawJson, savedAt = savedAt)
+        // One non-cancellable block: leaving the screen between the two writes can't skip the second.
+        withContext(NonCancellable) {
+            if (fresh.report.dataGaps.isEmpty()) {
+                tryWrite { repository.writeCache(fresh.report, fresh.rawJson) }
+            }
+            tryWrite {
+                savedRowLock.withLock {
+                    if (saved) savedAt = repository.save(fresh.report, fresh.rawJson, savedAt = savedAt)
+                }
             }
         }
     }
@@ -347,15 +350,17 @@ class ResultController(
      * Callers skip their UI follow-up when cancelled.
      */
     private suspend fun write(block: suspend () -> Unit): Boolean =
-        withContext(NonCancellable) {
-            try {
-                block()
-                true
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                false
-            }
+        withContext(NonCancellable) { tryWrite(block) }
+
+    /** Runs [block]; false if it threw (cancellation still propagates). Callers own the context. */
+    private suspend fun tryWrite(block: suspend () -> Unit): Boolean =
+        try {
+            block()
+            true
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            false
         }
 
     private fun CollectStage.toLoadingStage(): LoadingStage = when (this) {

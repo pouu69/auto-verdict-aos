@@ -692,6 +692,27 @@ class ResultControllerTest {
     }
 
     @Test
+    fun `refresh writes both the cache and the saved row after the screen scope is cancelled`() = runTest {
+        givenSavedCar()
+        val screen = CoroutineScope(Job() + StandardTestDispatcher(testScheduler))
+        val c = ResultController(URL, repo, evaluator, screen)
+        c.start()
+        runCurrent()
+        val gate = CompletableDeferred<Unit>()
+        repo.writeGate = gate
+
+        evaluator.results["new-raw"] = EngineResult.Success(refreshed)
+        repo.collects.single().result.complete(CollectOutcome.Success("new-raw"))
+        runCurrent() // now blocked in writeCache
+        screen.cancel()
+        gate.complete(Unit)
+        runCurrent()
+
+        assertEquals(listOf(refreshed to "new-raw"), repo.cacheWrites)
+        assertEquals(listOf(SaveCall(refreshed, "new-raw", SAVED_AT)), repo.saves)
+    }
+
+    @Test
     fun `save failure emits SaveFailed and keeps the button usable`() = runTest {
         repo.cache = "cache-raw"
         evaluator.results["cache-raw"] = EngineResult.Success(caution)
