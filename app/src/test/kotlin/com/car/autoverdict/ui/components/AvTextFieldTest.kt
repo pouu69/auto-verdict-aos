@@ -1,0 +1,45 @@
+package com.car.autoverdict.ui.components
+
+import android.app.Application
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import com.car.autoverdict.ui.theme.AvTheme
+import org.junit.Assert.assertEquals
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+
+@RunWith(RobolectricTestRunner::class)
+@Config(application = Application::class)
+class AvTextFieldTest {
+
+    @get:Rule val rule = createComposeRule()
+
+    @Test fun `shows placeholder when empty`() {
+        rule.setContent { AvTheme { AvTextField(value = "", onValueChange = {}, placeholder = "엔카 매물 링크 붙여넣기") } }
+        rule.onNodeWithText("엔카 매물 링크 붙여넣기").assertIsDisplayed()
+    }
+
+    @Test fun `shows error text under the field`() {
+        rule.setContent {
+            AvTheme {
+                AvTextField(value = "abc", onValueChange = {}, placeholder = "p", errorText = "엔카 매물 링크가 아니에요")
+            }
+        }
+        rule.onNodeWithText("엔카 매물 링크가 아니에요").assertIsDisplayed()
+    }
+
+    @Test fun `clear button appears with text and calls onClear`() {
+        var cleared = 0
+        rule.setContent {
+            AvTheme { AvTextField(value = "abc", onValueChange = {}, placeholder = "p", onClear = { cleared++ }) }
+        }
+        rule.onNodeWithContentDescription("지우기").performClick()
+        assertEquals(1, cleared)
+    }
+}
