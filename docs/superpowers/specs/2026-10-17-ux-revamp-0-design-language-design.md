@@ -296,7 +296,7 @@ sealed interface Route {
 ```
 
 **상태 보존**
-- 스택은 `rememberSaveable(saver = RouteStackSaver)`로 보존한다. `RouteStackSaver`는 각 Route를 문자열 리스트로 직렬화하는 커스텀 `listSaver`다. `kotlin-parcelize` 플러그인은 추가하지 않는다.
+- 스택과 `pendingSharedUrl`을 묶은 `NavState`를 `rememberSaveable(stateSaver = NavStateSaver)`로 보존한다. `NavStateSaver`는 문자열 리스트로 직렬화하는 커스텀 `listSaver`다(해석할 수 없는 항목이 하나라도 있으면 초기 상태로 돌아간다). `kotlin-parcelize` 플러그인은 추가하지 않는다.
 - 회전이나 프로세스 복원 뒤에는 스택 전체가 복원된다. 화면 내부 상태(저장 목록 정렬, 비교 모드 선택 등)는 각 화면이 지금 하는 만큼만 유지되고, 0번에서 범위를 넓히지 않는다.
 - 결과 화면은 회전하면 WebView가 다시 만들어져 수집이 재실행된다. 24시간 캐시가 있으면 캐시를 쓴다. 0번에서는 이 동작을 허용한다(1번에서 재설계).
 - 지금 `MainScreen`의 `rememberSaveable`에 있는 `lastAnalyzedUrl`은 `AppRoot` 수준으로 끌어올린다. 결과에서 돌아올 때 클립보드의 같은 링크로 입력창이 다시 채워지는 것을 막는 상태라서, 기존 동작을 유지해야 한다.
@@ -320,6 +320,7 @@ sealed interface Route {
 | 엔카 공유(무효) | 스택 그대로 두고 토스트 "엔카 매물 링크만 확인할 수 있어요" | 없음 |
 | 온보딩 완료, 스택이 `[Onboarding]` | 완료 플래그 저장. `pendingSharedUrl`이 있으면 `[Home, Result(url, false)]`, 없으면 `[Home]` | Replace |
 | 온보딩 완료, 스택에 다른 화면이 있음(설정에서 다시 보기) | `pop` | Pop |
+| 온보딩 완료, top이 온보딩이 아님(전환 중 늦게 도착한 콜백) | 변화 없음 | 없음 |
 | 같은 차의 Result push | 스택 top이 같은 `carId`의 Result면 push하지 않음 | 없음 |
 
 **공유 인텐트 처리**
@@ -335,7 +336,7 @@ sealed interface Route {
 
 **스플래시**
 - Compose `BrandSplashScreen`을 제거한다.
-- OS `SplashScreen`의 `setKeepOnScreenCondition`으로 온보딩 완료 여부를 읽을 때까지만 유지한다.
+- OS `SplashScreen`만 쓴다. 온보딩 완료 여부는 SharedPreferences 동기 읽기라 `setKeepOnScreenCondition`은 필요 없다.
 - 스플래시 배경은 `accent`(`#3182F6`)다. 기존 런처 전경 아이콘이 흰색이라 흰 배경에서는 보이지 않기 때문이다. 아이콘 자체는 그대로 쓴다(교체는 4번).
 - 파랑 스플래시에서 흰 홈 화면으로 넘어가는 색 전환은 남는다. 이중 스플래시와 두 파랑 사이의 색 차이는 없어진다. 스플래시를 흰색으로 바꾸는 일은 4번에서 아이콘을 교체할 때 한다.
 
@@ -406,7 +407,7 @@ sealed interface Route {
 1. `AvTheme`와 토큰 4종, M3 컬러스킴·타이포 슬롯 연결(4.6절), `colors.xml` 정렬, 기존 `Color.kt` 상수 제거
 2. 토스페이스 렌더링 검증(5절), Pretendard·토스페이스 번들, `LicensesScreen`
 3. 공용 컴포넌트 16종과 `Modifier.avPressable()`, 컴포넌트 갤러리(debug)
-4. `Route` 백스택, `RouteStackSaver`, `AppNavigator`, `AppRoot`, 2탭 + 설정 아이콘, 뒤로가기 규칙, 공유 인텐트 처리, OS 스플래시 단일화, 화면 전환 애니메이션
+4. `Route` 백스택, `NavStateSaver`, `AppNavigator`, `AppRoot`, 2탭 + 설정 아이콘, 뒤로가기 규칙, 공유 인텐트 처리, OS 스플래시 단일화, 화면 전환 애니메이션
 5. 기존 화면 적용(7.3절 표 범위로 한정)
 6. `DESIGN.md`를 토스 기준 문서로 교체, `CLAUDE.md`의 내비게이션 규칙 설명 갱신
 
