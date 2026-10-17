@@ -26,10 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.car.autoverdict.ui.theme.Border
-import com.car.autoverdict.ui.theme.Primary
-import com.car.autoverdict.ui.theme.TextPrimary
-import com.car.autoverdict.ui.theme.TextSecondary
+import com.car.autoverdict.ui.theme.AvTheme
 
 /**
  * A simplified, code-drawn mock of the Android share sheet that highlights the
@@ -39,19 +36,20 @@ import com.car.autoverdict.ui.theme.TextSecondary
  */
 @Composable
 fun ShareSheetIllustration(modifier: Modifier = Modifier) {
+    val colors = AvTheme.colors
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .background(MaterialTheme.colorScheme.surface)
-            .border(0.5.dp, Border.copy(alpha = 0.6f), RoundedCornerShape(14.dp))
+            .border(0.5.dp, colors.border.copy(alpha = 0.6f), RoundedCornerShape(14.dp))
             .padding(vertical = 14.dp, horizontal = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = "공유 시트에서 이렇게 보여요",
             style = MaterialTheme.typography.labelSmall,
-            color = TextSecondary,
+            color = colors.textSecondary,
         )
         Spacer(Modifier.height(12.dp))
         Row(
@@ -68,6 +66,7 @@ fun ShareSheetIllustration(modifier: Modifier = Modifier) {
 
 @Composable
 private fun DimmedAppTile(icon: ImageVector, label: String) {
+    val colors = AvTheme.colors
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.width(64.dp),
@@ -76,13 +75,13 @@ private fun DimmedAppTile(icon: ImageVector, label: String) {
             modifier = Modifier
                 .size(46.dp)
                 .clip(RoundedCornerShape(13.dp))
-                .background(Border.copy(alpha = 0.18f)),
+                .background(colors.border.copy(alpha = 0.18f)),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = TextSecondary.copy(alpha = 0.5f),
+                tint = colors.textSecondary.copy(alpha = 0.5f),
                 modifier = Modifier.size(22.dp),
             )
         }
@@ -90,13 +89,14 @@ private fun DimmedAppTile(icon: ImageVector, label: String) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = TextSecondary.copy(alpha = 0.6f),
+            color = colors.textSecondary.copy(alpha = 0.6f),
         )
     }
 }
 
 @Composable
 private fun AutoVerdictTile() {
+    val colors = AvTheme.colors
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.width(72.dp),
@@ -105,8 +105,8 @@ private fun AutoVerdictTile() {
             modifier = Modifier
                 .size(52.dp)
                 .clip(RoundedCornerShape(14.dp))
-                .background(Primary)
-                .border(3.dp, Primary.copy(alpha = 0.22f), RoundedCornerShape(17.dp)),
+                .background(colors.accent)
+                .border(3.dp, colors.accent.copy(alpha = 0.22f), RoundedCornerShape(17.dp)),
             contentAlignment = Alignment.Center,
         ) {
             Text(
@@ -119,12 +119,12 @@ private fun AutoVerdictTile() {
         Text(
             text = "AutoVerdict",
             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-            color = Primary,
+            color = colors.accentText,
         )
         Text(
             text = "← 이것만 탭!",
             style = MaterialTheme.typography.labelSmall,
-            color = Primary,
+            color = colors.accentText,
         )
     }
 }

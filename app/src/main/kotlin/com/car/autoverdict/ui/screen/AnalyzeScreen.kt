@@ -74,13 +74,7 @@ import com.car.autoverdict.ui.components.AvIconButton
 import com.car.autoverdict.ui.components.AvTopBar
 import com.car.autoverdict.ui.components.BrowserShareIllustration
 import com.car.autoverdict.ui.components.ShareSheetIllustration
-import com.car.autoverdict.ui.theme.Background
-import com.car.autoverdict.ui.theme.Border
-import com.car.autoverdict.ui.theme.Hairline
-import com.car.autoverdict.ui.theme.Danger
-import com.car.autoverdict.ui.theme.Primary
-import com.car.autoverdict.ui.theme.TextPrimary
-import com.car.autoverdict.ui.theme.TextSecondary
+import com.car.autoverdict.ui.theme.AvTheme
 import com.car.autoverdict.util.ClipboardUtil
 import com.car.autoverdict.util.EncarUrl
 import kotlinx.coroutines.flow.Flow
@@ -96,6 +90,7 @@ fun AnalyzeScreen(
     onOpenSettings: () -> Unit = {},
     onAnalyze: (String) -> Unit,
 ) {
+    val colors = AvTheme.colors
     val context = LocalContext.current
     var urlText by remember { mutableStateOf("") }
     var fromClipboard by remember { mutableStateOf(false) }
@@ -129,7 +124,7 @@ fun AnalyzeScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Background)
+            .background(colors.surfaceMuted)
             .imePadding(),
     ) {
         AvTopBar(
@@ -206,11 +201,12 @@ private fun openEncarHome(context: Context) {
 
 @Composable
 private fun ShareGuidePromptCard(onClick: () -> Unit) {
+    val colors = AvTheme.colors
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = Primary.copy(alpha = 0.06f)),
+        colors = CardDefaults.cardColors(containerColor = colors.accentWeak),
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
@@ -222,13 +218,13 @@ private fun ShareGuidePromptCard(onClick: () -> Unit) {
                 modifier = Modifier
                     .size(40.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Primary.copy(alpha = 0.12f)),
+                    .background(colors.accent.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Outlined.IosShare,
                     contentDescription = null,
-                    tint = Primary,
+                    tint = colors.accentText,
                     modifier = Modifier.size(20.dp),
                 )
             }
@@ -237,19 +233,19 @@ private fun ShareGuidePromptCard(onClick: () -> Unit) {
                 Text(
                     text = "엔카에서 공유하면 자동 분석",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = TextPrimary,
+                    color = colors.textPrimary,
                 )
                 Text(
                     text = "탭해서 사용법 보기",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary,
+                    color = colors.textSecondary,
                 )
             }
             Spacer(Modifier.width(8.dp))
             Icon(
                 imageVector = Icons.Outlined.ChevronRight,
                 contentDescription = null,
-                tint = Primary,
+                tint = colors.accentText,
             )
         }
     }
@@ -261,6 +257,7 @@ private fun ShareGuideBottomSheet(
     onDismiss: () -> Unit,
     onOpenEncar: () -> Unit,
 ) {
+    val colors = AvTheme.colors
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -277,13 +274,13 @@ private fun ShareGuideBottomSheet(
             Text(
                 text = "엔카 공유로 분석하는 법",
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                color = TextPrimary,
+                color = colors.textPrimary,
             )
             Spacer(Modifier.height(4.dp))
             Text(
                 text = "엔카 매물을 가장 빠르게 분석하는 방법이에요",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = colors.textSecondary,
             )
 
             Spacer(Modifier.height(24.dp))
@@ -303,7 +300,7 @@ private fun ShareGuideBottomSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                colors = ButtonDefaults.buttonColors(containerColor = colors.accent),
                 shape = RoundedCornerShape(999.dp),
             ) {
                 Icon(
@@ -327,13 +324,14 @@ private fun ShareGuideStep(
     text: String,
     illustration: (@Composable () -> Unit)? = null,
 ) {
+    val colors = AvTheme.colors
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
                     .size(26.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Primary),
+                    .background(colors.accent),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -346,7 +344,7 @@ private fun ShareGuideStep(
             Text(
                 text = text,
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextPrimary,
+                color = colors.textPrimary,
             )
         }
         if (illustration != null) {
@@ -360,24 +358,25 @@ private fun ShareGuideStep(
 
 @Composable
 private fun OrDivider() {
+    val colors = AvTheme.colors
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
             modifier = Modifier
                 .weight(1f)
                 .height(0.5.dp)
-                .background(Border.copy(alpha = 0.6f)),
+                .background(colors.border.copy(alpha = 0.6f)),
         )
         Text(
             text = "또는 링크 직접 입력",
             style = MaterialTheme.typography.labelSmall,
-            color = TextSecondary,
+            color = colors.textSecondary,
             modifier = Modifier.padding(horizontal = 12.dp),
         )
         Box(
             modifier = Modifier
                 .weight(1f)
                 .height(0.5.dp)
-                .background(Border.copy(alpha = 0.6f)),
+                .background(colors.border.copy(alpha = 0.6f)),
         )
     }
 }
@@ -392,12 +391,13 @@ private fun UrlInputCard(
     fromClipboard: Boolean,
     onAnalyze: () -> Unit,
 ) {
+    val colors = AvTheme.colors
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = BorderStroke(1.dp, Hairline),
+        border = BorderStroke(1.dp, colors.border),
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             if (fromClipboard) {
@@ -408,14 +408,14 @@ private fun UrlInputCard(
                     Icon(
                         imageVector = Icons.Outlined.ContentPaste,
                         contentDescription = null,
-                        tint = Primary,
+                        tint = colors.accentText,
                         modifier = Modifier.size(16.dp),
                     )
                     Spacer(Modifier.width(6.dp))
                     Text(
                         text = "복사한 링크를 가져왔어요",
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
-                        color = Primary,
+                        color = colors.accentText,
                     )
                 }
             }
@@ -432,7 +432,7 @@ private fun UrlInputCard(
                     Icon(
                         imageVector = Icons.Outlined.Link,
                         contentDescription = null,
-                        tint = if (isError) Danger else TextSecondary,
+                        tint = if (isError) colors.dangerText else colors.textSecondary,
                     )
                 },
                 trailingIcon = if (urlText.isNotEmpty()) {
@@ -441,7 +441,7 @@ private fun UrlInputCard(
                             Icon(
                                 imageVector = Icons.Outlined.Close,
                                 contentDescription = "입력 지우기",
-                                tint = TextSecondary,
+                                tint = colors.textSecondary,
                             )
                         }
                     }
@@ -453,10 +453,10 @@ private fun UrlInputCard(
                     { Text("올바른 엔카 매물 URL을 입력해주세요") }
                 } else null,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Primary,
-                    cursorColor = Primary,
-                    errorBorderColor = Danger,
-                    errorSupportingTextColor = Danger,
+                    focusedBorderColor = colors.accent,
+                    cursorColor = colors.accent,
+                    errorBorderColor = colors.dangerFill,
+                    errorSupportingTextColor = colors.dangerText,
                 ),
                 shape = RoundedCornerShape(12.dp),
             )
@@ -467,8 +467,8 @@ private fun UrlInputCard(
                     .fillMaxWidth()
                     .height(52.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Primary,
-                    disabledContainerColor = Primary.copy(alpha = 0.3f),
+                    containerColor = colors.accent,
+                    disabledContainerColor = colors.accent.copy(alpha = 0.3f),
                     disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
                 ),
                 shape = RoundedCornerShape(999.dp),
@@ -491,6 +491,7 @@ private fun UrlInputCard(
 
 @Composable
 private fun RecentSectionHeader() {
+    val colors = AvTheme.colors
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -500,27 +501,27 @@ private fun RecentSectionHeader() {
         Icon(
             imageVector = Icons.Outlined.History,
             contentDescription = null,
-            tint = TextPrimary,
+            tint = colors.textPrimary,
             modifier = Modifier.size(18.dp),
         )
         Spacer(Modifier.width(8.dp))
         Text(
             text = "최근 조회",
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = TextPrimary,
+            color = colors.textPrimary,
         )
         Spacer(Modifier.weight(1f))
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(999.dp))
                 .background(MaterialTheme.colorScheme.surface)
-                .border(1.dp, Hairline, RoundedCornerShape(999.dp))
+                .border(1.dp, colors.border, RoundedCornerShape(999.dp))
                 .padding(horizontal = 10.dp, vertical = 4.dp),
         ) {
             Text(
                 text = "24시간 이내",
                 style = MaterialTheme.typography.labelSmall,
-                color = TextSecondary,
+                color = colors.textSecondary,
             )
         }
     }
@@ -528,25 +529,26 @@ private fun RecentSectionHeader() {
 
 @Composable
 private fun RecentItemRow(item: CacheEntity, onClick: () -> Unit) {
+    val colors = AvTheme.colors
     val dateFormat = remember { SimpleDateFormat("MM/dd HH:mm", Locale.getDefault()) }
 
     ListItem(
         modifier = Modifier
             .clip(RoundedCornerShape(14.dp))
-            .border(1.dp, Hairline, RoundedCornerShape(14.dp))
+            .border(1.dp, colors.border, RoundedCornerShape(14.dp))
             .clickable(onClick = onClick),
         leadingContent = {
             Box(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(RoundedCornerShape(11.dp))
-                    .background(Primary.copy(alpha = 0.08f)),
+                    .background(colors.accentWeak),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Link,
                     contentDescription = null,
-                    tint = Primary,
+                    tint = colors.accentText,
                     modifier = Modifier.size(20.dp),
                 )
             }
@@ -555,7 +557,7 @@ private fun RecentItemRow(item: CacheEntity, onClick: () -> Unit) {
             Text(
                 text = item.title.ifBlank { "매물 #${item.carId}" },
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                color = TextPrimary,
+                color = colors.textPrimary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -565,14 +567,14 @@ private fun RecentItemRow(item: CacheEntity, onClick: () -> Unit) {
                 Icon(
                     imageVector = Icons.Outlined.Schedule,
                     contentDescription = null,
-                    tint = TextSecondary,
+                    tint = colors.textSecondary,
                     modifier = Modifier.size(12.dp),
                 )
                 Spacer(Modifier.width(4.dp))
                 Text(
                     text = dateFormat.format(Date(item.cachedAt)),
                     style = MaterialTheme.typography.labelSmall,
-                    color = TextSecondary,
+                    color = colors.textSecondary,
                 )
             }
         },
@@ -580,7 +582,7 @@ private fun RecentItemRow(item: CacheEntity, onClick: () -> Unit) {
             Icon(
                 imageVector = Icons.Outlined.ChevronRight,
                 contentDescription = null,
-                tint = TextSecondary,
+                tint = colors.textSecondary,
             )
         },
         colors = ListItemDefaults.colors(

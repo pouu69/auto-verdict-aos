@@ -56,17 +56,7 @@ import com.car.autoverdict.AutoVerdictApp
 import com.car.autoverdict.db.SavedCarEntity
 import com.car.autoverdict.ui.components.AvIconButton
 import com.car.autoverdict.ui.components.AvTopBar
-import com.car.autoverdict.ui.theme.Background
-import com.car.autoverdict.ui.theme.Border
-import com.car.autoverdict.ui.theme.Danger
-import com.car.autoverdict.ui.theme.DangerBg
-import com.car.autoverdict.ui.theme.Primary
-import com.car.autoverdict.ui.theme.Success
-import com.car.autoverdict.ui.theme.SuccessBg
-import com.car.autoverdict.ui.theme.TextPrimary
-import com.car.autoverdict.ui.theme.TextSecondary
-import com.car.autoverdict.ui.theme.Warning
-import com.car.autoverdict.ui.theme.WarningBg
+import com.car.autoverdict.ui.theme.AvTheme
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -85,6 +75,7 @@ fun SavedListScreen(
     onCarClick: (String) -> Unit,
     onCompare: (List<String>) -> Unit = {},
 ) {
+    val colors = AvTheme.colors
     val context = LocalContext.current
     val app = context.applicationContext as AutoVerdictApp
     val savedFlow = remember { app.database.savedCarDao().getAllFlow() }
@@ -102,7 +93,7 @@ fun SavedListScreen(
         }
     }
 
-    Box(modifier = modifier.fillMaxSize().background(Background)) {
+    Box(modifier = modifier.fillMaxSize().background(colors.surfaceMuted)) {
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
@@ -118,7 +109,7 @@ fun SavedListScreen(
                                 compareMode = !compareMode
                                 if (!compareMode) selectedCarIds = emptySet()
                             },
-                            tint = if (compareMode) Danger else Primary,
+                            tint = if (compareMode) colors.dangerText else colors.accentText,
                         )
                     }
                 },
@@ -195,7 +186,7 @@ fun SavedListScreen(
                     compareMode = false
                     selectedCarIds = emptySet()
                 },
-                containerColor = Primary,
+                containerColor = colors.accent,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.fillMaxWidth(),
             ) {
@@ -215,12 +206,13 @@ fun SavedListScreen(
 
 @Composable
 private fun CompareModeBanner(selectedCount: Int) {
+    val colors = AvTheme.colors
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 8.dp)
             .clip(RoundedCornerShape(14.dp))
-            .background(Primary.copy(alpha = 0.08f))
+            .background(colors.accentWeak)
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -228,13 +220,13 @@ private fun CompareModeBanner(selectedCount: Int) {
             modifier = Modifier
                 .size(32.dp)
                 .clip(CircleShape)
-                .background(Primary.copy(alpha = 0.16f)),
+                .background(colors.accent.copy(alpha = 0.16f)),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Outlined.CompareArrows,
                 contentDescription = null,
-                tint = Primary,
+                tint = colors.accentText,
                 modifier = Modifier.size(18.dp),
             )
         }
@@ -243,18 +235,18 @@ private fun CompareModeBanner(selectedCount: Int) {
             Text(
                 text = "비교할 매물 2대를 선택하세요",
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = Primary,
+                color = colors.accentText,
             )
             Text(
                 text = "$selectedCount / 2 선택됨",
                 style = MaterialTheme.typography.labelSmall,
-                color = TextSecondary,
+                color = colors.textSecondary,
             )
         }
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(999.dp))
-                .background(Primary)
+                .background(colors.accent)
                 .padding(horizontal = 10.dp, vertical = 4.dp),
         ) {
             Text(
@@ -272,6 +264,7 @@ private fun SortChipRow(
     current: SortMode,
     onSelect: (SortMode) -> Unit,
 ) {
+    val colors = AvTheme.colors
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -291,14 +284,14 @@ private fun SortChipRow(
                 shape = RoundedCornerShape(999.dp),
                 colors = FilterChipDefaults.filterChipColors(
                     containerColor = MaterialTheme.colorScheme.surface,
-                    selectedContainerColor = Primary,
-                    labelColor = TextSecondary,
+                    selectedContainerColor = colors.accent,
+                    labelColor = colors.textSecondary,
                     selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
                 ),
                 border = FilterChipDefaults.filterChipBorder(
                     enabled = true,
                     selected = current == mode,
-                    borderColor = Border,
+                    borderColor = colors.border,
                     selectedBorderColor = Color.Transparent,
                     borderWidth = 1.dp,
                 ),
@@ -314,6 +307,7 @@ private fun SavedCarRow(
     isSelected: Boolean,
     onClick: () -> Unit,
 ) {
+    val colors = AvTheme.colors
     val dateFormat = remember { SimpleDateFormat("yyyy.MM.dd", Locale.getDefault()) }
     val numberFormat = remember { NumberFormat.getNumberInstance(Locale.KOREA) }
 
@@ -324,9 +318,9 @@ private fun SavedCarRow(
             .background(MaterialTheme.colorScheme.surface)
             .then(
                 if (compareMode && isSelected) {
-                    Modifier.border(2.dp, Primary, RoundedCornerShape(16.dp))
+                    Modifier.border(2.dp, colors.accent, RoundedCornerShape(16.dp))
                 } else {
-                    Modifier.border(1.dp, Border.copy(alpha = 0.6f), RoundedCornerShape(16.dp))
+                    Modifier.border(1.dp, colors.border.copy(alpha = 0.6f), RoundedCornerShape(16.dp))
                 },
             )
             .clickable(onClick = onClick)
@@ -340,11 +334,11 @@ private fun SavedCarRow(
                         .size(52.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(
-                            if (isSelected) Primary else Background,
+                            if (isSelected) colors.accent else colors.surfaceMuted,
                         )
                         .then(
                             if (!isSelected) {
-                                Modifier.border(1.5.dp, Border, RoundedCornerShape(12.dp))
+                                Modifier.border(1.5.dp, colors.border, RoundedCornerShape(12.dp))
                             } else Modifier,
                         ),
                     contentAlignment = Alignment.Center,
@@ -386,7 +380,7 @@ private fun SavedCarRow(
                 Text(
                     text = car.title.ifBlank { "매물 #${car.carId}" },
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-                    color = TextPrimary,
+                    color = colors.textPrimary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -401,7 +395,7 @@ private fun SavedCarRow(
                     Text(
                         text = details.joinToString(" · "),
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary,
+                        color = colors.textSecondary,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -414,19 +408,19 @@ private fun SavedCarRow(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (car.dangerCount > 0) {
-                        SeverityChip("위험 ${car.dangerCount}", Danger, DangerBg)
+                        SeverityChip("위험 ${car.dangerCount}", colors.dangerText, colors.dangerBg)
                     }
                     if (car.cautionCount > 0) {
-                        SeverityChip("주의 ${car.cautionCount}", Warning, WarningBg)
+                        SeverityChip("주의 ${car.cautionCount}", colors.warningText, colors.warningBg)
                     }
                     if (car.passCount > 0) {
-                        SeverityChip("양호 ${car.passCount}", Success, SuccessBg)
+                        SeverityChip("양호 ${car.passCount}", colors.successText, colors.successBg)
                     }
                     Spacer(Modifier.weight(1f))
                     Text(
                         text = dateFormat.format(Date(car.savedAt)),
                         style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary,
+                        color = colors.textSecondary,
                     )
                 }
             }
@@ -456,6 +450,7 @@ private fun SeverityChip(
 
 @Composable
 private fun SavedEmptyState() {
+    val colors = AvTheme.colors
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -467,13 +462,13 @@ private fun SavedEmptyState() {
             modifier = Modifier
                 .size(96.dp)
                 .clip(RoundedCornerShape(28.dp))
-                .background(Primary.copy(alpha = 0.08f)),
+                .background(colors.accentWeak),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = Icons.Outlined.BookmarkBorder,
                 contentDescription = null,
-                tint = Primary,
+                tint = colors.accentText,
                 modifier = Modifier.size(44.dp),
             )
         }
@@ -481,13 +476,13 @@ private fun SavedEmptyState() {
         Text(
             text = "저장된 매물이 없습니다",
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = TextPrimary,
+            color = colors.textPrimary,
         )
         Spacer(Modifier.height(6.dp))
         Text(
             text = "분석 결과 화면에서 저장하면\n여기에 모아 비교할 수 있어요",
             style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary,
+            color = colors.textSecondary,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
     }
