@@ -97,8 +97,9 @@ class DefaultResultRepositoryTest {
         val base = sample("sample-caution.json")
         val report = base.copy(counts = base.counts.copy(danger = 1, hidden = 2, unknown = 3))
 
-        repository.save(report, RAW)
+        val savedAt = repository.save(report, RAW)
 
+        assertEquals(now, savedAt)
         val row = repository.savedCar(report.carId)!!
         assertEquals("41878112", row.carId)
         assertEquals(report.url, row.url)
@@ -156,7 +157,9 @@ class DefaultResultRepositoryTest {
         val firstSavedAt = now
 
         now += 5_000
-        repository.save(report.copy(score = 70), "{\"v\":2}", savedAt = firstSavedAt)
+        val written = repository.save(report.copy(score = 70), "{\"v\":2}", savedAt = firstSavedAt)
+
+        assertEquals(firstSavedAt, written)
 
         val row = repository.savedCar(report.carId)!!
         assertEquals(firstSavedAt, row.savedAt)

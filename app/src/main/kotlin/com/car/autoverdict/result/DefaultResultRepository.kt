@@ -86,8 +86,9 @@ class DefaultResultRepository(
         )
     }
 
-    override suspend fun save(report: EvaluationReport, rawJson: String, savedAt: Long?) {
+    override suspend fun save(report: EvaluationReport, rawJson: String, savedAt: Long?): Long {
         val now = clock()
+        val written = savedAt ?: now
         val counts = report.counts
         db.savedCarDao().upsert(
             SavedCarEntity(
@@ -106,10 +107,11 @@ class DefaultResultRepository(
                 passCount = counts.pass,
                 unknownCount = counts.unknown,
                 rawJson = rawJson,
-                savedAt = savedAt ?: now,
+                savedAt = written,
                 updatedAt = now,
             ),
         )
+        return written
     }
 
     override suspend fun delete(carId: String) {

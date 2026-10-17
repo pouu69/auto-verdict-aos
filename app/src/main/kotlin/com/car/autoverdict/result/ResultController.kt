@@ -53,6 +53,7 @@ class ResultController(
     private var saved = false
     private var savedAt: Long? = null
     private var saving = false
+    private var refreshing = false
     private var soldOut = false
     private var userScrolled = false
 
@@ -94,15 +95,27 @@ class ResultController(
         }
     }
 
-    /** Skips the cache and collects again. A saved result stays on failure (spec 5.1). */
+    /**
+     * Skips the cache and collects again. With a report on screen it re-collects in place
+     * (`Ready.refreshing`) and keeps that report if the retry does not produce a better one;
+     * otherwise (error screen) it starts over with the loading steps. Ignored while refreshing.
+     */
     fun retry() {
         val id = carId ?: return
+        if (refreshing) return
         started = true
         loadJob?.cancel()
         pendingUpdate = null
         val gen = ++generation
-        _state.value = ResultUiState.Loading(LoadingStage.OpeningPage)
-        loadJob = scope.launch { collectFresh(id, gen) }
+        val before = shown
+        if (before != null && _state.value is ResultUiState.Ready) {
+            refreshing = true
+            publishReady()
+            loadJob = scope.launch { retryInPlace(id, before) }
+        } else {
+            _state.value = ResultUiState.Loading(LoadingStage.OpeningPage)
+            loadJob = scope.launch { collectFresh(id, gen) }
+        }
     }
 
     /** From now on a background refresh waits behind the UpdateAvailable banner. */
@@ -119,17 +132,16 @@ class ResultController(
     }
 
     fun save() {
-        val current = shown ?: return
         if (_state.value !is ResultUiState.Ready || saving || saved) return
-        val id = carId ?: return
         saving = true
         publishReady()
         scope.launch {
             val ok = attempt {
                 savedRowLock.withLock {
-                    repository.save(current.report, current.rawJson)
+                    // Read under the lock: an update may have swapped the report since the tap.
+                    val current = checkNotNull(shown)
+                    savedAt = repository.save(current.report, current.rawJson)
                     saved = true
-                    savedAt = readOrNull { repository.savedCar(id) }?.savedAt
                 }
             }
             saving = false
@@ -159,42 +171,60 @@ class ResultController(
 
     // --- loading ---
 
-    /** Step ③: visible loading steps, then Ready / Error / Deleted. */
+    /** Step ③ with no report on screen: visible loading steps, then Ready / Error / Deleted. */
     private suspend fun collectFresh(id: String, gen: Int) {
+        shown = null
         _state.value = ResultUiState.Loading(LoadingStage.OpeningPage)
         val outcome = collect(id) { stage ->
             if (gen == generation) _state.value = ResultUiState.Loading(stage.toLoadingStage())
         }
-        // On a saved car with a result to fall back on, failures keep that result.
-        val fallback = shown.takeIf { saved }
         when (outcome) {
             is CollectOutcome.Success -> {
                 _state.value = ResultUiState.Loading(LoadingStage.Evaluating)
                 val report = evaluate(outcome.rawJson)
-                when {
-                    report == null ->
-                        if (fallback != null) publishReady(force = true)
-                        else _state.value = ResultUiState.Error(ResultErrorKind.EngineFailed)
-                    fallback != null && report.dataGaps.size > fallback.report.dataGaps.size ->
-                        publishReady(force = true)
-                    else -> {
-                        val fresh = Evaluated(report, outcome.rawJson)
-                        soldOut = false
-                        display(fresh)
-                        persist(fresh)
-                    }
+                if (report == null) {
+                    _state.value = ResultUiState.Error(ResultErrorKind.EngineFailed)
+                } else {
+                    val fresh = Evaluated(report, outcome.rawJson)
+                    soldOut = false
+                    display(fresh)
+                    persist(fresh)
                 }
             }
-            is CollectOutcome.Failed ->
-                if (fallback != null) publishReady(force = true)
-                else _state.value = ResultUiState.Error(outcome.kind.toResultErrorKind())
-            CollectOutcome.Deleted ->
-                if (fallback != null) {
+            is CollectOutcome.Failed -> _state.value = ResultUiState.Error(outcome.kind.toResultErrorKind())
+            CollectOutcome.Deleted -> _state.value = ResultUiState.Deleted
+        }
+    }
+
+    /**
+     * User retry with [before] on screen. A usable result replaces it right away (no scroll
+     * rule — the user asked); failure, engine failure or more data gaps keep it + RetryFailed.
+     */
+    private suspend fun retryInPlace(id: String, before: Evaluated) {
+        val outcome = collect(id) {}
+        val fresh = (outcome as? CollectOutcome.Success)?.let { success ->
+            evaluate(success.rawJson)
+                ?.takeIf { it.dataGaps.size <= before.report.dataGaps.size }
+                ?.let { Evaluated(it, success.rawJson) }
+        }
+        refreshing = false
+        when {
+            fresh != null -> {
+                soldOut = false
+                display(fresh)
+                persist(fresh)
+            }
+            outcome == CollectOutcome.Deleted ->
+                if (saved) {
                     soldOut = true
-                    publishReady(force = true)
+                    publishReady()
                 } else {
                     _state.value = ResultUiState.Deleted
                 }
+            else -> {
+                publishReady()
+                _events.trySend(ResultEvent.RetryFailed)
+            }
         }
     }
 
@@ -230,7 +260,7 @@ class ResultController(
         }
         attempt {
             savedRowLock.withLock {
-                if (saved) repository.save(fresh.report, fresh.rawJson, savedAt = savedAt)
+                if (saved) savedAt = repository.save(fresh.report, fresh.rawJson, savedAt = savedAt)
             }
         }
     }
@@ -254,6 +284,7 @@ class ResultController(
             saved = saved,
             banner = banner(current.report),
             saving = saving,
+            refreshing = refreshing,
         )
     }
 

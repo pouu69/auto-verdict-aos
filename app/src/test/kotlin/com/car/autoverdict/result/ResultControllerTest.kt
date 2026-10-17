@@ -198,11 +198,18 @@ class ResultControllerTest {
         assertTrue(repo.cacheWrites.isEmpty())
     }
 
-    @Test
-    fun `retry skips the cache and collects again`() = runTest {
+    private fun givenPartialCache(): EvaluationReport {
+        val partial = caution.copy(dataGaps = listOf(failedGap))
         repo.cache = "cache-raw"
-        evaluator.results["cache-raw"] = EngineResult.Success(caution.copy(dataGaps = listOf(failedGap)))
+        evaluator.results["cache-raw"] = EngineResult.Success(partial)
+        return partial
+    }
+
+    @Test
+    fun `retry with a report on screen skips the cache and keeps the report while refreshing`() = runTest {
+        val partial = givenPartialCache()
         val c = controller()
+        val states = history(c)
         c.start()
         runCurrent()
         assertEquals(ResultBanner.PartialData, c.ready().banner)
@@ -210,11 +217,92 @@ class ResultControllerTest {
         c.retry()
         runCurrent()
 
-        assertEquals(ResultUiState.Loading(LoadingStage.OpeningPage), c.state.value)
+        assertEquals(
+            ResultUiState.Ready(partial, saved = false, banner = ResultBanner.PartialData, refreshing = true),
+            c.state.value,
+        )
         assertEquals(1, repo.collects.size)
         evaluator.results["raw"] = EngineResult.Success(caution)
         repo.collects.single().result.complete(CollectOutcome.Success("raw"))
         runCurrent()
+
+        assertEquals(ResultUiState.Ready(caution, saved = false, banner = null), c.state.value)
+        assertEquals(listOf(caution to "raw"), repo.cacheWrites)
+        assertTrue(states.none { it is ResultUiState.Loading && it.stage != LoadingStage.OpeningPage })
+        assertTrue(states.dropWhile { it !is ResultUiState.Ready }.all { it is ResultUiState.Ready })
+    }
+
+    @Test
+    fun `in-place retry that fails keeps the report and reports RetryFailed`() = runTest {
+        val partial = givenPartialCache()
+        val outcomes = listOf(
+            CollectOutcome.Failed(CollectErrorKind.Network),
+            CollectOutcome.Success("bad-raw"), // engine failure
+            CollectOutcome.Success("more-gaps"),
+        )
+        evaluator.results["more-gaps"] =
+            EngineResult.Success(caution.copy(dataGaps = listOf(failedGap, loginGap)))
+        val c = controller()
+        val events = events(c)
+        c.start()
+        runCurrent()
+
+        for (outcome in outcomes) {
+            c.retry()
+            runCurrent()
+            repo.collects.last().result.complete(outcome)
+            runCurrent()
+            assertEquals(ResultUiState.Ready(partial, saved = false, banner = ResultBanner.PartialData), c.state.value)
+        }
+        assertEquals(List(3) { ResultEvent.RetryFailed }, events)
+        assertTrue(repo.cacheWrites.isEmpty())
+    }
+
+    @Test
+    fun `in-place retry on an unsaved car that is now deleted shows Deleted`() = runTest {
+        givenPartialCache()
+        val c = controller()
+        c.start()
+        runCurrent()
+
+        c.retry()
+        runCurrent()
+        repo.collects.single().result.complete(CollectOutcome.Deleted)
+        runCurrent()
+
+        assertEquals(ResultUiState.Deleted, c.state.value)
+    }
+
+    @Test
+    fun `retry is ignored while an in-place retry is running`() = runTest {
+        givenPartialCache()
+        val c = controller()
+        c.start()
+        runCurrent()
+
+        c.retry()
+        runCurrent()
+        c.retry()
+        runCurrent()
+
+        assertEquals(1, repo.collects.size)
+        assertFalse(repo.collects.single().cancelled)
+    }
+
+    @Test
+    fun `in-place retry swaps immediately even after the user scrolled`() = runTest {
+        givenPartialCache()
+        val c = controller()
+        c.start()
+        runCurrent()
+        c.onUserScrolled()
+
+        c.retry()
+        runCurrent()
+        evaluator.results["raw"] = EngineResult.Success(caution)
+        repo.collects.single().result.complete(CollectOutcome.Success("raw"))
+        runCurrent()
+
         assertEquals(ResultUiState.Ready(caution, saved = false, banner = null), c.state.value)
     }
 
@@ -380,6 +468,7 @@ class ResultControllerTest {
     fun `retry on a saved car that comes back with more gaps keeps the saved result`() = runTest {
         givenSavedCar()
         val c = controller()
+        val events = events(c)
         c.start()
         runCurrent()
 
@@ -391,25 +480,57 @@ class ResultControllerTest {
 
         assertEquals(ResultUiState.Ready(caution, saved = true, banner = null), c.state.value)
         assertTrue(repo.saves.isEmpty())
+        assertEquals(listOf(ResultEvent.RetryFailed), events)
     }
 
     @Test
-    fun `save finishing during a retry does not hide the loading steps`() = runTest {
+    fun `save during an in-place retry keeps refreshing and the result updates the new row`() = runTest {
         repo.cache = "cache-raw"
         evaluator.results["cache-raw"] = EngineResult.Success(caution)
         val c = controller()
         c.start()
         runCurrent()
 
-        c.save()
         c.retry()
+        c.save()
         runCurrent()
+        assertEquals(
+            ResultUiState.Ready(caution, saved = true, banner = null, refreshing = true),
+            c.state.value,
+        )
 
-        assertEquals(ResultUiState.Loading(LoadingStage.OpeningPage), c.state.value)
-        evaluator.results["raw"] = EngineResult.Success(caution)
+        evaluator.results["raw"] = EngineResult.Success(refreshed)
         repo.collects.single().result.complete(CollectOutcome.Success("raw"))
         runCurrent()
-        assertEquals(ResultUiState.Ready(caution, saved = true, banner = null), c.state.value)
+
+        assertEquals(ResultUiState.Ready(refreshed, saved = true, banner = null), c.state.value)
+        // The second write keeps the savedAt returned by the first one.
+        assertEquals(
+            listOf(SaveCall(caution, "cache-raw", null), SaveCall(refreshed, "raw", NOW)),
+            repo.saves,
+        )
+    }
+
+    @Test
+    fun `save writes the report on screen when the lock is taken, not when tapped`() = runTest {
+        givenSavedCar()
+        val c = controller()
+        c.start()
+        runCurrent()
+        c.onUserScrolled()
+        evaluator.results["new-raw"] = EngineResult.Success(refreshed)
+        repo.collects.single().result.complete(CollectOutcome.Success("new-raw"))
+        runCurrent()
+        c.unsave()
+        runCurrent()
+        assertEquals(ResultBanner.UpdateAvailable, c.ready().banner)
+
+        c.save()
+        c.applyUpdate() // swaps the report before the save coroutine runs
+        runCurrent()
+
+        assertEquals(SaveCall(refreshed, "new-raw", null), repo.saves.first())
+        assertEquals(ResultUiState.Ready(refreshed, saved = true, banner = null), c.state.value)
     }
 
     @Test
@@ -423,7 +544,7 @@ class ResultControllerTest {
 
         c.retry()
         runCurrent()
-        assertEquals(ResultUiState.Loading(LoadingStage.OpeningPage), c.state.value)
+        assertEquals(ResultUiState.Ready(caution, saved = true, banner = null, refreshing = true), c.state.value)
         repo.collects.last().result.complete(CollectOutcome.Deleted)
         runCurrent()
 
@@ -434,6 +555,7 @@ class ResultControllerTest {
     fun `retry on a saved car that fails keeps the saved result`() = runTest {
         givenSavedCar()
         val c = controller()
+        val events = events(c)
         c.start()
         runCurrent()
 
@@ -443,6 +565,9 @@ class ResultControllerTest {
         runCurrent()
 
         assertEquals(ResultUiState.Ready(caution, saved = true, banner = null), c.state.value)
+        assertEquals(listOf(ResultEvent.RetryFailed), events)
+        // The cancelled background refresh does not count as a failure.
+        assertTrue(repo.collects.first().cancelled)
     }
 
     @Test
@@ -460,6 +585,7 @@ class ResultControllerTest {
 
         assertEquals(ResultUiState.Ready(refreshed, saved = true, banner = null), c.state.value)
         assertEquals(listOf(SaveCall(refreshed, "new-raw", SAVED_AT)), repo.saves)
+        assertEquals(listOf(refreshed to "new-raw"), repo.cacheWrites)
     }
 
     // --- save / unsave ---
@@ -547,6 +673,8 @@ class ResultControllerTest {
 
         assertEquals(listOf(SaveCall(caution, "raw", null)), repo.saves)
         assertTrue(c.ready().saved)
+        // savedAt comes back from save(); no re-read of the row.
+        assertEquals(1, repo.savedCarReads)
     }
 
     // --- fakes ---
@@ -563,6 +691,7 @@ class ResultControllerTest {
         var cache: String? = null
         var failWrites = false
         val reads = mutableListOf<String>()
+        var savedCarReads = 0
         val collects = mutableListOf<CollectCall>()
         val cacheWrites = mutableListOf<Pair<EvaluationReport, String>>()
         val saves = mutableListOf<SaveCall>()
@@ -570,6 +699,7 @@ class ResultControllerTest {
 
         override suspend fun savedCar(carId: String): SavedCarEntity? {
             reads += carId
+            savedCarReads++
             return saved
         }
 
@@ -593,10 +723,12 @@ class ResultControllerTest {
             cacheWrites += report to rawJson
         }
 
-        override suspend fun save(report: EvaluationReport, rawJson: String, savedAt: Long?) {
+        override suspend fun save(report: EvaluationReport, rawJson: String, savedAt: Long?): Long {
             if (failWrites) throw IOException("disk full")
             saves += SaveCall(report, rawJson, savedAt)
-            saved = savedEntity(rawJson, savedAt ?: NOW)
+            val written = savedAt ?: NOW
+            saved = savedEntity(rawJson, written)
+            return written
         }
 
         override suspend fun delete(carId: String) {
