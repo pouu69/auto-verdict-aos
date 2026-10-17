@@ -1,0 +1,126 @@
+package com.car.autoverdict.report
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class ReportParserTest {
+
+    private fun resource(name: String): String =
+        requireNotNull(javaClass.classLoader?.getResource("report/$name")) { "missing report/$name" }.readText()
+
+    private fun parseOk(name: String): EvaluationReport {
+        val result = ReportParser.parse(resource(name))
+        assertTrue("expected Ok for $name but was $result", result is ReportParser.Result.Ok)
+        return (result as ReportParser.Result.Ok).report
+    }
+
+    @Test
+    fun `parses the full sample`() {
+        val r = parseOk("sample-caution.json")
+        assertEquals("CAUTION", r.verdict)
+        assertEquals(89, r.score)
+        assertEquals(2, r.issues.size)
+        assertEquals(Tone.Warning, r.issues.first().tone)
+        assertEquals(11, r.rules.size)
+        assertEquals(8_900_000L, r.car.priceWon)
+        assertEquals("BMW 3시리즈 (F30) 320d", r.car.name)
+        assertEquals(31, r.repairs?.systems?.okCount)
+    }
+
+    @Test
+    fun `accepts nulls and ignores unknown fields`() {
+        val r = parseOk("sample-minimal.json")
+        assertNull(r.repairs)
+        assertNull(r.car.year)
+        assertNull(r.car.name)
+        assertNull(r.shareText.sellerQuestions)
+        assertEquals(listOf(DataGap(GapSource.Record, GapReason.LoginRequired)), r.dataGaps)
+    }
+
+    @Test
+    fun `parses detail sheets on rules, timeline entries and repairs`() {
+        val r = parseOk("sample-caution.json")
+        val r07 = r.rules.first { it.ruleId == "R07" }.detail!!
+        assertEquals("소유자 변경", r07.title)
+        assertEquals("주인이 5번 바뀌었어요", r07.subtitle)
+        assertEquals(listOf("소유자 변경 기록", "판정 기준", "데이터 출처"), r07.blocks.map { it.title })
+        assertEquals(DetailRow("변경 횟수", "5회", Tone.Warning), r07.blocks[0].rows[0])
+        // A row without a tone, and a block note.
+        assertNull(r07.blocks[0].rows[1].tone)
+        assertEquals("보험이력 조회 시점 기준이에요", r07.blocks[2].note)
+        assertEquals(r07, r.issues.first { it.ruleId == "R07" }.detail)
+        // Not every rule carries one in the hand-written sample.
+        assertNull(r.rules.first { it.ruleId == "R03" }.detail)
+
+        val accident = r.timeline.first { it.date == "2015-05" }.sheet!!
+        assertNull(accident.blocks.single().title)
+        assertEquals("950,000원", accident.blocks.single().rows.first { it.label == "보험금" }.value)
+        assertNull(r.timeline.first().sheet)
+
+        val inspection = r.repairs?.sheet!!
+        assertEquals("성능점검 전체", inspection.title)
+        assertEquals(emptyList<DetailRow>(), inspection.blocks[1].rows)
+        assertEquals("교환·수리한 부위가 없어요", inspection.blocks[1].note)
+    }
+
+    @Test
+    fun `reports from before detail sheets parse with them absent`() {
+        val r = parseOk("sample-minimal.json")
+        assertTrue(r.rules.all { it.detail == null })
+        assertTrue(r.issues.all { it.detail == null })
+        assertTrue(r.timeline.all { it.sheet == null })
+    }
+
+    @Test
+    fun `parses rule summaries, absent in older reports`() {
+        val caution = parseOk("sample-caution.json")
+        val summaries = caution.rules.associate { it.ruleId to it.summary }
+        assertEquals("엔카진단 통과 차량", summaries["R03"])
+        assertEquals("누유 없음", summaries["R12"])
+        assertEquals("소유자 변경 5회", summaries["R07"])
+        assertEquals("자차보험 공백 6개월 · 2구간", summaries["R08"])
+        assertNull(summaries["R02"])
+        // Issue cards keep the full sentence only.
+        assertTrue(caution.issues.all { it.summary == null })
+
+        val minimal = parseOk("sample-minimal.json")
+        assertTrue((minimal.rules + minimal.issues).all { it.summary == null })
+    }
+
+    @Test
+    fun `detail fields default when omitted inside a sheet`() {
+        val text = resource("sample-minimal.json").replaceFirst(
+            "\"sellerQuestion\"",
+            "\"detail\": { \"title\": \"t\", \"blocks\": [ { \"rows\": [ { \"label\": \"a\", \"value\": \"b\" } ] } ] }, \"sellerQuestion\"",
+        )
+        val r = (ReportParser.parse(text) as ReportParser.Result.Ok).report
+        val sheet = r.issues.first().detail!!
+        assertNull(sheet.subtitle)
+        assertEquals(DetailBlock(title = null, rows = listOf(DetailRow("a", "b")), note = null), sheet.blocks.single())
+    }
+
+    @Test
+    fun `rejects another schema version`() {
+        val text = resource("sample-minimal.json").replace("\"schemaVersion\": 1", "\"schemaVersion\": 2")
+        assertTrue(ReportParser.parse(text) is ReportParser.Result.Invalid)
+    }
+
+    @Test
+    fun `rejects broken json and missing required fields`() {
+        assertTrue(ReportParser.parse("{") is ReportParser.Result.Invalid)
+        assertTrue(ReportParser.parse("""{"schemaVersion":1}""") is ReportParser.Result.Invalid)
+    }
+
+    /** Contract files generated by `npm run gen:contract` (webview-bundle) must parse too. */
+    @Test
+    fun `parses every generated contract file`() {
+        val uri = javaClass.classLoader?.getResource("report")?.toURI() ?: return
+        val dir = java.io.File(uri)
+        dir.listFiles()?.filter { it.name.startsWith("encar-") && it.name.endsWith(".json") }?.forEach { f ->
+            val result = ReportParser.parse(f.readText())
+            assertTrue("${f.name}: $result", result is ReportParser.Result.Ok)
+        }
+    }
+}

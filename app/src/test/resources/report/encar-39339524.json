@@ -1,0 +1,2434 @@
+{
+  "schemaVersion": 1,
+  "carId": "39339524",
+  "url": "https://fem.encar.com/cars/detail/39339524",
+  "car": {
+    "title": "2012 BMW 3시리즈 (F30)",
+    "name": "BMW 3시리즈 (F30) 320d",
+    "year": 2012,
+    "mileageKm": 112919,
+    "priceWon": 5990000,
+    "fuel": "디젤",
+    "summary": "2012년 · 11.3만km · 디젤 · 599만원"
+  },
+  "verdict": "NEVER",
+  "score": 85,
+  "headline": "성능점검에 사고 이력이 있어 사지 않는 게 좋아요",
+  "counts": {
+    "danger": 1,
+    "hidden": 0,
+    "warning": 1,
+    "pass": 9,
+    "unknown": 0,
+    "excluded": 1
+  },
+  "dataGaps": [],
+  "facts": [
+    {
+      "id": "accidents",
+      "label": "사고",
+      "value": "내차 7건 · 타차 2건",
+      "tone": "warning"
+    },
+    {
+      "id": "owners",
+      "label": "소유자 변경",
+      "value": "1회",
+      "tone": "neutral"
+    },
+    {
+      "id": "usage",
+      "label": "용도",
+      "value": "자가용",
+      "tone": "neutral"
+    },
+    {
+      "id": "floodLoss",
+      "label": "침수·전손",
+      "value": "없음",
+      "tone": "neutral"
+    }
+  ],
+  "repairs": {
+    "panels": [
+      {
+        "name": "쿼터 패널(우)",
+        "status": "판금·용접 · 용접·절단",
+        "rank": "2랭크",
+        "tone": "warning"
+      },
+      {
+        "name": "트렁크 리드",
+        "status": "교환",
+        "rank": "1랭크",
+        "tone": "warning"
+      }
+    ],
+    "systems": {
+      "flagged": [],
+      "okCount": 30
+    },
+    "sheet": {
+      "title": "성능점검 전체",
+      "subtitle": null,
+      "blocks": [
+        {
+          "title": "사고·단순수리",
+          "rows": [
+            {
+              "label": "사고 이력",
+              "value": "있음",
+              "tone": "danger"
+            },
+            {
+              "label": "단순수리",
+              "value": "있음",
+              "tone": "warning"
+            },
+            {
+              "label": "침수",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "구조 변경(튜닝)",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "특별 이력",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "용도 변경",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "점검 당시 주행거리",
+              "value": "112,899km",
+              "tone": null
+            },
+            {
+              "label": "점검일",
+              "value": "2025-03-31",
+              "tone": null
+            }
+          ],
+          "note": "단순수리는 문·휀더처럼 떼어 낼 수 있는 외판을 바꾼 경우예요. 프레임 사고와는 달라요"
+        },
+        {
+          "title": "외판·골격 부위",
+          "rows": [
+            {
+              "label": "쿼터 패널(우)",
+              "value": "2랭크 판금·용접 · 용접·절단",
+              "tone": "warning"
+            },
+            {
+              "label": "트렁크 리드",
+              "value": "1랭크 교환",
+              "tone": "warning"
+            }
+          ],
+          "note": "1랭크·2랭크는 외판, A·B·C랭크는 차의 뼈대인 주요 골격이에요"
+        },
+        {
+          "title": "자기진단",
+          "rows": [
+            {
+              "label": "원동기",
+              "value": "양호",
+              "tone": "success"
+            },
+            {
+              "label": "변속기",
+              "value": "양호",
+              "tone": "success"
+            }
+          ],
+          "note": null
+        },
+        {
+          "title": "원동기",
+          "rows": [
+            {
+              "label": "작동상태(공회전)",
+              "value": "양호",
+              "tone": "success"
+            },
+            {
+              "label": "오일누유 · 실린더 커버(로커암 커버)",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "오일누유 · 실린더 헤드·개스킷",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "오일누유 · 실린더 블록·오일팬",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "오일 유량",
+              "value": "적정",
+              "tone": "success"
+            },
+            {
+              "label": "냉각수누수 · 실린더 헤드·개스킷",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "냉각수누수 · 워터펌프",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "냉각수누수 · 라디에이터",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "냉각수누수 · 냉각수 수량",
+              "value": "적정",
+              "tone": "success"
+            },
+            {
+              "label": "커먼레일",
+              "value": "양호",
+              "tone": "success"
+            }
+          ],
+          "note": null
+        },
+        {
+          "title": "변속기",
+          "rows": [
+            {
+              "label": "자동변속기(A/T) · 오일누유",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "자동변속기(A/T) · 오일유량 및 상태",
+              "value": "기록 없음",
+              "tone": null
+            },
+            {
+              "label": "자동변속기(A/T) · 작동상태(공회전)",
+              "value": "양호",
+              "tone": "success"
+            }
+          ],
+          "note": null
+        },
+        {
+          "title": "동력전달",
+          "rows": [
+            {
+              "label": "클러치 어셈블리",
+              "value": "기록 없음",
+              "tone": null
+            },
+            {
+              "label": "등속조인트",
+              "value": "양호",
+              "tone": "success"
+            },
+            {
+              "label": "추친축 및 베어링",
+              "value": "기록 없음",
+              "tone": null
+            },
+            {
+              "label": "디피렌셜 기어",
+              "value": "양호",
+              "tone": "success"
+            }
+          ],
+          "note": null
+        },
+        {
+          "title": "조향",
+          "rows": [
+            {
+              "label": "동력조향 작동 오일 누유",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "작동상태 · 스티어링 펌프",
+              "value": "기록 없음",
+              "tone": null
+            },
+            {
+              "label": "작동상태 · 스티어링 기어(MDPS포함)",
+              "value": "양호",
+              "tone": "success"
+            },
+            {
+              "label": "작동상태 · 스티어링 조인트",
+              "value": "양호",
+              "tone": "success"
+            },
+            {
+              "label": "작동상태 · 파워고압호스",
+              "value": "기록 없음",
+              "tone": null
+            },
+            {
+              "label": "작동상태 · 타이로드엔드 및 볼 조인트",
+              "value": "양호",
+              "tone": "success"
+            }
+          ],
+          "note": null
+        },
+        {
+          "title": "제동",
+          "rows": [
+            {
+              "label": "브레이크 마스터 실린더오일 누유",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "브레이크 오일 누유",
+              "value": "없음",
+              "tone": "success"
+            },
+            {
+              "label": "배력장치 상태",
+              "value": "양호",
+              "tone": "success"
+            }
+          ],
+          "note": null
+        },
+        {
+          "title": "전기",
+          "rows": [
+            {
+              "label": "발전기 출력",
+              "value": "양호",
+              "tone": "success"
+            },
+            {
+              "label": "시동 모터",
+              "value": "양호",
+              "tone": "success"
+            },
+            {
+              "label": "와이퍼 모터 기능",
+              "value": "양호",
+              "tone": "success"
+            },
+            {
+              "label": "실내송풍 모터",
+              "value": "양호",
+              "tone": "success"
+            },
+            {
+              "label": "라디에이터 팬 모터",
+              "value": "양호",
+              "tone": "success"
+            },
+            {
+              "label": "윈도우 모터",
+              "value": "양호",
+              "tone": "success"
+            }
+          ],
+          "note": null
+        },
+        {
+          "title": "연료",
+          "rows": [
+            {
+              "label": "연료누출(LP가스포함)",
+              "value": "없음",
+              "tone": "success"
+            }
+          ],
+          "note": null
+        }
+      ]
+    }
+  },
+  "issues": [
+    {
+      "ruleId": "R04",
+      "category": "차량 상태",
+      "title": "프레임/외판",
+      "tone": "danger",
+      "label": "위험",
+      "message": "성능점검에 사고 이력이 있어요",
+      "summary": "성능점검 사고 이력 있음",
+      "why": "프레임은 차의 뼈대예요. 여기가 손상됐다는 건 충격이 뼈대까지 갔다는 뜻이라 주행 안정성과 되팔 때 가격에 큰 영향을 줘요. 그래서 위험으로 분류해요. 성능점검의 사고 이력은 주요 골격이나 쿼터 패널 같은 일부 외판을 용접·교환했다는 뜻이에요. 문·휀더 같은 바깥 패널 교환은 상대적으로 가벼운 편이에요.",
+      "sellerQuestion": "성능점검 사고 부위의 수리 내역과 사진을 볼 수 있을까요?",
+      "detail": {
+        "title": "프레임/외판",
+        "subtitle": "근거: 성능점검",
+        "blocks": [
+          {
+            "title": "판정 근거",
+            "rows": [
+              {
+                "label": "성능점검 사고 이력",
+                "value": "있음",
+                "tone": "danger"
+              }
+            ],
+            "note": "엔카진단 판정이 프레임 손상 여부를 분명히 밝히지 않아 성능점검을 근거로 썼어요"
+          },
+          {
+            "title": "성능점검",
+            "rows": [
+              {
+                "label": "사고 이력",
+                "value": "있음",
+                "tone": "danger"
+              },
+              {
+                "label": "단순수리",
+                "value": "있음",
+                "tone": "warning"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "외판·골격 부위",
+            "rows": [
+              {
+                "label": "쿼터 패널(우)",
+                "value": "2랭크 판금·용접 · 용접·절단",
+                "tone": "warning"
+              },
+              {
+                "label": "트렁크 리드",
+                "value": "1랭크 교환",
+                "tone": "warning"
+              }
+            ],
+            "note": "1랭크·2랭크는 외판, A·B·C랭크는 차의 뼈대인 주요 골격이에요"
+          },
+          {
+            "title": "엔카진단 결과",
+            "rows": [
+              {
+                "label": "진단일",
+                "value": "2026-10-09",
+                "tone": null
+              },
+              {
+                "label": "종합 판정",
+                "value": "외부패널 단순교환 차량",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "진단 부위",
+            "rows": [
+              {
+                "label": "프론트 도어(좌)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "리어 도어(좌)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "트렁크 리드",
+                "value": "교환",
+                "tone": "warning"
+              },
+              {
+                "label": "리어 도어(우)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "프론트 도어(우)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "후드",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "프론트 휀더(우)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "프론트 휀더(좌)",
+                "value": "정상",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "위험",
+                "value": "엔카진단에서 프레임 손상 판정 또는 성능점검 사고 이력 있음",
+                "tone": "danger"
+              },
+              {
+                "label": "통과",
+                "value": "둘 다 없음(외판 단순 교환·수리만 있으면 감점 없음)",
+                "tone": "success"
+              }
+            ],
+            "note": "엔카진단 판정을 먼저 보고, 판정이 분명하지 않으면 성능점검의 사고 이력을 봐요"
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "엔카진단",
+                "value": "확인 완료",
+                "tone": null
+              },
+              {
+                "label": "성능점검",
+                "value": "확인 완료",
+                "tone": null
+              },
+              {
+                "label": "매물 정보",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
+    },
+    {
+      "ruleId": "R10",
+      "category": "사고",
+      "title": "보험처리 규모",
+      "tone": "warning",
+      "label": "주의",
+      "message": "수리비가 많이 나온 편이에요 · 내차 1,126만원 · 타차 589만원",
+      "summary": "수리비 큼 · 내차 1,126만원 · 타차 589만원",
+      "why": "사고가 있어도 금액이 작으면 가벼운 접촉 수준이에요. 하지만 국산 200만원, 수입 400만원을 넘으면 단순 접촉을 넘어선 사고일 수 있어 주의로 봐요.",
+      "sellerQuestion": "보험 처리한 사고는 어느 부위를 어떻게 수리했나요?",
+      "detail": {
+        "title": "보험처리 규모",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "수리비 합계",
+            "rows": [
+              {
+                "label": "내차 피해",
+                "value": "7건 · 11,258,480원",
+                "tone": "warning"
+              },
+              {
+                "label": "타차 가해",
+                "value": "2건 · 5,886,670원",
+                "tone": "warning"
+              },
+              {
+                "label": "기준 금액",
+                "value": "수입 400만원",
+                "tone": null
+              }
+            ],
+            "note": "부품비·공임·도장비 합계예요"
+          },
+          {
+            "title": "2021-12-01 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "1,005,260원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "195,120원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "711,370원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "235,570원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "1,142,060원",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "2021-12-01 · 타차 가해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "6,353,300원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "3,380,120원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "756,240원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "1,059,640원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "5,196,000원",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "2021-12-01 · 타차 가해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "1,004,570원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "244,620원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "151,980원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "294,070원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "690,670원",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "2017-05-08 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "1,019,750원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "0원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "108,300원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "691,380원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "799,680원",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "2016-02-27 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "1,634,500원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "656,300원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "193,800원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "526,360원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "1,376,460원",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "2014-10-08 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "4,567,900원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "1,817,600원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "381,500원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "1,058,670원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "3,257,770원",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "2014-02-28 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "2,000,000원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "0원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "1,269,320원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "1,016,400원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "2,285,720원",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "2013-07-07 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "968,000원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "563,390원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "545,200원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "0원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "1,108,590원",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "2013-06-25 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "1,540,000원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "693,500원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "230,300원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "364,400원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "1,288,200원",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "통과",
+                "value": "내차·타차 수리비 중 큰 쪽이 국산 200만원·수입 400만원 이하",
+                "tone": "success"
+              },
+              {
+                "label": "주의",
+                "value": "국산 200만원·수입 400만원 초과",
+                "tone": "warning"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "확인 완료",
+                "tone": null
+              },
+              {
+                "label": "매물 정보",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "ruleId": "R03",
+      "category": "차량 상태",
+      "title": "엔카진단",
+      "tone": "success",
+      "label": "통과",
+      "message": "엔카진단을 통과한 차예요",
+      "summary": "엔카진단 통과 차량",
+      "why": null,
+      "sellerQuestion": null,
+      "detail": {
+        "title": "엔카진단",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "엔카진단 여부",
+            "rows": [
+              {
+                "label": "엔카진단",
+                "value": "있음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "엔카진단 결과",
+            "rows": [
+              {
+                "label": "진단일",
+                "value": "2026-10-09",
+                "tone": null
+              },
+              {
+                "label": "종합 판정",
+                "value": "외부패널 단순교환 차량",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "진단 부위",
+            "rows": [
+              {
+                "label": "프론트 도어(좌)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "리어 도어(좌)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "트렁크 리드",
+                "value": "교환",
+                "tone": "warning"
+              },
+              {
+                "label": "리어 도어(우)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "프론트 도어(우)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "후드",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "프론트 휀더(우)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "프론트 휀더(좌)",
+                "value": "정상",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "통과",
+                "value": "엔카진단을 받은 차",
+                "tone": "success"
+              },
+              {
+                "label": "평가 제외",
+                "value": "엔카진단을 받지 않은 차(감점 없음)",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "매물 정보",
+                "value": "확인 완료",
+                "tone": null
+              },
+              {
+                "label": "엔카진단",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
+    },
+    {
+      "ruleId": "R04",
+      "category": "차량 상태",
+      "title": "프레임/외판",
+      "tone": "danger",
+      "label": "위험",
+      "message": "성능점검에 사고 이력이 있어요",
+      "summary": "성능점검 사고 이력 있음",
+      "why": "프레임은 차의 뼈대예요. 여기가 손상됐다는 건 충격이 뼈대까지 갔다는 뜻이라 주행 안정성과 되팔 때 가격에 큰 영향을 줘요. 그래서 위험으로 분류해요. 성능점검의 사고 이력은 주요 골격이나 쿼터 패널 같은 일부 외판을 용접·교환했다는 뜻이에요. 문·휀더 같은 바깥 패널 교환은 상대적으로 가벼운 편이에요.",
+      "sellerQuestion": "성능점검 사고 부위의 수리 내역과 사진을 볼 수 있을까요?",
+      "detail": {
+        "title": "프레임/외판",
+        "subtitle": "근거: 성능점검",
+        "blocks": [
+          {
+            "title": "판정 근거",
+            "rows": [
+              {
+                "label": "성능점검 사고 이력",
+                "value": "있음",
+                "tone": "danger"
+              }
+            ],
+            "note": "엔카진단 판정이 프레임 손상 여부를 분명히 밝히지 않아 성능점검을 근거로 썼어요"
+          },
+          {
+            "title": "성능점검",
+            "rows": [
+              {
+                "label": "사고 이력",
+                "value": "있음",
+                "tone": "danger"
+              },
+              {
+                "label": "단순수리",
+                "value": "있음",
+                "tone": "warning"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "외판·골격 부위",
+            "rows": [
+              {
+                "label": "쿼터 패널(우)",
+                "value": "2랭크 판금·용접 · 용접·절단",
+                "tone": "warning"
+              },
+              {
+                "label": "트렁크 리드",
+                "value": "1랭크 교환",
+                "tone": "warning"
+              }
+            ],
+            "note": "1랭크·2랭크는 외판, A·B·C랭크는 차의 뼈대인 주요 골격이에요"
+          },
+          {
+            "title": "엔카진단 결과",
+            "rows": [
+              {
+                "label": "진단일",
+                "value": "2026-10-09",
+                "tone": null
+              },
+              {
+                "label": "종합 판정",
+                "value": "외부패널 단순교환 차량",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "진단 부위",
+            "rows": [
+              {
+                "label": "프론트 도어(좌)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "리어 도어(좌)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "트렁크 리드",
+                "value": "교환",
+                "tone": "warning"
+              },
+              {
+                "label": "리어 도어(우)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "프론트 도어(우)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "후드",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "프론트 휀더(우)",
+                "value": "정상",
+                "tone": "success"
+              },
+              {
+                "label": "프론트 휀더(좌)",
+                "value": "정상",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "위험",
+                "value": "엔카진단에서 프레임 손상 판정 또는 성능점검 사고 이력 있음",
+                "tone": "danger"
+              },
+              {
+                "label": "통과",
+                "value": "둘 다 없음(외판 단순 교환·수리만 있으면 감점 없음)",
+                "tone": "success"
+              }
+            ],
+            "note": "엔카진단 판정을 먼저 보고, 판정이 분명하지 않으면 성능점검의 사고 이력을 봐요"
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "엔카진단",
+                "value": "확인 완료",
+                "tone": null
+              },
+              {
+                "label": "성능점검",
+                "value": "확인 완료",
+                "tone": null
+              },
+              {
+                "label": "매물 정보",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
+    },
+    {
+      "ruleId": "R12",
+      "category": "차량 상태",
+      "title": "누유 여부",
+      "tone": "success",
+      "label": "통과",
+      "message": "누유가 없어요",
+      "summary": "누유 없음",
+      "why": null,
+      "sellerQuestion": null,
+      "detail": {
+        "title": "누유 여부",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "누유 부위",
+            "rows": [
+              {
+                "label": "미세누유·누유",
+                "value": "없음",
+                "tone": "success"
+              }
+            ],
+            "note": "미세누유·누유만 판정에 써요. 누수 같은 다른 항목은 성능점검 전체 보기에서 볼 수 있어요"
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "주의",
+                "value": "미세누유·누유 항목이 하나라도 있음",
+                "tone": "warning"
+              },
+              {
+                "label": "통과",
+                "value": "누유 항목 없음",
+                "tone": "success"
+              },
+              {
+                "label": "평가 제외",
+                "value": "성능점검 기록 없음",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "성능점검",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
+    },
+    {
+      "ruleId": "R05",
+      "category": "이력",
+      "title": "렌트·택시 이력",
+      "tone": "success",
+      "label": "통과",
+      "message": "렌트·영업용 이력이 없어요",
+      "summary": "렌트·택시·영업용 이력 없음",
+      "why": null,
+      "sellerQuestion": null,
+      "detail": {
+        "title": "렌트·택시 이력",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "용도 이력",
+            "rows": [
+              {
+                "label": "용도",
+                "value": "자가용",
+                "tone": null
+              },
+              {
+                "label": "렌트 이력",
+                "value": "없음",
+                "tone": "success"
+              },
+              {
+                "label": "영업용 이력",
+                "value": "없음",
+                "tone": "success"
+              },
+              {
+                "label": "관용 이력",
+                "value": "없음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "위험",
+                "value": "렌트·영업용 이력이 1회라도 있음",
+                "tone": "danger"
+              },
+              {
+                "label": "주의",
+                "value": "관용 이력이 1회라도 있음",
+                "tone": "warning"
+              },
+              {
+                "label": "통과",
+                "value": "세 가지 모두 없음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
+    },
+    {
+      "ruleId": "R06",
+      "category": "이력",
+      "title": "전손·침수·도난",
+      "tone": "success",
+      "label": "통과",
+      "message": "전손·침수·도난 이력이 없어요",
+      "summary": "전손·침수·도난 없음",
+      "why": null,
+      "sellerQuestion": null,
+      "detail": {
+        "title": "전손·침수·도난",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "전손·침수·도난",
+            "rows": [
+              {
+                "label": "전손",
+                "value": "없음",
+                "tone": "success"
+              },
+              {
+                "label": "침수전손",
+                "value": "없음",
+                "tone": "success"
+              },
+              {
+                "label": "침수분손",
+                "value": "없음",
+                "tone": "success"
+              },
+              {
+                "label": "도난",
+                "value": "없음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "위험",
+                "value": "전손·침수전손·침수분손·도난 중 1회라도 있음",
+                "tone": "danger"
+              },
+              {
+                "label": "통과",
+                "value": "모두 없음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
+    },
+    {
+      "ruleId": "R07",
+      "category": "이력",
+      "title": "소유자 변경",
+      "tone": "success",
+      "label": "통과",
+      "message": "소유자 변경 1회로 정상 범위예요",
+      "summary": "소유자 변경 1회",
+      "why": null,
+      "sellerQuestion": null,
+      "detail": {
+        "title": "소유자 변경",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "소유자 변경",
+            "rows": [
+              {
+                "label": "변경 횟수",
+                "value": "1회",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "변경 날짜",
+            "rows": [
+              {
+                "label": "1번째 변경",
+                "value": "2025-03-26",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "통과",
+                "value": "2회 이하",
+                "tone": "success"
+              },
+              {
+                "label": "주의",
+                "value": "3회 이상",
+                "tone": "warning"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
+    },
+    {
+      "ruleId": "R08",
+      "category": "이력",
+      "title": "자차보험 공백",
+      "tone": "success",
+      "label": "통과",
+      "message": "자차보험 공백이 없어요",
+      "summary": "자차보험 공백 없음",
+      "why": null,
+      "sellerQuestion": null,
+      "detail": {
+        "title": "자차보험 공백",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "보험 미가입 기간",
+            "rows": [
+              {
+                "label": "미가입 기간",
+                "value": "없음",
+                "tone": "success"
+              }
+            ],
+            "note": "자차보험에 가입하지 않은 기간이에요. 이 기간에 난 사고는 보험이력에 남지 않아요"
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "주의",
+                "value": "자차보험 미가입 기간이 1개월이라도 있음",
+                "tone": "warning"
+              },
+              {
+                "label": "통과",
+                "value": "미가입 기간 없음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
+    },
+    {
+      "ruleId": "R09",
+      "category": "사고",
+      "title": "수리비 확정",
+      "tone": "success",
+      "label": "통과",
+      "message": "수리비가 확정되지 않은 사고는 없어요",
+      "summary": "수리비 미확정 없음",
+      "why": null,
+      "sellerQuestion": null,
+      "detail": {
+        "title": "수리비 확정",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "수리비 확정",
+            "rows": [
+              {
+                "label": "수리비 미확정 사고",
+                "value": "없음",
+                "tone": "success"
+              },
+              {
+                "label": "보험 처리 사고",
+                "value": "9건",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "주의",
+                "value": "수리비가 확정되지 않은 사고가 있음",
+                "tone": "warning"
+              },
+              {
+                "label": "통과",
+                "value": "없음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
+    },
+    {
+      "ruleId": "R10",
+      "category": "사고",
+      "title": "보험처리 규모",
+      "tone": "warning",
+      "label": "주의",
+      "message": "수리비가 많이 나온 편이에요 · 내차 1,126만원 · 타차 589만원",
+      "summary": "수리비 큼 · 내차 1,126만원 · 타차 589만원",
+      "why": "사고가 있어도 금액이 작으면 가벼운 접촉 수준이에요. 하지만 국산 200만원, 수입 400만원을 넘으면 단순 접촉을 넘어선 사고일 수 있어 주의로 봐요.",
+      "sellerQuestion": "보험 처리한 사고는 어느 부위를 어떻게 수리했나요?",
+      "detail": {
+        "title": "보험처리 규모",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "수리비 합계",
+            "rows": [
+              {
+                "label": "내차 피해",
+                "value": "7건 · 11,258,480원",
+                "tone": "warning"
+              },
+              {
+                "label": "타차 가해",
+                "value": "2건 · 5,886,670원",
+                "tone": "warning"
+              },
+              {
+                "label": "기준 금액",
+                "value": "수입 400만원",
+                "tone": null
+              }
+            ],
+            "note": "부품비·공임·도장비 합계예요"
+          },
+          {
+            "title": "2021-12-01 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "1,005,260원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "195,120원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "711,370원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "235,570원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "1,142,060원",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "2021-12-01 · 타차 가해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "6,353,300원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "3,380,120원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "756,240원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "1,059,640원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "5,196,000원",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "2021-12-01 · 타차 가해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "1,004,570원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "244,620원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "151,980원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "294,070원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "690,670원",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "2017-05-08 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "1,019,750원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "0원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "108,300원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "691,380원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "799,680원",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "2016-02-27 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "1,634,500원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "656,300원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "193,800원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "526,360원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "1,376,460원",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "2014-10-08 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "4,567,900원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "1,817,600원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "381,500원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "1,058,670원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "3,257,770원",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "2014-02-28 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "2,000,000원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "0원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "1,269,320원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "1,016,400원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "2,285,720원",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "2013-07-07 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "968,000원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "563,390원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "545,200원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "0원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "1,108,590원",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "2013-06-25 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "1,540,000원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "693,500원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "230,300원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "364,400원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "1,288,200원",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "통과",
+                "value": "내차·타차 수리비 중 큰 쪽이 국산 200만원·수입 400만원 이하",
+                "tone": "success"
+              },
+              {
+                "label": "주의",
+                "value": "국산 200만원·수입 400만원 초과",
+                "tone": "warning"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "확인 완료",
+                "tone": null
+              },
+              {
+                "label": "매물 정보",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
+    },
+    {
+      "ruleId": "R01",
+      "category": "투명성",
+      "title": "보험이력 공개",
+      "tone": "success",
+      "label": "통과",
+      "message": "딜러가 보험이력을 공개했어요",
+      "summary": "공개",
+      "why": null,
+      "sellerQuestion": null,
+      "detail": {
+        "title": "보험이력 공개",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "딜러 공개 설정",
+            "rows": [
+              {
+                "label": "보험이력",
+                "value": "공개",
+                "tone": "success"
+              },
+              {
+                "label": "성능점검",
+                "value": "공개",
+                "tone": "success"
+              }
+            ],
+            "note": "딜러가 매물을 올릴 때 정하는 설정이에요"
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "통과",
+                "value": "보험이력 공개",
+                "tone": "success"
+              },
+              {
+                "label": "비공개",
+                "value": "보험이력 비공개",
+                "tone": "danger"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "매물 정보",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
+    },
+    {
+      "ruleId": "R02",
+      "category": "투명성",
+      "title": "성능점검 공개",
+      "tone": "success",
+      "label": "통과",
+      "message": "성능점검 기록이 공개돼 있어요",
+      "summary": "공개",
+      "why": null,
+      "sellerQuestion": null,
+      "detail": {
+        "title": "성능점검 공개",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "딜러 공개 설정",
+            "rows": [
+              {
+                "label": "보험이력",
+                "value": "공개",
+                "tone": "success"
+              },
+              {
+                "label": "성능점검",
+                "value": "공개",
+                "tone": "success"
+              }
+            ],
+            "note": "딜러가 매물을 올릴 때 정하는 설정이에요"
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "통과",
+                "value": "성능점검 기록 공개",
+                "tone": "success"
+              },
+              {
+                "label": "비공개",
+                "value": "성능점검 기록 비공개",
+                "tone": "danger"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "매물 정보",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
+    }
+  ],
+  "excluded": [
+    {
+      "ruleId": "R11",
+      "title": "가격 적정성",
+      "reason": "신차 가격 정보가 없어 평가하지 않았어요"
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2012-05",
+      "label": "신차 등록",
+      "detail": null,
+      "tone": "neutral",
+      "sheet": null
+    },
+    {
+      "date": "2013-06",
+      "label": "사고 · 내차 피해",
+      "detail": "수리비 합계 129만원",
+      "tone": "warning",
+      "sheet": {
+        "title": "사고 · 내차 피해",
+        "subtitle": "수리비 합계 1,288,200원",
+        "blocks": [
+          {
+            "title": "2013-06-25 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "1,540,000원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "693,500원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "230,300원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "364,400원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "1,288,200원",
+                "tone": null
+              }
+            ],
+            "note": "수리비 합계는 부품비·공임·도장비를 더한 금액이에요. 보험사가 지급한 보험금과 다를 수 있어요"
+          }
+        ]
+      }
+    },
+    {
+      "date": "2013-07",
+      "label": "사고 · 내차 피해",
+      "detail": "수리비 합계 111만원",
+      "tone": "warning",
+      "sheet": {
+        "title": "사고 · 내차 피해",
+        "subtitle": "수리비 합계 1,108,590원",
+        "blocks": [
+          {
+            "title": "2013-07-07 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "968,000원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "563,390원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "545,200원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "0원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "1,108,590원",
+                "tone": null
+              }
+            ],
+            "note": "수리비 합계는 부품비·공임·도장비를 더한 금액이에요. 보험사가 지급한 보험금과 다를 수 있어요"
+          }
+        ]
+      }
+    },
+    {
+      "date": "2014-02",
+      "label": "사고 · 내차 피해",
+      "detail": "수리비 합계 228만원",
+      "tone": "warning",
+      "sheet": {
+        "title": "사고 · 내차 피해",
+        "subtitle": "수리비 합계 2,285,720원",
+        "blocks": [
+          {
+            "title": "2014-02-28 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "2,000,000원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "0원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "1,269,320원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "1,016,400원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "2,285,720원",
+                "tone": null
+              }
+            ],
+            "note": "수리비 합계는 부품비·공임·도장비를 더한 금액이에요. 보험사가 지급한 보험금과 다를 수 있어요"
+          }
+        ]
+      }
+    },
+    {
+      "date": "2014-10",
+      "label": "사고 · 내차 피해",
+      "detail": "수리비 합계 326만원",
+      "tone": "warning",
+      "sheet": {
+        "title": "사고 · 내차 피해",
+        "subtitle": "수리비 합계 3,257,770원",
+        "blocks": [
+          {
+            "title": "2014-10-08 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "4,567,900원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "1,817,600원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "381,500원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "1,058,670원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "3,257,770원",
+                "tone": null
+              }
+            ],
+            "note": "수리비 합계는 부품비·공임·도장비를 더한 금액이에요. 보험사가 지급한 보험금과 다를 수 있어요"
+          }
+        ]
+      }
+    },
+    {
+      "date": "2016-02",
+      "label": "사고 · 내차 피해",
+      "detail": "수리비 합계 138만원",
+      "tone": "warning",
+      "sheet": {
+        "title": "사고 · 내차 피해",
+        "subtitle": "수리비 합계 1,376,460원",
+        "blocks": [
+          {
+            "title": "2016-02-27 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "1,634,500원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "656,300원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "193,800원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "526,360원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "1,376,460원",
+                "tone": null
+              }
+            ],
+            "note": "수리비 합계는 부품비·공임·도장비를 더한 금액이에요. 보험사가 지급한 보험금과 다를 수 있어요"
+          }
+        ]
+      }
+    },
+    {
+      "date": "2017-05",
+      "label": "사고 · 내차 피해",
+      "detail": "수리비 합계 80만원",
+      "tone": "warning",
+      "sheet": {
+        "title": "사고 · 내차 피해",
+        "subtitle": "수리비 합계 799,680원",
+        "blocks": [
+          {
+            "title": "2017-05-08 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "1,019,750원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "0원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "108,300원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "691,380원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "799,680원",
+                "tone": null
+              }
+            ],
+            "note": "수리비 합계는 부품비·공임·도장비를 더한 금액이에요. 보험사가 지급한 보험금과 다를 수 있어요"
+          }
+        ]
+      }
+    },
+    {
+      "date": "2021-12",
+      "label": "사고 · 내차 피해",
+      "detail": "수리비 합계 114만원",
+      "tone": "warning",
+      "sheet": {
+        "title": "사고 · 내차 피해",
+        "subtitle": "수리비 합계 1,142,060원",
+        "blocks": [
+          {
+            "title": "2021-12-01 · 내차 피해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "1,005,260원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "195,120원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "711,370원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "235,570원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "1,142,060원",
+                "tone": null
+              }
+            ],
+            "note": "수리비 합계는 부품비·공임·도장비를 더한 금액이에요. 보험사가 지급한 보험금과 다를 수 있어요"
+          }
+        ]
+      }
+    },
+    {
+      "date": "2021-12",
+      "label": "사고 2건 · 타차 가해",
+      "detail": "수리비 합계 589만원",
+      "tone": "warning",
+      "sheet": {
+        "title": "사고 2건 · 타차 가해",
+        "subtitle": "수리비 합계 5,886,670원",
+        "blocks": [
+          {
+            "title": "2021-12-01 · 타차 가해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "6,353,300원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "3,380,120원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "756,240원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "1,059,640원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "5,196,000원",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "2021-12-01 · 타차 가해",
+            "rows": [
+              {
+                "label": "보험금",
+                "value": "1,004,570원",
+                "tone": null
+              },
+              {
+                "label": "부품비",
+                "value": "244,620원",
+                "tone": null
+              },
+              {
+                "label": "공임",
+                "value": "151,980원",
+                "tone": null
+              },
+              {
+                "label": "도장비",
+                "value": "294,070원",
+                "tone": null
+              },
+              {
+                "label": "수리비 합계",
+                "value": "690,670원",
+                "tone": null
+              }
+            ],
+            "note": "수리비 합계는 부품비·공임·도장비를 더한 금액이에요. 보험사가 지급한 보험금과 다를 수 있어요"
+          }
+        ]
+      }
+    },
+    {
+      "date": "2025-03",
+      "label": "소유자 변경",
+      "detail": null,
+      "tone": "neutral",
+      "sheet": {
+        "title": "소유자 변경",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": null,
+            "rows": [
+              {
+                "label": "변경일",
+                "value": "2025-03-26",
+                "tone": null
+              },
+              {
+                "label": "순서",
+                "value": "1회",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
+    }
+  ],
+  "shareText": {
+    "summary": "2012 BMW 3시리즈 (F30)\n판정: 피하세요 · 85점\n성능점검에 사고 이력이 있어 사지 않는 게 좋아요\n- 프레임/외판: 성능점검에 사고 이력이 있어요\n- 보험처리 규모: 수리비가 많이 나온 편이에요 · 내차 1,126만원 · 타차 589만원\nhttps://fem.encar.com/cars/detail/39339524\nAutoVerdict로 분석",
+    "sellerQuestions": "1. 성능점검 사고 부위의 수리 내역과 사진을 볼 수 있을까요?\n2. 보험 처리한 사고는 어느 부위를 어떻게 수리했나요?\nhttps://fem.encar.com/cars/detail/39339524\nAutoVerdict로 분석"
+  }
+}

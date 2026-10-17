@@ -3,6 +3,7 @@ import java.util.Properties
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.devtools.ksp")
 }
 
@@ -64,6 +65,12 @@ android {
         buildConfig = true
     }
 
+    // The UI is Korean-only; drop library translations (M3, AdMob, ...) so system
+    // labels don't switch language on other-locale devices. Default values/ is Korean.
+    androidResources {
+        localeFilters += listOf("ko")
+    }
+
     testOptions {
         unitTests.isIncludeAndroidResources = true
     }
@@ -83,6 +90,7 @@ dependencies {
     implementation("androidx.room:room-ktx:2.8.4")
     ksp("androidx.room:room-compiler:2.8.4")
     implementation("androidx.webkit:webkit:1.12.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("com.google.android.gms:play-services-ads:23.6.0")
@@ -102,7 +110,8 @@ ksp {
 }
 
 // --- WebView bundle wired into the Android build ---------------------------
-// The React/TS evaluation UI lives in webview-bundle/ and is bundled into
+// The headless rule engine bundle (TS engine + report adapter, no UI) lives in
+// webview-bundle/ and is bundled into
 // app/src/main/assets/eval-ui. Wiring it into preBuild guarantees that
 // `assembleDebug` and Android Studio's Run button always ship the latest bundle.
 val webViewDir = file("${rootProject.projectDir}/webview-bundle")
@@ -153,7 +162,7 @@ val buildWebView = tasks.register<Exec>("buildWebView") {
         file("$webViewDir/package-lock.json"),
         file("$webViewDir/tsconfig.json"),
         file("$webViewDir/vite.config.ts"),
-        file("$webViewDir/index.html"),
+        file("$webViewDir/public/engine.html"),
     )
     outputs.dir(file("$webViewDir/dist"))
     commandLine(npmExecutable, "run", "build")

@@ -19,10 +19,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.car.autoverdict.ui.theme.AvTheme
 
-/** Fixed bottom action area. Owns navigation-bar and IME insets (spec 6). */
+/**
+ * Fixed bottom action area. Owns navigation-bar and IME insets (spec 6) unless the screen
+ * already applies them and passes [windowInsets] = `WindowInsets(0)` (e.g. a banner sits below).
+ */
 @Composable
 fun AvBottomCta(
     modifier: Modifier = Modifier,
+    windowInsets: WindowInsets = WindowInsets.navigationBars.union(WindowInsets.ime),
     content: @Composable RowScope.() -> Unit,
 ) {
     val colors = AvTheme.colors
@@ -31,7 +35,7 @@ fun AvBottomCta(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
+                .windowInsetsPadding(windowInsets)
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,

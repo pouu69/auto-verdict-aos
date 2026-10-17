@@ -36,6 +36,7 @@ import com.car.autoverdict.ui.components.AvBottomSheet
 import com.car.autoverdict.ui.components.AvButton
 import com.car.autoverdict.ui.components.AvButtonSize
 import com.car.autoverdict.ui.components.AvButtonStyle
+import com.car.autoverdict.ui.components.AvCollapsibleBody
 import com.car.autoverdict.ui.components.AvDialog
 import com.car.autoverdict.ui.components.AvIllustrationIcon
 import com.car.autoverdict.ui.components.AvEmptyState
@@ -65,6 +66,7 @@ fun ComponentGalleryScreen(onBack: () -> Unit) {
     var showSheet by remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
     var tab by remember { mutableStateOf(MainTab.Home) }
+    var sectionOpen by remember { mutableStateOf(true) }
 
     Box(modifier = Modifier.fillMaxSize().background(colors.background)) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -104,6 +106,12 @@ fun ComponentGalleryScreen(onBack: () -> Unit) {
                     trailing = { Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = colors.textTertiary) },
                 )
                 AvListRow(title = "정적 행 (클릭 없음)", subtitle = "부제는 body2")
+                AvSectionDivider()
+
+                AvSectionHeader(title = "Collapsible section", count = 1, expanded = sectionOpen, onToggle = { sectionOpen = !sectionOpen })
+                AvCollapsibleBody(expanded = sectionOpen) {
+                    AvListRow(title = "제목 행을 누르면 접혀요", subtitle = "AvCollapsibleBody")
+                }
                 AvSectionDivider()
 
                 AvSectionHeader(title = "Top bar (tab root)")
