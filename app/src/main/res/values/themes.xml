@@ -6,10 +6,11 @@
         <item name="android:windowLightStatusBar">true</item>
     </style>
 
-    <!-- Accent background: the existing launcher foreground is white, so a white splash would hide it (spec 7.2). -->
-    <style name="Theme.AutoVerdict.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/av_accent</item>
+    <!-- White screen with the launcher icon on an accent circle: the foreground is white, so it needs the accent icon background to show. -->
+    <style name="Theme.AutoVerdict.Splash" parent="Theme.SplashScreen.IconBackground">
+        <item name="windowSplashScreenBackground">@color/av_background</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/av_accent</item>
         <item name="postSplashScreenTheme">@style/Theme.AutoVerdict</item>
     </style>
 </resources>

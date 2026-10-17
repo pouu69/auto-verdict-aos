@@ -1,30 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
   <!--
-    Play Store 512 icon — faithful render of the actual launcher icon.
-    Background  = ic_launcher_background.xml (flat #3B82F6)
-    Foreground  = ic_launcher_foreground.xml (car + integrated check badge),
-                  scaled from the 108 adaptive viewport to 512 (512/108 = 4.74074).
-    Rounded corners (rx 112) approximate the on-device adaptive mask.
-    Keep this in sync with app/src/main/res whenever the launcher icon changes.
+    Play Store 512 icon — faithful render of the adaptive launcher icon.
+    Background = @color/av_accent (#3182F6), full bleed with square corners (Play applies its own mask).
+    Foreground = docs/assets/source/app-icon.svg / ic_launcher_foreground.xml, scaled 108 -> 512 (4.74074).
+    Render: rsvg-convert -w 512 -h 512 docs/assets/source/play-icon-512.svg -o docs/assets/play-icon-512.png
   -->
-
-  <!-- Background -->
-  <rect width="512" height="512" rx="112" ry="112" fill="#3B82F6"/>
-
-  <!-- Foreground: exact copy of ic_launcher_foreground.xml, scaled 108 -> 512 -->
+  <rect width="512" height="512" fill="#3182F6"/>
   <g transform="scale(4.74074)">
-    <!-- Car body outline -->
-    <path d="M30,58l4,-8l8,-4l24,0l6,6l6,0l0,6l-2,0a4,4 0 0 1 -8,0l-24,0a4,4 0 0 1 -8,0l-6,0z"
-          fill="none" stroke="#FFFFFF" stroke-width="2.4"
-          stroke-linejoin="round" stroke-linecap="round"/>
-    <!-- Front wheel -->
-    <circle cx="40" cy="58" r="2.5" fill="#FFFFFF"/>
-    <!-- Rear wheel -->
-    <circle cx="68" cy="58" r="2.5" fill="#FFFFFF"/>
-    <!-- Check badge (top right) -->
-    <circle cx="70" cy="40" r="6" fill="#FFFFFF"/>
-    <path d="M67,40L69,42.5L73,37.5"
-          fill="none" stroke="#3B82F6" stroke-width="2.4"
-          stroke-linecap="round" stroke-linejoin="round"/>
+    <g fill="#FFFFFF" fill-rule="evenodd">
+      <!-- Cabin with windshield hole -->
+      <path d="M35,51 L39.6,37.2 Q40.5,34 43.8,34 H64.2 Q67.5,34 68.4,37.2 L73,51 Z M42.5,37.5 H65.5 L69.25,47.5 H38.75 Z"/>
+      <!-- Body with headlight and check holes -->
+      <path d="M32,50 H76 A6,6 0 0 1 82,56 V64 A6,6 0 0 1 76,70 H32 A6,6 0 0 1 26,64 V56 A6,6 0 0 1 32,50 Z M32.5,55 H35.5 A2.5,2.5 0 0 1 35.5,60 H32.5 A2.5,2.5 0 0 1 32.5,55 Z M72.5,55 H75.5 A2.5,2.5 0 0 1 75.5,60 H72.5 A2.5,2.5 0 0 1 72.5,55 Z M47.56,57.94 L51.50,61.89 L60.94,52.44 A2.2,2.2 0 0 1 64.06,55.56 L51.50,68.11 L44.44,61.06 A2.2,2.2 0 0 1 47.56,57.94 Z"/>
+      <!-- Wheels -->
+      <path d="M33.5,68 H38.5 A2.5,2.5 0 0 1 41,70.5 V72.5 A2.5,2.5 0 0 1 38.5,75 H33.5 A2.5,2.5 0 0 1 31,72.5 V70.5 A2.5,2.5 0 0 1 33.5,68 Z"/>
+      <path d="M69.5,68 H74.5 A2.5,2.5 0 0 1 77,70.5 V72.5 A2.5,2.5 0 0 1 74.5,75 H69.5 A2.5,2.5 0 0 1 67,72.5 V70.5 A2.5,2.5 0 0 1 69.5,68 Z"/>
+    </g>
   </g>
 </svg>
