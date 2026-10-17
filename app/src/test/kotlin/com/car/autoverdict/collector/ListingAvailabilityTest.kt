@@ -150,6 +150,44 @@ class ListingAvailabilityTest {
         )
     }
 
+    // --- listing no longer exists: page loads (HTTP 200) but the base fetch 404s ---
+
+    private fun missingState(baseFailed: Boolean?, base: String = "{}") = JSONObject(
+        """
+        {
+          "pender": {
+            "pending": { "cars/GET_BASE": false },
+            "success": { "cars/GET_BASE": ${baseFailed == false} },
+            "failure": { "cars/GET_BASE": ${json(baseFailed)} }
+          },
+          "cars": { "base": $base }
+        }
+        """.trimIndent(),
+    )
+
+    @Test
+    fun removedListings_30000000_35000123_39000001_areMissing() {
+        // All three pages share this state: empty base, cars/GET_BASE marked failed.
+        assertTrue(ListingAvailability.isMissing(missingState(baseFailed = true)))
+    }
+
+    @Test
+    fun emptyBaseWithoutFailureFlag_isNotMissing() {
+        assertFalse(ListingAvailability.isMissing(missingState(baseFailed = false)))
+        assertFalse(ListingAvailability.isMissing(missingState(baseFailed = null)))
+    }
+
+    @Test
+    fun noPender_isNotMissing() {
+        assertFalse(ListingAvailability.isMissing(JSONObject("""{"cars":{"base":{}}}""")))
+        assertFalse(ListingAvailability.isMissing(JSONObject("{}")))
+    }
+
+    @Test
+    fun filledBaseDespiteFailureFlag_isNotMissing() {
+        assertFalse(ListingAvailability.isMissing(missingState(baseFailed = true, base = """{"vehicleId":1}""")))
+    }
+
     @Test
     fun idMismatchWithoutDummyFlag_isGone() {
         assertTrue(

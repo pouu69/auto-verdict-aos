@@ -115,6 +115,56 @@ class CollectorWebViewTest {
     }
 
     @Test
+    fun extractionJs_reportsBaseFetchFailureWithEmptyState() {
+        collect()
+        commitVisible()
+
+        assertTrue(shadow.lastEvaluatedJavascript.contains("pender"))
+    }
+
+    @Test
+    fun missingListing_afterPageFinished_reportsDeleted() {
+        collect(carId = "30000000")
+        pageFinished()
+        respond(MISSING_STATE)
+
+        assertEquals(listOf(CollectorWebView.Result.Deleted), results)
+        assertEquals(listOf(CollectStage.OpeningPage), stages)
+    }
+
+    @Test
+    fun missingListing_beforePageFinished_keepsPollingThenReportsDeleted() {
+        collect(carId = "30000000")
+        commitVisible()
+
+        repeat(10) {
+            respond(MISSING_STATE)
+            idle(1)
+        }
+        assertTrue(results.isEmpty())
+
+        pageFinished()
+        respond(MISSING_STATE)
+        assertEquals(listOf(CollectorWebView.Result.Deleted), results)
+    }
+
+    @Test
+    fun emptyBaseWithoutFailureFlag_afterPageFinished_reportsPageUnreadable() {
+        collect()
+        pageFinished()
+        val emptyBaseNoFailure =
+            """{"error":"empty_state","state":{"pender":{"failure":{}},"cars":{"base":{}}}}"""
+        repeat(6) {
+            assertTrue(results.isEmpty())
+            respond(emptyBaseNoFailure)
+            idle(1)
+        }
+
+        val error = results.single() as CollectorWebView.Result.Error
+        assertEquals(CollectErrorKind.PageUnreadable, error.kind)
+    }
+
+    @Test
     fun recollect_dropsStaleSessionCallbacks() {
         val first = mutableListOf<CollectorWebView.Result>()
         collect(sink = first)
@@ -267,6 +317,11 @@ class CollectorWebViewTest {
             """{"ok":true,"cars":{"base":{"vehicleId":38000000,"queryCarId":38000000,""" +
                 """"vehicleNo":"12가3456","manage":{"dummy":false,"dummyVehicleId":null},""" +
                 """"advertisement":{"status":"SOLD"}}}}"""
+
+        // Shape of /cars/detail/30000000 (no longer exists): empty base, base fetch failed.
+        private const val MISSING_STATE =
+            """{"error":"empty_state","state":{"pender":{"failure":{"cars/GET_BASE":true}},""" +
+                """"cars":{"base":{}}}}"""
 
         private fun dummyAdState(vehicleNo: String) =
             """{"ok":true,"cars":{"base":{"vehicleId":42751994,"queryCarId":42753994,""" +

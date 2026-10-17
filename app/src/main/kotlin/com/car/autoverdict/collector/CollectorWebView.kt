@@ -21,7 +21,10 @@ class CollectorWebView(context: Context) : Collector {
         /** [kind] drives the error screen; [message] is for logs only. */
         data class Error(val kind: CollectErrorKind, val message: String) : Result()
 
-        /** Sold listing, or the page shows a different car than requested. See [ListingAvailability]. */
+        /**
+         * The listing can't be analyzed as asked: sold, no longer existing on Encar, or the page
+         * shows a different car than requested. See [ListingAvailability].
+         */
         data object Deleted : Result()
     }
 
@@ -147,8 +150,18 @@ class CollectorWebView(context: Context) : Collector {
         (function() {
             try {
                 var state = window.__PRELOADED_STATE__;
-                if (!state || !state.cars || !state.cars.base || Object.keys(state.cars.base).length === 0) {
+                if (!state) {
                     return JSON.stringify({ error: 'empty_state' });
+                }
+                if (!state.cars || !state.cars.base || Object.keys(state.cars.base).length === 0) {
+                    // Pass Encar's fetch-failure flags so Kotlin can tell a removed listing apart.
+                    return JSON.stringify({
+                        error: 'empty_state',
+                        state: {
+                            pender: { failure: (state.pender && state.pender.failure) || null },
+                            cars: { base: (state.cars && state.cars.base) || null }
+                        }
+                    });
                 }
                 // Sold/replaced detection happens in Kotlin (ListingAvailability).
                 return JSON.stringify({ ok: true, cars: state.cars });
@@ -188,6 +201,12 @@ class CollectorWebView(context: Context) : Collector {
             try {
                 val obj = JSONObject(parsed)
                 if (obj.has("error")) {
+                    // Only trust "removed" once the page is fully loaded; until then keep polling.
+                    val state = obj.optJSONObject("state")
+                    if (isPageFinished() && state != null && ListingAvailability.isMissing(state)) {
+                        callback(Result.Deleted)
+                        return@evaluateJavascript
+                    }
                     retryOr(Result.Error(CollectErrorKind.PageUnreadable, "매물 데이터를 찾을 수 없습니다"))
                     return@evaluateJavascript
                 }
@@ -222,7 +241,7 @@ class CollectorWebView(context: Context) : Collector {
             else -> 0L
         }
         val vehicleNo = base?.optString("vehicleNo", "") ?: ""
-        Log.d(TAG, "vehicleId=$vehicleId vehicleNo=$vehicleNo")
+        Log.d(TAG, "vehicleId=$vehicleId hasVehicleNo=${vehicleNo.isNotEmpty()}")
 
         if (vehicleId == 0L || vehicleNo.isEmpty()) {
             callback(
@@ -235,7 +254,7 @@ class CollectorWebView(context: Context) : Collector {
 
         apiResultHandler = onApiResult@{ json ->
             if (session != sessionId) return@onApiResult
-            Log.d(TAG, "API result received: ${json.take(200)}")
+            Log.d(TAG, "API result received (${json.length} chars)")
             try {
                 val apiResponse = JSONObject(json)
                 val results = apiResponse.optJSONObject("results")
