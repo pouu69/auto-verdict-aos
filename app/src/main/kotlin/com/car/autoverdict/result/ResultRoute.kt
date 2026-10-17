@@ -3,6 +3,7 @@ package com.car.autoverdict.result
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -20,6 +21,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import com.car.autoverdict.MainActivity
 import com.car.autoverdict.R
 import com.car.autoverdict.engine.ReportEvaluator
 import com.car.autoverdict.ui.components.LocalAvToast
@@ -111,7 +113,10 @@ private fun Context.shareText(text: String) {
     val send = Intent(Intent.ACTION_SEND)
         .setType("text/plain")
         .putExtra(Intent.EXTRA_TEXT, text)
-    startSafely(Intent.createChooser(send, null))
+    // We accept shared text ourselves (MainActivity); don't offer the app as a share target.
+    val chooser = Intent.createChooser(send, null)
+        .putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, arrayOf(ComponentName(this, MainActivity::class.java)))
+    startSafely(chooser)
 }
 
 private fun Context.startSafely(intent: Intent) {

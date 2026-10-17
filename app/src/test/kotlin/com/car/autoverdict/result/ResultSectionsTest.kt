@@ -100,8 +100,9 @@ class ResultSectionsTest {
         rule.onNodeWithText("자가용").assertExists()
         // Repairs: nothing replaced, systems all fine
         heading("교환·수리 부위").assertExists()
-        rule.onNodeWithText("교환·수리 부위가 없어요").assertExists()
-        rule.onNodeWithText("그 외 31개 항목 양호").assertExists()
+        rule.onNodeWithText("교환·수리 부위가 없고 주요 장치 31개 항목이 양호해요").assertExists()
+        rule.onNodeWithText("교환·수리 부위가 없어요").assertDoesNotExist()
+        rule.onNodeWithText("그 외", substring = true).assertDoesNotExist()
         // Issues
         heading("확인할 것 2").assertExists()
         // Issues repeat in the full rule list on purpose (spec 4), so the message shows twice.
@@ -178,6 +179,25 @@ class ResultSectionsTest {
         rule.onNodeWithText("미세누유").assertExists()
         rule.onNodeWithText("그 외 30개 항목 양호").assertExists()
         rule.onNodeWithText("교환·수리 부위가 없어요").assertDoesNotExist()
+    }
+
+    @Test fun `repairs with nothing listed and no systems checked say so in one line`() {
+        show(caution.copy(repairs = Repairs(panels = emptyList(), systems = SystemSummary(emptyList(), okCount = 0))))
+        rule.onNodeWithText("교환·수리 부위가 없어요").assertExists()
+        rule.onNodeWithText("양호", substring = true).assertDoesNotExist()
+    }
+
+    @Test fun `repairs with only flagged systems keep the ok count line`() {
+        val repairs = Repairs(
+            panels = emptyList(),
+            systems = SystemSummary(
+                flagged = listOf(SystemItem(group = "오일누유", name = "실린더 블록 / 오일팬", status = "미세누유", tone = Tone.Warning)),
+                okCount = 12,
+            ),
+        )
+        show(caution.copy(repairs = repairs))
+        rule.onNodeWithText("그 외 12개 항목 양호").assertExists()
+        rule.onNodeWithText("교환·수리 부위가 없", substring = true).assertDoesNotExist()
     }
 
     @Test fun `banners show their copy and actions`() {

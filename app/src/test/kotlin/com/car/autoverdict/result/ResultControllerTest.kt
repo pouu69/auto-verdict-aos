@@ -416,6 +416,78 @@ class ResultControllerTest {
     }
 
     @Test
+    fun `refresh after the user scrolled with an equal report updates the saved row without a banner`() = runTest {
+        givenSavedCar()
+        val c = controller()
+        val states = history(c)
+        c.start()
+        runCurrent()
+        c.onUserScrolled()
+
+        // A fresh but structurally equal report (new instance, same data).
+        evaluator.results["new-raw"] = EngineResult.Success(caution.copy())
+        repo.collects.single().result.complete(CollectOutcome.Success("new-raw"))
+        runCurrent()
+
+        assertEquals(ResultUiState.Ready(caution, saved = true, banner = null), c.state.value)
+        assertTrue(states.none { it is ResultUiState.Ready && it.banner == ResultBanner.UpdateAvailable })
+        assertEquals(listOf(SaveCall(caution, "new-raw", SAVED_AT)), repo.saves)
+        assertEquals(listOf(caution to "new-raw"), repo.cacheWrites)
+
+        // Nothing pending: applyUpdate is a no-op.
+        c.applyUpdate()
+        runCurrent()
+        assertEquals(1, repo.saves.size)
+
+        // Save/unsave afterwards act on the refreshed raw.
+        c.unsave()
+        runCurrent()
+        c.save()
+        runCurrent()
+        assertEquals(SaveCall(caution, "new-raw", null), repo.saves.last())
+    }
+
+    @Test
+    fun `refresh without scrolling and an equal report keeps the shown state and updates the saved row`() = runTest {
+        givenSavedCar()
+        val c = controller()
+        val states = history(c)
+        c.start()
+        runCurrent()
+        val before = c.state.value
+        val statesBefore = states.size
+
+        evaluator.results["new-raw"] = EngineResult.Success(caution.copy())
+        repo.collects.single().result.complete(CollectOutcome.Success("new-raw"))
+        runCurrent()
+
+        // No redraw: the very same Ready instance, no state emitted.
+        assertTrue(before === c.state.value)
+        assertEquals(statesBefore, states.size)
+        assertEquals(listOf(SaveCall(caution, "new-raw", SAVED_AT)), repo.saves)
+        assertEquals(listOf(caution to "new-raw"), repo.cacheWrites)
+    }
+
+    @Test
+    fun `refresh with an equal report that has data gaps updates the saved row but not the cache`() = runTest {
+        val gapped = caution.copy(dataGaps = listOf(loginGap))
+        repo.saved = savedEntity(rawJson = "saved-raw", savedAt = SAVED_AT)
+        evaluator.results["saved-raw"] = EngineResult.Success(gapped)
+        val c = controller()
+        c.start()
+        runCurrent()
+        c.onUserScrolled()
+
+        evaluator.results["new-raw"] = EngineResult.Success(gapped.copy())
+        repo.collects.single().result.complete(CollectOutcome.Success("new-raw"))
+        runCurrent()
+
+        assertEquals(ResultUiState.Ready(gapped, saved = true, banner = ResultBanner.LoginRequired), c.state.value)
+        assertEquals(listOf(SaveCall(gapped, "new-raw", SAVED_AT)), repo.saves)
+        assertTrue(repo.cacheWrites.isEmpty())
+    }
+
+    @Test
     fun `failed refresh keeps the saved result quietly`() = runTest {
         givenSavedCar()
         val c = controller()

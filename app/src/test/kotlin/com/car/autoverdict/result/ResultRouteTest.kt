@@ -2,6 +2,7 @@ package com.car.autoverdict.result
 
 import android.app.Application
 import android.content.ClipboardManager
+import android.content.ComponentName
 import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Text
@@ -19,6 +20,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.test.core.app.ApplicationProvider
+import com.car.autoverdict.MainActivity
 import com.car.autoverdict.db.SavedCarEntity
 import com.car.autoverdict.engine.EngineResult
 import com.car.autoverdict.engine.ReportEvaluator
@@ -208,6 +210,10 @@ class ResultRouteTest {
         assertEquals(Intent.ACTION_SEND, send.action)
         assertEquals("text/plain", send.type)
         assertEquals(expected, send.getStringExtra(Intent.EXTRA_TEXT))
+        // The app itself accepts shared text; it must not offer itself as a target.
+        @Suppress("DEPRECATION")
+        val excluded = chooser.getParcelableArrayExtra(Intent.EXTRA_EXCLUDE_COMPONENTS)?.toList().orEmpty()
+        assertEquals(listOf(ComponentName(app, MainActivity::class.java)), excluded)
     }
 
     private class FakeRepository : ResultRepository {
