@@ -61,7 +61,7 @@ export interface RepairPanel {
 }
 
 export interface SystemItem {
-  /** Top-level inners group, e.g. "원동기". */
+  /** Immediate parent node title in the inners tree, e.g. "오일누유". */
   group: string;
   name: string;
   status: string;

@@ -17,7 +17,7 @@ export function buildShareText(r: Omit<EvaluationReport, 'shareText'>): ShareTex
     r.car.title,
     `판정: ${VERDICT_LABEL[r.verdict]} · ${r.score}점`,
     r.headline,
-    ...r.issues.slice(0, MAX_ISSUE_LINES).map((i) => `- ${i.message}`),
+    ...r.issues.slice(0, MAX_ISSUE_LINES).map((i) => `- ${i.title}: ${i.message}`),
     r.url,
     FOOTER,
   ].join('\n');
