@@ -8,6 +8,7 @@ import type { FieldStatus } from '@core/types/FieldStatus.js';
 import type { MobileOrchestratorResult } from '../orchestrate-mobile';
 import type { RuleLabel, Tone } from './types';
 import { RULE_META, type RuleSource } from './rule-meta';
+import type { FrameSource } from './frame-source';
 import { formatMan, josa, koreanMonth } from './format';
 
 export interface RuleCopy {
@@ -88,11 +89,19 @@ export const lossKinds = (l: LossCounts): string[] => {
 const ok = (message: string): RuleCopy => ({ message, sellerQuestion: null });
 const issue = (message: string, sellerQuestion: string): RuleCopy => ({ message, sellerQuestion });
 
+/** R04 killer sentence by evidence source; never claims a source we can't name. */
+const FRAME_KILLER: Record<FrameSource, RuleCopy> = {
+  diagnosis: issue('엔카진단에서 프레임 손상이 확인됐어요', '프레임 수리 내역과 사진을 볼 수 있을까요?'),
+  inspection: issue('성능점검에 사고 이력이 있어요', '성능점검 사고 부위의 수리 내역과 사진을 볼 수 있을까요?'),
+  unknown: issue('사고 이력(프레임 손상)이 있어요', '프레임 수리 내역과 사진을 볼 수 있을까요?'),
+};
+
 /**
  * Result sentence and seller question for a decided rule (not 미확인; use
  * [unknownMessage] for those). Numbers come from evidence, then facts.
+ * [frameSource] says which document backs R04 (see frame-source.ts).
  */
-export function ruleCopy(result: RuleResult, facts: ChecklistFacts): RuleCopy {
+export function ruleCopy(result: RuleResult, facts: ChecklistFacts, frameSource: FrameSource = 'unknown'): RuleCopy {
   const s = result.severity;
   const problem = s === 'killer' || s === 'fail' || s === 'warn';
   switch (result.ruleId) {
@@ -107,10 +116,14 @@ export function ruleCopy(result: RuleResult, facts: ChecklistFacts): RuleCopy {
     case 'R03':
       return ok('엔카진단을 통과한 차예요');
     case 'R04': {
-      if (problem) return issue('프레임까지 손상된 사고 이력이 있어요', '프레임 수리 내역과 사진을 볼 수 있을까요?');
       const frame = evidenceOf(result, 'frameDamage', facts.frameDamage);
       const parts = (frame?.parts ?? []).map(panelName);
-      return ok(parts.length > 0 ? `프레임 손상은 없어요 · 외판 ${parts.join(', ')} 교환·수리` : '프레임 손상은 없어요');
+      const panels = parts.length > 0 ? ` · 외판 ${parts.join(', ')} 교환·수리` : '';
+      if (problem) {
+        const copy = FRAME_KILLER[frameSource];
+        return { ...copy, message: `${copy.message}${panels}` };
+      }
+      return ok(`프레임 손상은 없어요${panels}`);
     }
     case 'R05': {
       if (s === 'killer') {

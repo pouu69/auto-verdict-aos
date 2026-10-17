@@ -64,9 +64,9 @@ describe('ruleCopy on fixtures', () => {
 
   it('39339524 R04 killer and R10 warn', () => {
     const { out } = load('39339524');
-    expect(ruleCopy(resultOf('39339524', 'R04'), out.facts)).toEqual({
-      message: '프레임까지 손상된 사고 이력이 있어요',
-      sellerQuestion: '프레임 수리 내역과 사진을 볼 수 있을까요?',
+    expect(ruleCopy(resultOf('39339524', 'R04'), out.facts, 'inspection')).toEqual({
+      message: '성능점검에 사고 이력이 있어요 · 외판 트렁크 리드, 쿼터 패널(우) 교환·수리',
+      sellerQuestion: '성능점검 사고 부위의 수리 내역과 사진을 볼 수 있을까요?',
     });
     expect(ruleCopy(resultOf('39339524', 'R10'), out.facts).message).toBe(
       '수리비가 많이 나온 편이에요 · 내차 1,126만원 · 타차 589만원',
@@ -125,6 +125,23 @@ describe('ruleCopy on synthetic results', () => {
       { field: 'frameDamage', value: { hasDamage: false, parts: ['트렁크 리드(교환(교체))', '쿼터 패널(우)(판금/용접)'] } },
     ]);
     expect(ruleCopy(r, facts).message).toBe('프레임 손상은 없어요 · 외판 트렁크 리드, 쿼터 패널(우) 교환·수리');
+  });
+
+  it('R04 killer names the evidence source', () => {
+    const r = result('R04', 'killer', [{ field: 'frameDamage', value: { hasDamage: true } }]);
+    expect(ruleCopy(r, facts, 'diagnosis')).toEqual({
+      message: '엔카진단에서 프레임 손상이 확인됐어요',
+      sellerQuestion: '프레임 수리 내역과 사진을 볼 수 있을까요?',
+    });
+    expect(ruleCopy(r, facts, 'inspection')).toEqual({
+      message: '성능점검에 사고 이력이 있어요',
+      sellerQuestion: '성능점검 사고 부위의 수리 내역과 사진을 볼 수 있을까요?',
+    });
+    // Source unknown: no claim about where the evidence came from.
+    expect(ruleCopy(r, facts)).toEqual({
+      message: '사고 이력(프레임 손상)이 있어요',
+      sellerQuestion: '프레임 수리 내역과 사진을 볼 수 있을까요?',
+    });
   });
 
   it('R05 killer / warn', () => {

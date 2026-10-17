@@ -15,6 +15,7 @@ import { buildDataGaps } from './data-gaps';
 import { buildHeadline } from './headline';
 import { EMPTY_CAR, buildCar } from './car';
 import { buildShareText } from './share-text';
+import { frameDamageSource, type FrameSource } from './frame-source';
 
 /** Issue order: 위험 → 비공개 → 주의 → 미확인. */
 const ISSUE_RANK: Record<Severity, number> = { killer: 0, fail: 1, warn: 2, unknown: 3, pass: 4 };
@@ -31,10 +32,10 @@ const safe = <T>(build: () => T, fallback: T): T => {
   }
 };
 
-const toItem = (r: RuleResult, out: MobileOrchestratorResult): RuleItem => {
+const toItem = (r: RuleResult, out: MobileOrchestratorResult, frameSource: FrameSource): RuleItem => {
   const meta = RULE_META[r.ruleId];
   const tone = toneFor(r.severity);
-  const copy = r.severity === 'unknown' ? null : ruleCopy(r, out.facts);
+  const copy = r.severity === 'unknown' ? null : ruleCopy(r, out.facts, frameSource);
   const issue = tone !== 'success';
   return {
     ruleId: r.ruleId,
@@ -52,12 +53,13 @@ export function buildReport(raw: MobileOrchestratorInput, out: MobileOrchestrato
   const results = out.report.results;
   const catIndex = (r: RuleResult) => CATEGORY_ORDER.indexOf(RULE_META[r.ruleId]?.category ?? '투명성');
   const sorted = [...results].sort((a, b) => catIndex(a) - catIndex(b) || ruleNo(a.ruleId) - ruleNo(b.ruleId));
-  const rules = sorted.map((r) => toItem(r, out));
+  const frameSource = safe(() => frameDamageSource(out.parsed.raw), 'unknown' as FrameSource);
+  const rules = sorted.map((r) => toItem(r, out, frameSource));
 
   const issues = sorted
     .filter((r) => toneFor(r.severity) !== 'success')
     .sort((a, b) => ISSUE_RANK[a.severity] - ISSUE_RANK[b.severity] || ruleNo(a.ruleId) - ruleNo(b.ruleId))
-    .map((r) => toItem(r, out));
+    .map((r) => toItem(r, out, frameSource));
 
   const present = new Set(results.map((r) => r.ruleId));
   const excluded: ExcludedItem[] = RULE_IDS.filter((id) => !present.has(id)).map((id) => ({
@@ -83,7 +85,7 @@ export function buildReport(raw: MobileOrchestratorInput, out: MobileOrchestrato
     car: safe(() => buildCar(out), EMPTY_CAR),
     verdict: out.report.verdict,
     score: out.report.score,
-    headline: buildHeadline(out.report, out.facts),
+    headline: buildHeadline(out.report, out.facts, frameSource),
     counts,
     dataGaps: safe(() => buildDataGaps(raw, out), []),
     facts: safe(() => buildFacts(out), []),

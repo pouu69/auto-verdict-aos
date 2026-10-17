@@ -32,7 +32,14 @@ describe('buildHeadline', () => {
         ]),
         facts,
       ),
-    ).toBe('사고(프레임 손상) 이력이 있어 사지 않는 게 좋아요');
+    ).toBe('사고 이력이 있어 사지 않는 게 좋아요');
+  });
+
+  it('NEVER R04 names the evidence source', () => {
+    const never = report('NEVER', [r('R04', 'killer')]);
+    expect(buildHeadline(never, facts, 'inspection')).toBe('성능점검에 사고 이력이 있어 사지 않는 게 좋아요');
+    expect(buildHeadline(never, facts, 'diagnosis')).toBe('엔카진단에서 프레임 손상이 확인돼 사지 않는 게 좋아요');
+    expect(buildHeadline(never, facts, 'unknown')).toBe('사고 이력이 있어 사지 않는 게 좋아요');
   });
 
   it('NEVER R05 names only the real usage', () => {
