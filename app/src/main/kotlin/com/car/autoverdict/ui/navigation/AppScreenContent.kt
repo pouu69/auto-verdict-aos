@@ -15,7 +15,7 @@ import com.car.autoverdict.result.ResultRoute
 import com.car.autoverdict.ui.AdBanner
 import com.car.autoverdict.ui.AdMediumRectangle
 import com.car.autoverdict.ui.gallery.ComponentGalleryScreen
-import com.car.autoverdict.ui.screen.CompareScreen
+import com.car.autoverdict.ui.screen.CompareRoute
 import com.car.autoverdict.ui.screen.LicensesScreen
 import com.car.autoverdict.ui.screen.PrivacyPolicyScreen
 import com.car.autoverdict.ui.screen.SavedListRoute
@@ -64,6 +64,15 @@ fun AppScreenContent(route: Route, host: ScreenHost) {
                 loadingAd = { AdMediumRectangle() },
             )
         }
-        is Route.Compare -> CompareScreen(carIds = route.carIds, onBack = host.back)
+        is Route.Compare -> {
+            val app = LocalContext.current.applicationContext as AutoVerdictApp
+            CompareRoute(
+                carIds = route.carIds,
+                repository = app.savedCarsRepository,
+                evaluator = app.ruleEngine,
+                onBack = host.back,
+                onOpenResult = { url -> host.navigate(Route.Result(url, fromSaved = true)) },
+            )
+        }
     }
 }
