@@ -17,8 +17,10 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasScrollToKeyAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isHeading
+import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -26,6 +28,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToIndex
+import androidx.compose.ui.test.performScrollToKey
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.test.swipeUp
@@ -70,6 +74,31 @@ class ResultSectionsTest {
 
     private fun heading(text: String) = rule.onNode(hasText(text) and isHeading())
 
+    private fun clickLabel(label: String) = SemanticsMatcher("onClick label is $label") {
+        it.config.getOrNull(SemanticsActions.OnClick)?.label == label
+    }
+
+    private fun stateDescription(value: String) =
+        SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, value)
+
+    /** Timeline rows top to bottom as "date label" (a row's first text is its yyyy-MM date). */
+    private fun timelineRows(): List<String> =
+        rule.onAllNodes(timelineRow).fetchSemanticsNodes()
+            .sortedBy { it.boundsInRoot.top }
+            .map { node -> node.config[SemanticsProperties.Text].take(2).joinToString(" ") { it.text } }
+
+    private val timelineRow = SemanticsMatcher("timeline row") { node ->
+        node.config.getOrNull(SemanticsProperties.Text)?.firstOrNull()?.text?.matches(Regex("\\d{4}-\\d{2}")) == true
+    }
+
+    private val newestFive = listOf(
+        "2026-04 보험 미가입",
+        "2026-04 소유자 변경",
+        "2024-09 소유자 변경",
+        "2024-02 소유자 변경",
+        "2023-11 보험 미가입",
+    )
+
     @Test fun `verdict header shows summary, score and headline`() {
         show(caution)
         rule.onNodeWithText("2015년 · 12만km · 디젤 · 890만원").assertExists()
@@ -112,9 +141,12 @@ class ResultSectionsTest {
         // Timeline
         // The timeline title and the "이력" category label in the full rule list.
         rule.onAllNodes(hasText("이력") and isHeading()).assertCountEquals(2)
+        // Ten entries: the newest five show, the older ones wait behind "더 보기".
+        rule.onNodeWithText("2023-11~2024-01").assertExists()
+        rule.onNodeWithText("신차 등록").assertDoesNotExist()
+        rule.onNodeWithText("이전 이력 5개 더 보기").performClick()
         rule.onNodeWithText("신차 등록").assertExists()
         assertTrue(rule.onAllNodesWithText("소유자 변경").fetchSemanticsNodes().size >= 5)
-        rule.onNodeWithText("2023-11~2024-01").assertExists()
         // All rules with category sub-headers
         heading("전체 항목 11").assertExists()
         rule.onNodeWithText("차량 상태").assertExists()
@@ -130,6 +162,74 @@ class ResultSectionsTest {
         rule.onNodeWithText("2. 2023년 11월~2024년 1월, 2026년 4월~7월에 보험 없이 운행했나요?").assertExists()
     }
 
+    @Test fun `timeline shows the newest five first and folds the rest`() {
+        show(caution)
+        assertEquals(newestFive, timelineRows())
+        rule.onNodeWithText("접기").assertDoesNotExist()
+        rule.onNode(hasText("이전 이력 5개 더 보기") and clickLabel("이전 이력 펼치기") and stateDescription("접힘"))
+            .assertExists()
+    }
+
+    @Test fun `more expands every entry newest first and fold collapses again`() {
+        show(caution)
+        rule.onNodeWithText("이전 이력 5개 더 보기").performClick()
+        val older = listOf(
+            "2023-11 소유자 변경",
+            "2018-04 소유자 변경",
+            "2015-09 사고 · 내차 피해",
+            "2015-05 사고 · 내차 피해",
+            "2015-04 신차 등록",
+        )
+        assertEquals(newestFive + older, timelineRows())
+        rule.onNodeWithText("이전 이력", substring = true).assertDoesNotExist()
+
+        rule.onNode(hasText("접기") and clickLabel("이력 접기") and stateDescription("펼쳐짐")).performClick()
+        assertEquals(newestFive, timelineRows())
+        rule.onNodeWithText("이전 이력 5개 더 보기").assertExists()
+        rule.onNodeWithText("접기").assertDoesNotExist()
+    }
+
+    @Test fun `six entries all show without a button`() {
+        show(caution.copy(timeline = caution.timeline.takeLast(6)))
+        assertEquals(newestFive + "2023-11 소유자 변경", timelineRows())
+        rule.onNodeWithText("더 보기", substring = true).assertDoesNotExist()
+        rule.onNodeWithText("접기").assertDoesNotExist()
+    }
+
+    @Test fun `seven entries fold to five and count the two hidden`() {
+        show(caution.copy(timeline = caution.timeline.takeLast(7)))
+        assertEquals(newestFive, timelineRows())
+        rule.onNodeWithText("이전 이력 2개 더 보기").assertExists()
+    }
+
+    @Test fun `expanded timeline survives recreation`() {
+        val tester = StateRestorationTester(rule)
+        tester.setContent {
+            AvTheme {
+                ResultScreen(state = ResultUiState.Ready(caution, saved = false, banner = null), actions = recorder.actions)
+            }
+        }
+        rule.onNodeWithText("이전 이력 5개 더 보기").performClick()
+        tester.emulateSavedInstanceStateRestore()
+        assertEquals(10, timelineRows().size)
+        rule.onNodeWithText("접기").assertExists()
+    }
+
+    @Test fun `a different report starts collapsed again`() {
+        var report by mutableStateOf(caution)
+        rule.setContent {
+            AvTheme {
+                ResultScreen(state = ResultUiState.Ready(report, saved = false, banner = null), actions = recorder.actions)
+            }
+        }
+        rule.onNodeWithText("이전 이력 5개 더 보기").performClick()
+        assertEquals(10, timelineRows().size)
+        // A refresh swaps in a new report under the same timeline item.
+        report = caution.copy(score = caution.score - 1)
+        rule.waitForIdle()
+        assertEquals(newestFive, timelineRows())
+    }
+
     @Test fun `section titles are headings`() {
         show(caution)
         // Top bar title + headline + six sections + four rule categories.
@@ -140,11 +240,11 @@ class ResultSectionsTest {
 
     @Test fun `seller question buttons copy and share`() {
         show(caution)
-        // The last section can sit partly under the bottom CTA even on the tall screen.
-        // performScrollTo uses the semantics scroll action (like TalkBack), so it leaves the top.
+        // The last section can sit partly under the bottom CTA; whether reaching it scrolls
+        // depends on the report's length, so only the button calls are checked.
         rule.onNodeWithText("복사").performScrollTo().performClick()
         rule.onNodeWithText("공유").performScrollTo().performClick()
-        assertEquals(listOf("userScrolled", "copyQuestions", "shareQuestions"), recorder.calls)
+        assertEquals(listOf("copyQuestions", "shareQuestions"), recorder.calls - "userScrolled")
     }
 
     @Test fun `minimal report hides empty sections and shows the login banner`() {
@@ -208,9 +308,6 @@ class ResultSectionsTest {
             }
         }
         val polite = SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite)
-        fun clickLabel(label: String) = SemanticsMatcher("onClick label is $label") {
-            it.config.getOrNull(SemanticsActions.OnClick)?.label == label
-        }
         rule.onNode(hasText("판매가 끝난 매물이에요 · 저장 당시 결과예요") and polite).assertExists()
 
         banner = ResultBanner.UpdateAvailable
@@ -305,6 +402,46 @@ class ResultScreenScrollTest {
         rule.onNode(hasScrollAction()).performScrollToIndex(3)
         rule.waitForIdle()
         assertEquals(listOf("userScrolled"), recorder.calls)
+    }
+
+    /** Off-screen items aren't composed, so bring the timeline item in before looking for its button. */
+    private fun expandTimeline() {
+        rule.onNode(hasScrollToKeyAction()).performScrollToKey("timeline")
+        rule.onNodeWithText("이전 이력 5개 더 보기").performScrollTo().performClick()
+        rule.waitForIdle()
+    }
+
+    @Test fun `folding the timeline from far down brings its header back into view`() {
+        show()
+        expandTimeline()
+        rule.onNodeWithText("접기").performScrollTo()
+        rule.waitForIdle()
+        // The phone screen is shorter than the expanded timeline, so its header is above the viewport.
+        val before = listState.layoutInfo.visibleItemsInfo.first { it.key == "timeline" }
+        assertTrue(before.offset < 0)
+
+        rule.onNodeWithText("접기").performClick()
+        rule.waitForIdle()
+        val first = listState.layoutInfo.visibleItemsInfo.first()
+        assertEquals("timeline", first.key)
+        assertEquals(0, first.offset)
+    }
+
+    @Test fun `folding while the header is on screen does not scroll`() {
+        show()
+        expandTimeline()
+        val index = listState.layoutInfo.visibleItemsInfo.first { it.key == "timeline" }.index
+        // The divider on top, so the header sits below the viewport's top edge.
+        rule.runOnIdle { scope.launch { listState.scrollToItem(index - 1) } }
+        rule.waitForIdle()
+        assertTrue(listState.layoutInfo.visibleItemsInfo.first { it.key == "timeline" }.offset > 0)
+
+        // The fold button is below the fold here; trigger it the way TalkBack would.
+        rule.onNodeWithText("접기").performSemanticsAction(SemanticsActions.OnClick)
+        rule.waitForIdle()
+        rule.onNodeWithText("이전 이력 5개 더 보기").assertExists()
+        assertEquals(index - 1, listState.firstVisibleItemIndex)
+        assertEquals(0, listState.firstVisibleItemScrollOffset)
     }
 
     @Test fun `update banner stays visible while scrolled and its action returns to the top`() {

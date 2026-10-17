@@ -74,6 +74,12 @@
     <string name="result_issue_why">왜 중요한가요</string>
     <string name="result_issue_seller_question">판매자에게: %1$s</string>
     <string name="result_section_timeline">이력</string>
+    <string name="result_timeline_show_older">이전 이력 %1$d개 더 보기</string>
+    <string name="result_timeline_fold">접기</string>
+    <string name="result_timeline_expand_click_label">이전 이력 펼치기</string>
+    <string name="result_timeline_fold_click_label">이력 접기</string>
+    <string name="result_timeline_state_collapsed">접힘</string>
+    <string name="result_timeline_state_expanded">펼쳐짐</string>
     <string name="result_section_rules">전체 항목</string>
     <string name="result_section_excluded">평가에서 빠진 항목</string>
     <string name="result_section_questions">판매자에게 물어볼 것</string>
