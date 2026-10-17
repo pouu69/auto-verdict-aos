@@ -1,6 +1,7 @@
 import type { MobileOrchestratorResult } from '../orchestrate-mobile';
 import type { ReportCar } from './types';
 import { groupDigits } from './format';
+import { count } from './raw';
 
 export const NO_CAR_TITLE = '차량 정보 없음';
 
@@ -11,7 +12,11 @@ const formatMileage = (km: number): string => {
   return `${Number.isInteger(man) ? man : man.toFixed(1)}만km`;
 };
 
-const positive = (n: unknown): number | null => (typeof n === 'number' && Number.isFinite(n) && n > 0 ? n : null);
+/** A price in 만원 whose won value stays exact. */
+const priceInMan = (n: unknown): number | null => {
+  const man = count(n);
+  return man !== null && man > 0 && man * 10_000 <= Number.MAX_SAFE_INTEGER ? man : null;
+};
 const text = (s: unknown): string | null => (typeof s === 'string' && s.trim().length > 0 ? s : null);
 
 export const EMPTY_CAR: ReportCar = {
@@ -34,8 +39,8 @@ export function buildCar(out: MobileOrchestratorResult): ReportCar {
   const yearMonth = text(category.yearMonth);
   const yearNum = yearMonth ? Number.parseInt(yearMonth.slice(0, 4), 10) : NaN;
   const year = Number.isFinite(yearNum) ? yearNum : null;
-  const mileageKm = typeof spec.mileage === 'number' && Number.isFinite(spec.mileage) ? spec.mileage : null;
-  const priceMan = positive(ad.price);
+  const mileageKm = count(spec.mileage);
+  const priceMan = priceInMan(ad.price);
   const fuel = text(spec.fuelName);
 
   // Same format as the saved-car title written by the old screen.

@@ -9,9 +9,9 @@ import type { DetailBlock, DetailRow, DetailSheet } from '../types';
 import { RULE_META } from '../rule-meta';
 import type { FrameSource } from '../frame-source';
 import { formatMan, koreanMonth } from '../format';
-import { arr, num } from '../raw';
+import { arr, count, num } from '../raw';
 import { reasonShort } from '../reasons';
-import { unknownStatus } from '../rule-copy';
+import { ratioOf, unknownStatus } from '../rule-copy';
 import { walkSystems, codeTone } from '../repairs';
 import { accidentRecords } from '../timeline';
 import { block, duration, fullDate, inspectionOf, recordOf, row, sourceBlock, sourcesOk, times, won, type SourceKey } from './common';
@@ -52,6 +52,9 @@ const RULE_SOURCES: Record<string, SourceKey[]> = {
 };
 
 const pct = (ratio: number): string => `${Math.round(ratio * 100)}%`;
+
+/** Core copies record numbers unchecked: unreadable ones (-1, 1e21, "3") are named, not formatted. */
+const UNREADABLE = '정보 없음';
 
 const pass = (v: string): DetailRow => row('통과', v, 'success');
 const warn = (v: string): DetailRow => row('주의', v, 'warning');
@@ -181,12 +184,15 @@ const r06 = ({ out }: Ctx): DetailBlock[] => {
   const rec = recordOf(out);
   const l = out.facts.totalLossHistory;
   if (!rec || l.kind !== 'value') return [];
-  const count = (label: string, n: number): DetailRow => row(label, times(n), n > 0 ? 'danger' : 'success');
+  const hits = (label: string, value: unknown): DetailRow => {
+    const n = count(value);
+    return n === null ? row(label, UNREADABLE) : row(label, times(n), n > 0 ? 'danger' : 'success');
+  };
   const rows = [
-    count('전손', l.value.totalLoss),
-    count('침수전손', l.value.floodTotal),
-    count('침수분손', l.value.floodPart),
-    count('도난', l.value.robber),
+    hits('전손', l.value.totalLoss),
+    hits('침수전손', l.value.floodTotal),
+    hits('침수분손', l.value.floodPart),
+    hits('도난', l.value.robber),
   ];
   for (const [label, key] of [['전손 날짜', 'totalLossDate'], ['침수 날짜', 'floodDate'], ['도난 날짜', 'robberDate']] as const) {
     const d = fullDate(rec[key]);
@@ -205,13 +211,14 @@ const r07 = ({ result, out }: Ctx): DetailBlock[] => {
     .sort()
     .reverse();
   const tone = result.severity === 'warn' ? 'warning' : 'success';
-  const blocks = [block('소유자 변경', [row('변경 횟수', times(n.value), tone)])];
+  const changes = count(n.value);
+  const blocks = [block('소유자 변경', [changes === null ? row('변경 횟수', UNREADABLE) : row('변경 횟수', times(changes), tone)])];
   if (dates.length > 0) {
     blocks.push(
       block(
         '변경 날짜',
         dates.map((d, i) => row(`${dates.length - i}번째 변경`, d)),
-        dates.length !== n.value ? '보험이력에 날짜가 남은 변경만 보여요' : null,
+        dates.length !== changes ? '보험이력에 날짜가 남은 변경만 보여요' : null,
       ),
     );
   }
@@ -247,7 +254,9 @@ const r10 = ({ out }: Ctx): DetailBlock[] => {
   const d = out.facts.minorAccidents;
   if (!rec || d.kind !== 'value') return [];
   const ceiling = d.value.domestic ? CRITERIA.mildCeilingDomestic : CRITERIA.mildCeilingImport;
-  const side = (label: string, cntKey: string, amount: number): DetailRow => {
+  const side = (label: string, cntKey: string, total: unknown): DetailRow => {
+    const amount = count(total);
+    if (amount === null) return row(label, UNREADABLE);
     const cnt = num(rec, cntKey) ?? 0;
     const value = cnt > 0 ? `${cnt}건 · ${won(amount)}` : amount > 0 ? won(amount) : '없음';
     return row(label, value, amount > ceiling ? 'warning' : null);
@@ -270,8 +279,14 @@ const r11 = ({ result, out }: Ctx): DetailBlock[] => {
   const p = out.facts.priceVsMarket;
   if (p.kind !== 'value') return [];
   const tone = result.severity === 'warn' ? 'warning' : 'success';
-  const rows = [row('신차 가격', p.value.newPriceWon > 0 ? won(p.value.newPriceWon) : '정보 없음'), row('판매 가격', won(p.value.priceWon))];
-  if (p.value.ratio > 0) rows.push(row('신차 가격 대비', pct(p.value.ratio), tone));
+  const newPrice = count(p.value.newPriceWon);
+  const price = count(p.value.priceWon);
+  const ratio = ratioOf(result, out.facts);
+  const rows = [
+    row('신차 가격', newPrice ? won(newPrice) : '정보 없음'),
+    row('판매 가격', price === null ? UNREADABLE : won(price)),
+  ];
+  if (ratio) rows.push(row('신차 가격 대비', pct(ratio), tone));
   return [block('가격 비교', rows)];
 };
 

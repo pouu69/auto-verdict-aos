@@ -11,6 +11,7 @@ import { RULE_META } from './rule-meta';
 import type { FrameSource } from './frame-source';
 import { formatMan, josa, koreanMonth, partName } from './format';
 import { reasonMessage } from './reasons';
+import { count } from './raw';
 
 export interface RuleCopy {
   message: string;
@@ -66,23 +67,50 @@ export const usageKinds = (u: UsageFlags): string[] => {
   return tags;
 };
 
+/** Core copies the record counts unchecked; an unreadable one counts as no hit here. */
+const hit = (n: unknown): number => count(n) ?? 0;
+
 /** Count phrases for R06, e.g. ["전손 1회", "침수분손 1회"]. */
 export const lossHits = (l: LossCounts): string[] => {
   const hits: string[] = [];
-  if (l.totalLoss > 0) hits.push(`전손 ${l.totalLoss}회`);
-  if (l.floodTotal > 0) hits.push(`침수전손 ${l.floodTotal}회`);
-  if (l.floodPart > 0) hits.push(`침수분손 ${l.floodPart}회`);
-  if (l.robber > 0) hits.push(`도난 ${l.robber}회`);
+  for (const [label, n] of [['전손', l.totalLoss], ['침수전손', l.floodTotal], ['침수분손', l.floodPart], ['도난', l.robber]] as const) {
+    if (hit(n) > 0) hits.push(`${label} ${hit(n)}회`);
+  }
   return hits;
 };
 
 /** Kinds behind an R06 killer, e.g. ["전손", "침수"]. */
 export const lossKinds = (l: LossCounts): string[] => {
   const kinds: string[] = [];
-  if (l.totalLoss > 0) kinds.push('전손');
-  if (l.floodTotal > 0 || l.floodPart > 0) kinds.push('침수');
-  if (l.robber > 0) kinds.push('도난');
+  if (hit(l.totalLoss) > 0) kinds.push('전손');
+  if (hit(l.floodTotal) > 0 || hit(l.floodPart) > 0) kinds.push('침수');
+  if (hit(l.robber) > 0) kinds.push('도난');
   return kinds;
+};
+
+/** R07 owner changes, or undefined when missing or unreadable. */
+export const ownerCount = (result: RuleResult, facts: ChecklistFacts): number | undefined =>
+  count(evidenceOf<unknown>(result, 'ownerChangeCount', facts.ownerChangeCount)) ?? undefined;
+
+/** R10 repair-cost totals, or undefined when either side is missing or unreadable. */
+export const damagesOf = (
+  result: RuleResult,
+  facts: ChecklistFacts,
+): { ownDamageWon: number; otherDamageWon: number } | undefined => {
+  const d = evidenceOf(result, 'damages', facts.minorAccidents);
+  const own = count(d?.ownDamageWon);
+  const other = count(d?.otherDamageWon);
+  return own !== null && other !== null ? { ownDamageWon: own, otherDamageWon: other } : undefined;
+};
+
+/** R11 price ratio, or undefined when missing, zero or not a sane number. */
+export const ratioOf = (result: RuleResult, facts: ChecklistFacts): number | undefined => {
+  const ratio =
+    evidenceOf<number>(result, 'ratio') ??
+    (facts.priceVsMarket.kind === 'value' ? facts.priceVsMarket.value.ratio : undefined);
+  if (typeof ratio !== 'number') return undefined;
+  const pct = count(Math.round(ratio * 100));
+  return pct !== null && pct > 0 ? ratio : undefined;
 };
 
 const ok = (message: string): RuleCopy => ({ message, sellerQuestion: null });
@@ -141,7 +169,7 @@ export function ruleCopy(result: RuleResult, facts: ChecklistFacts, frameSource:
       );
     }
     case 'R07': {
-      const n = evidenceOf(result, 'ownerChangeCount', facts.ownerChangeCount);
+      const n = ownerCount(result, facts);
       if (problem) {
         return n === undefined
           ? issue('주인이 자주 바뀌었어요', '주인이 자주 바뀐 이유를 알 수 있을까요?')
@@ -168,7 +196,7 @@ export function ruleCopy(result: RuleResult, facts: ChecklistFacts, frameSource:
         ? issue('수리비가 확정되지 않은 사고가 있어요', '미확정 수리비 건은 어떻게 처리됐나요?')
         : ok('수리비가 확정되지 않은 사고는 없어요');
     case 'R10': {
-      const d = evidenceOf(result, 'damages', facts.minorAccidents);
+      const d = damagesOf(result, facts);
       const breakdown = d ? ` · 내차 ${formatMan(d.ownDamageWon)} · 타차 ${formatMan(d.otherDamageWon)}` : '';
       // Amounts are repair costs (myAccidentCost/otherAccidentCost), the same basis as the timeline.
       if (problem) return issue(`수리비가 많이 나온 편이에요${breakdown}`, '보험 처리한 사고는 어느 부위를 어떻게 수리했나요?');
@@ -176,9 +204,7 @@ export function ruleCopy(result: RuleResult, facts: ChecklistFacts, frameSource:
       return ok(`경미한 수준이에요${breakdown}`);
     }
     case 'R11': {
-      const ratio =
-        evidenceOf<number>(result, 'ratio') ??
-        (facts.priceVsMarket.kind === 'value' ? facts.priceVsMarket.value.ratio : undefined);
+      const ratio = ratioOf(result, facts);
       const question = '가격이 시세와 다른 이유가 있나요?';
       if (!ratio) return problem ? issue('신차 가격과 차이가 커요', question) : ok('가격이 적정한 편이에요');
       const p = Math.round(ratio * 100);
