@@ -38,6 +38,52 @@ class ReportParserTest {
     }
 
     @Test
+    fun `parses detail sheets on rules, timeline entries and repairs`() {
+        val r = parseOk("sample-caution.json")
+        val r07 = r.rules.first { it.ruleId == "R07" }.detail!!
+        assertEquals("소유자 변경", r07.title)
+        assertEquals("주인이 5번 바뀌었어요", r07.subtitle)
+        assertEquals(listOf("소유자 변경 기록", "판정 기준", "데이터 출처"), r07.blocks.map { it.title })
+        assertEquals(DetailRow("변경 횟수", "5회", Tone.Warning), r07.blocks[0].rows[0])
+        // A row without a tone, and a block note.
+        assertNull(r07.blocks[0].rows[1].tone)
+        assertEquals("보험이력 조회 시점 기준이에요", r07.blocks[2].note)
+        assertEquals(r07, r.issues.first { it.ruleId == "R07" }.detail)
+        // Not every rule carries one in the hand-written sample.
+        assertNull(r.rules.first { it.ruleId == "R03" }.detail)
+
+        val accident = r.timeline.first { it.date == "2015-05" }.sheet!!
+        assertNull(accident.blocks.single().title)
+        assertEquals("950,000원", accident.blocks.single().rows.first { it.label == "보험금" }.value)
+        assertNull(r.timeline.first().sheet)
+
+        val inspection = r.repairs?.sheet!!
+        assertEquals("성능점검 전체", inspection.title)
+        assertEquals(emptyList<DetailRow>(), inspection.blocks[1].rows)
+        assertEquals("교환·수리한 부위가 없어요", inspection.blocks[1].note)
+    }
+
+    @Test
+    fun `reports from before detail sheets parse with them absent`() {
+        val r = parseOk("sample-minimal.json")
+        assertTrue(r.rules.all { it.detail == null })
+        assertTrue(r.issues.all { it.detail == null })
+        assertTrue(r.timeline.all { it.sheet == null })
+    }
+
+    @Test
+    fun `detail fields default when omitted inside a sheet`() {
+        val text = resource("sample-minimal.json").replaceFirst(
+            "\"sellerQuestion\"",
+            "\"detail\": { \"title\": \"t\", \"blocks\": [ { \"rows\": [ { \"label\": \"a\", \"value\": \"b\" } ] } ] }, \"sellerQuestion\"",
+        )
+        val r = (ReportParser.parse(text) as ReportParser.Result.Ok).report
+        val sheet = r.issues.first().detail!!
+        assertNull(sheet.subtitle)
+        assertEquals(DetailBlock(title = null, rows = listOf(DetailRow("a", "b")), note = null), sheet.blocks.single())
+    }
+
+    @Test
     fun `rejects another schema version`() {
         val text = resource("sample-minimal.json").replace("\"schemaVersion\": 1", "\"schemaVersion\": 2")
         assertTrue(ReportParser.parse(text) is ReportParser.Result.Invalid)

@@ -98,8 +98,9 @@ data class SystemItem(val group: String, val name: String, val status: String, v
 @Serializable
 data class SystemSummary(val flagged: List<SystemItem>, val okCount: Int)
 
+/** [sheet]: the whole performance inspection, opened from the repairs section (spec 4.1). */
 @Serializable
-data class Repairs(val panels: List<RepairPanel>, val systems: SystemSummary)
+data class Repairs(val panels: List<RepairPanel>, val systems: SystemSummary, val sheet: DetailSheet? = null)
 
 @Serializable
 data class RuleItem(
@@ -112,13 +113,36 @@ data class RuleItem(
     val message: String,
     val why: String?,
     val sellerQuestion: String?,
+    /** Source data behind the result, shown in a bottom sheet (spec 4.1). Absent in older reports. */
+    val detail: DetailSheet? = null,
 )
 
 @Serializable
 data class ExcludedItem(val ruleId: String, val title: String, val reason: String)
 
+/** [sheet]: per-event rows (e.g. each grouped accident); null for plain entries (spec 4.1). */
 @Serializable
-data class TimelineEntry(val date: String, val label: String, val detail: String?, val tone: Tone)
+data class TimelineEntry(
+    val date: String,
+    val label: String,
+    val detail: String?,
+    val tone: Tone,
+    val sheet: DetailSheet? = null,
+)
+
+/**
+ * Full source data behind a summary row (spec 4.1). Additive to schema 1: every field the
+ * reports gained for it defaults to null, so reports from before still parse.
+ */
+@Serializable
+data class DetailSheet(val title: String, val subtitle: String? = null, val blocks: List<DetailBlock> = emptyList())
+
+@Serializable
+data class DetailBlock(val title: String? = null, val rows: List<DetailRow> = emptyList(), val note: String? = null)
+
+/** [tone] colours the value; null keeps it plain. */
+@Serializable
+data class DetailRow(val label: String, val value: String, val tone: Tone? = null)
 
 @Serializable
 data class ShareText(val summary: String, val sellerQuestions: String?)

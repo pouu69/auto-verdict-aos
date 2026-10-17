@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -29,6 +30,7 @@ import com.car.autoverdict.report.TimelineEntry
 import com.car.autoverdict.ui.components.AvButton
 import com.car.autoverdict.ui.components.AvButtonSize
 import com.car.autoverdict.ui.components.AvButtonStyle
+import com.car.autoverdict.ui.components.avPressable
 import com.car.autoverdict.ui.theme.AvTheme
 import com.car.autoverdict.ui.theme.tone
 
@@ -52,6 +54,7 @@ internal fun isFoldable(entries: List<TimelineEntry>): Boolean = entries.size >=
  * Seven or more entries fold to the newest five behind a "더 보기" button; the caller owns
  * [showOlder] so it can reset it per report and keep the header in view after folding.
  * [expanded]/[onToggleExpanded] fold the whole section from its title, independently.
+ * Entries with a detail sheet open it through [onOpenEntry] with their index in [entries].
  */
 @Composable
 fun TimelineSection(
@@ -59,6 +62,7 @@ fun TimelineSection(
     showOlder: Boolean,
     onToggleOlder: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenEntry: ((Int) -> Unit)? = null,
     expanded: Boolean = true,
     onToggleExpanded: (() -> Unit)? = null,
 ) {
@@ -77,7 +81,14 @@ fun TimelineSection(
         ) {
             // The rail ends at the first and last rows shown, folded or not.
             shown.forEachIndexed { index, entry ->
-                TimelineRow(entry, isFirst = index == 0, isLast = index == shown.lastIndex)
+                // Shown newest first, so the n-th row is the n-th entry from the end of [entries].
+                val entryIndex = entries.lastIndex - index
+                TimelineRow(
+                    entry,
+                    isFirst = index == 0,
+                    isLast = index == shown.lastIndex,
+                    onClick = onOpenEntry?.takeIf { entry.sheet != null }?.let { open -> { open(entryIndex) } },
+                )
             }
             if (isFoldable(entries)) {
                 ShowOlderButton(hiddenCount = entries.size - TIMELINE_FOLDED_COUNT, showOlder = showOlder, onClick = onToggleOlder)
@@ -115,15 +126,21 @@ private fun ShowOlderButton(hiddenCount: Int, showOlder: Boolean, onClick: () ->
 }
 
 @Composable
-private fun TimelineRow(entry: TimelineEntry, isFirst: Boolean, isLast: Boolean) {
+private fun TimelineRow(entry: TimelineEntry, isFirst: Boolean, isLast: Boolean, onClick: (() -> Unit)?) {
     val colors = AvTheme.colors
     val typography = AvTheme.typography
+    val interaction = if (onClick != null) {
+        Modifier.avPressable(onClick = onClick, onClickLabel = detailClickLabel())
+    } else {
+        Modifier.semantics(mergeDescendants = true) {}
+    }
     // IntrinsicSize.Min lets the rail stretch to the text column's height.
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(IntrinsicSize.Min)
-            .semantics(mergeDescendants = true) {},
+            .then(interaction)
+            .heightIn(min = 48.dp)
+            .height(IntrinsicSize.Min),
     ) {
         Column(
             modifier = Modifier
@@ -147,6 +164,10 @@ private fun TimelineRow(entry: TimelineEntry, isFirst: Boolean, isLast: Boolean)
             if (entry.detail != null) {
                 Text(text = entry.detail, style = typography.caption1, color = colors.textSecondary)
             }
+        }
+        if (onClick != null) {
+            // Same bottom inset as the text column, so the chevron centres on the text.
+            DetailChevron(modifier = Modifier.align(Alignment.CenterVertically).padding(bottom = 16.dp))
         }
     }
 }

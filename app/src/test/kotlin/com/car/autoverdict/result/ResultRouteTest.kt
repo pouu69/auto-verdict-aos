@@ -9,6 +9,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isHeading
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -168,6 +171,34 @@ class ResultRouteTest {
         rule.waitForIdle()
         assertClipboardHoldsQuestions()
         rule.onNodeWithText("복사했어요").assertDoesNotExist()
+    }
+
+    /** Opens R07's sheet with the seller-question section folded, so "복사" is the sheet's own. */
+    private fun copyFromOwnerSheet() {
+        rule.onNode(hasText("판매자에게 물어볼 것 2") and isHeading() and hasClickAction()).performScrollTo().performClick()
+        rule.onNode(hasText("판매자에게: 주인이 5번 바뀐 이유를 알 수 있을까요?") and hasClickAction()).performScrollTo().performClick()
+        rule.onNodeWithText("복사").performClick()
+        rule.waitForIdle()
+    }
+
+    private fun assertClipboardHolds(text: String) {
+        val clip = requireNotNull(app.getSystemService(ClipboardManager::class.java).primaryClip)
+        assertEquals(text, clip.getItemAt(0).text.toString())
+    }
+
+    @Test fun `copying from a detail sheet copies only that question`() {
+        show()
+        copyFromOwnerSheet()
+        assertClipboardHolds("주인이 5번 바뀐 이유를 알 수 있을까요?")
+        rule.onNodeWithText("복사했어요").assertDoesNotExist()
+    }
+
+    @Config(sdk = [32])
+    @Test fun `copying from a detail sheet toasts up to API 32`() {
+        show()
+        copyFromOwnerSheet()
+        waitForText("복사했어요")
+        assertClipboardHolds("주인이 5번 바뀐 이유를 알 수 있을까요?")
     }
 
     private fun assertClipboardHoldsQuestions() {
