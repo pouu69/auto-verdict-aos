@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import com.car.autoverdict.R
 import com.car.autoverdict.report.RuleItem
 import com.car.autoverdict.ui.components.AvBadge
-import com.car.autoverdict.ui.components.AvSectionHeader
 import com.car.autoverdict.ui.theme.AvTheme
 
 /**
@@ -27,11 +26,21 @@ import com.car.autoverdict.ui.theme.AvTheme
  * changes. The report already orders rules by category, so no re-sorting here.
  */
 @Composable
-fun AllRulesSection(rules: List<RuleItem>, modifier: Modifier = Modifier) {
+fun AllRulesSection(
+    rules: List<RuleItem>,
+    modifier: Modifier = Modifier,
+    expanded: Boolean = true,
+    onToggleExpanded: (() -> Unit)? = null,
+) {
     val colors = AvTheme.colors
     val typography = AvTheme.typography
-    Column(modifier = modifier.fillMaxWidth()) {
-        AvSectionHeader(title = stringResource(R.string.result_section_rules), count = rules.size)
+    ResultSection(
+        title = stringResource(R.string.result_section_rules),
+        count = rules.size,
+        expanded = expanded,
+        onToggleExpanded = onToggleExpanded,
+        modifier = modifier,
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()

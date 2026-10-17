@@ -269,7 +269,13 @@ private fun ReadyBody(
                 )
             }
             LazyColumn(state = listState, modifier = Modifier.fillMaxWidth().weight(1f)) {
-                reportSections(report = state.report, questions = questions, hasBanner = state.banner != null, actions = actions)
+                reportSections(
+                    report = state.report,
+                    questions = questions,
+                    hasBanner = state.banner != null,
+                    actions = actions,
+                    listState = listState,
+                )
             }
         }
         // The partial-data banner shows its own progress; otherwise a slim bar under the top bar.
@@ -297,12 +303,17 @@ private fun RefreshingBar(modifier: Modifier) {
     )
 }
 
-/** Spec 5.2 items 3-11, top to bottom, all expanded. Empty sections are left out with their divider. */
+/**
+ * Spec 5.2 items 3-11, top to bottom. Sections start expanded and fold from their titles; a long
+ * timeline also starts with only the newest five. The verdict header block always shows.
+ * Empty sections are left out with their divider.
+ */
 private fun LazyListScope.reportSections(
     report: EvaluationReport,
     questions: List<String>,
     hasBanner: Boolean,
     actions: ResultActions,
+    listState: LazyListState,
 ) {
     item(key = "header") {
         Column(modifier = Modifier.padding(top = if (hasBanner) 4.dp else 8.dp, bottom = 24.dp)) {
@@ -315,22 +326,83 @@ private fun LazyListScope.reportSections(
             }
         }
     }
-    report.repairs?.let { repairs -> section("repairs") { RepairsSection(repairs) } }
-    if (report.issues.isNotEmpty()) section("issues") { IssuesSection(report.issues) }
-    if (report.timeline.isNotEmpty()) section("timeline") { TimelineSection(report.timeline) }
-    section("rules") { AllRulesSection(report.rules) }
-    if (report.excluded.isNotEmpty()) section("excluded") { ExcludedSection(report.excluded) }
+    report.repairs?.let { repairs ->
+        section("repairs", listState) { fold -> RepairsSection(repairs, expanded = fold.expanded, onToggleExpanded = fold.toggle) }
+    }
+    if (report.issues.isNotEmpty()) {
+        section("issues", listState) { fold -> IssuesSection(report.issues, expanded = fold.expanded, onToggleExpanded = fold.toggle) }
+    }
+    if (report.timeline.isNotEmpty()) {
+        section(TIMELINE_KEY, listState) { fold -> FoldableTimeline(report, listState, fold) }
+    }
+    section("rules", listState) { fold -> AllRulesSection(report.rules, expanded = fold.expanded, onToggleExpanded = fold.toggle) }
+    if (report.excluded.isNotEmpty()) {
+        section("excluded", listState) { fold ->
+            ExcludedSection(report.excluded, expanded = fold.expanded, onToggleExpanded = fold.toggle)
+        }
+    }
     if (questions.isNotEmpty()) {
-        section("questions") {
-            SellerQuestionsSection(questions = questions, onCopy = actions.onCopyQuestions, onShare = actions.onShareQuestions)
+        section("questions", listState) { fold ->
+            SellerQuestionsSection(
+                questions = questions,
+                onCopy = actions.onCopyQuestions,
+                onShare = actions.onShareQuestions,
+                expanded = fold.expanded,
+                onToggleExpanded = fold.toggle,
+            )
         }
     }
 }
 
-/** A grey band, then the section. */
-private fun LazyListScope.section(key: String, content: @Composable () -> Unit) {
+private const val TIMELINE_KEY = "timeline"
+
+/** A section's title fold: whether its body shows, and the title tap that flips it. */
+private class SectionFold(val expanded: Boolean, val toggle: () -> Unit)
+
+/**
+ * The older-entries state starts folded for each report, so a refresh swap folds it again;
+ * it survives recreation and is independent of folding the whole section from its title.
+ */
+@Composable
+private fun FoldableTimeline(report: EvaluationReport, listState: LazyListState, fold: SectionFold) {
+    var showOlder by rememberSaveable(report) { mutableStateOf(false) }
+    TimelineSection(
+        entries = report.timeline,
+        showOlder = showOlder,
+        onToggleOlder = {
+            if (showOlder) listState.revealItemTop(TIMELINE_KEY)
+            showOlder = !showOlder
+        },
+        expanded = fold.expanded,
+        onToggleExpanded = fold.toggle,
+    )
+}
+
+/**
+ * Folding from far down would leave the list past the shrunken item, so when the item's top
+ * (its title) is above the viewport the list snaps back to it in the same frame.
+ */
+private fun LazyListState.revealItemTop(key: Any) {
+    val layout = layoutInfo
+    val item = layout.visibleItemsInfo.firstOrNull { it.key == key } ?: return
+    if (item.offset < layout.viewportStartOffset) requestScrollToItem(item.index)
+}
+
+/**
+ * A grey band, then the section. The fold is per item key, not per report: a section the user
+ * folded stays folded when a newer result swaps in, and it survives recreation.
+ */
+private fun LazyListScope.section(key: String, listState: LazyListState, content: @Composable (SectionFold) -> Unit) {
     item(key = "$key-divider") { AvSectionDivider() }
-    item(key = key) { content() }
+    item(key = key) {
+        var expanded by rememberSaveable { mutableStateOf(true) }
+        content(
+            SectionFold(expanded) {
+                if (expanded) listState.revealItemTop(key)
+                expanded = !expanded
+            },
+        )
+    }
 }
 
 @Composable
