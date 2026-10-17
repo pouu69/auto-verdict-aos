@@ -26,14 +26,18 @@ class RuleEngineTest {
         lateinit var callbacks: EngineCallbacks
         var started = false
         var destroyed = false
+        var throwOnStart = false
+        var throwOnEvaluate = false
         val sent = mutableListOf<Pair<String, String>>()
 
         override fun start(callbacks: EngineCallbacks) {
             this.callbacks = callbacks
+            if (throwOnStart) error("start boom")
             started = true
         }
 
         override fun evaluate(requestId: String, rawJson: String) {
+            if (throwOnEvaluate) error("destroyed")
             sent += requestId to rawJson
         }
 
@@ -47,10 +51,10 @@ class RuleEngineTest {
     }
 
     /** The engine dispatcher must share runTest's scheduler so advanceTimeBy drives its timers. */
-    private fun TestScope.harness(): Harness {
+    private fun TestScope.harness(configure: (index: Int, host: FakeHost) -> Unit = { _, _ -> }): Harness {
         val hosts = mutableListOf<FakeHost>()
         val engine = RuleEngine(
-            hostFactory = { FakeHost().also { hosts += it } },
+            hostFactory = { FakeHost().also { configure(hosts.size, it); hosts += it } },
             mainDispatcher = StandardTestDispatcher(testScheduler),
         )
         return Harness(engine, hosts)
@@ -266,6 +270,111 @@ class RuleEngineTest {
         runCurrent()
         assertEquals(0, h.engine.pendingCount)
         assertFalse(h.host.destroyed)
+        assertEquals(1, h.hosts.size)
+    }
+
+    /** Starts a request on a ready host and lets its request timeout elapse. */
+    private suspend fun TestScope.timeOutOneRequest(h: Harness): EngineResult {
+        val result = async { h.engine.evaluate("slow") }
+        runCurrent()
+        advanceTimeBy(10_001)
+        runCurrent()
+        return result.await()
+    }
+
+    @Test
+    fun `two consecutive request timeouts discard the unresponsive host`() = runTest {
+        val h = harness()
+        val warmUp = async { h.engine.evaluate("A") }
+        runCurrent()
+        h.host.callbacks.onReady()
+        runCurrent()
+        h.host.callbacks.onReport(h.host.sent.single().first, sample)
+        runCurrent()
+        assertTrue(warmUp.await() is EngineResult.Success)
+        val oldHost = h.host
+
+        assertEquals("request timeout", timeOutOneRequest(h).assertFailed().reason)
+        assertFalse("one timeout keeps the host", oldHost.destroyed)
+        assertEquals("request timeout", timeOutOneRequest(h).assertFailed().reason)
+        assertTrue("second consecutive timeout discards the host", oldHost.destroyed)
+
+        val next = async { h.engine.evaluate("B") }
+        runCurrent()
+        assertEquals(2, h.hosts.size)
+        h.host.callbacks.onReady()
+        runCurrent()
+        h.host.callbacks.onReport(h.host.sent.single().first, sample)
+        runCurrent()
+        assertTrue(next.await() is EngineResult.Success)
+    }
+
+    @Test
+    fun `a response between timeouts resets the unresponsive count`() = runTest {
+        val h = harness()
+        val warmUp = async { h.engine.evaluate("A") }
+        runCurrent()
+        h.host.callbacks.onReady()
+        runCurrent()
+        h.host.callbacks.onReport(h.host.sent.single().first, sample)
+        runCurrent()
+        warmUp.await()
+
+        timeOutOneRequest(h).assertFailed()
+        val ok = async { h.engine.evaluate("B") }
+        runCurrent()
+        h.host.callbacks.onEngineError(h.host.sent.last().first, "js said no")
+        runCurrent()
+        ok.await().assertFailed()
+        timeOutOneRequest(h).assertFailed()
+
+        assertFalse(h.host.destroyed)
+        assertEquals(1, h.hosts.size)
+    }
+
+    @Test
+    fun `host start failure fails the request immediately and the next one recreates it`() = runTest {
+        val h = harness { index, host -> host.throwOnStart = index == 0 }
+        val first = async { h.engine.evaluate("A") }
+        runCurrent()
+        assertTrue("fails without waiting for a timeout", first.isCompleted)
+        assertTrue(first.await().assertFailed().reason.startsWith("engine start failed"))
+        assertTrue(h.hosts[0].destroyed)
+        assertEquals(0, h.engine.pendingCount)
+
+        val second = async { h.engine.evaluate("B") }
+        runCurrent()
+        assertEquals(2, h.hosts.size)
+        h.host.callbacks.onReady()
+        runCurrent()
+        h.host.callbacks.onReport(h.host.sent.single().first, sample)
+        runCurrent()
+        assertTrue(second.await() is EngineResult.Success)
+    }
+
+    @Test
+    fun `host evaluate failure fails the request immediately and the next one still works`() = runTest {
+        val h = harness()
+        val queued = async { h.engine.evaluate("A") }
+        runCurrent()
+        h.host.throwOnEvaluate = true
+        h.host.callbacks.onReady()
+        runCurrent()
+        assertTrue("flush failure fails without waiting for a timeout", queued.isCompleted)
+        assertTrue(queued.await().assertFailed().reason.startsWith("dispatch failed"))
+
+        val direct = async { h.engine.evaluate("B") }
+        runCurrent()
+        assertTrue("direct dispatch failure fails without waiting for a timeout", direct.isCompleted)
+        assertTrue(direct.await().assertFailed().reason.startsWith("dispatch failed"))
+        assertEquals(0, h.engine.pendingCount)
+
+        h.host.throwOnEvaluate = false
+        val next = async { h.engine.evaluate("C") }
+        runCurrent()
+        h.host.callbacks.onReport(h.host.sent.single().first, sample)
+        runCurrent()
+        assertTrue(next.await() is EngineResult.Success)
         assertEquals(1, h.hosts.size)
     }
 }

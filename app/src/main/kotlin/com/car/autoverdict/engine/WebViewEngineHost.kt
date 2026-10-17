@@ -48,10 +48,11 @@ class WebViewEngineHost(context: Context) : EngineHost {
         view.loadUrl(ENGINE_URL)
     }
 
+    /** Throws after [destroy] so [RuleEngine] fails the request at once instead of waiting for a timeout. */
     override fun evaluate(requestId: String, rawJson: String) {
-        val view = webView ?: return
+        val view = checkNotNull(webView) { "destroyed" }
         view.evaluateJavascript(
-            "window.avEvaluate(${JSONObject.quote(requestId)}, ${JSONObject.quote(rawJson)})",
+            "window.avEvaluate(${jsStringLiteral(requestId)}, ${jsStringLiteral(rawJson)})",
             null,
         )
     }
@@ -67,5 +68,10 @@ class WebViewEngineHost(context: Context) : EngineHost {
     companion object {
         const val ENGINE_URL = "file:///android_asset/eval-ui/engine.html"
         private const val TAG = "WebViewEngineHost"
+
+        /** JSON string literal that is also safe in JS source (U+2028/U+2029 escaped, as in JsEscape). */
+        internal fun jsStringLiteral(value: String): String = JSONObject.quote(value)
+            .replace("\u2028", "\\u2028")
+            .replace("\u2029", "\\u2029")
     }
 }

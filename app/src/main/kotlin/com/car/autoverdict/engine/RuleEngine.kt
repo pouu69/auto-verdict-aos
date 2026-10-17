@@ -1,5 +1,6 @@
 package com.car.autoverdict.engine
 
+import android.util.Log
 import androidx.annotation.VisibleForTesting
 import com.car.autoverdict.report.ReportParser
 import kotlinx.coroutines.CompletableDeferred
@@ -22,7 +23,8 @@ import kotlinx.coroutines.withContext
  * Lifecycle rules:
  * - init timeout ([initTimeoutMs], from host creation): host destroyed, every pending request
  *   fails, the next request creates a new host.
- * - request timeout ([requestTimeoutMs], from dispatch to the page): only that request fails.
+ * - request timeout ([requestTimeoutMs], from dispatch to the page): only that request fails;
+ *   [UNRESPONSIVE_TIMEOUTS] in a row with no response in between discard the host as hung JS.
  * - renderer gone: same as init timeout.
  * - caller cancellation: the request is dropped; a late report for its id is ignored.
  *
@@ -48,6 +50,7 @@ class RuleEngine(
     private var ready = false
     private var initTimeoutJob: Job? = null
     private var nextRequestId = 0L
+    private var consecutiveTimeouts = 0
 
     /** Insertion-ordered so queued requests are flushed in arrival order. */
     private val pending = LinkedHashMap<String, Request>()
@@ -79,6 +82,7 @@ class RuleEngine(
         }
         host = created
         ready = false
+        consecutiveTimeouts = 0
         initTimeoutJob = engineScope.launch {
             delay(initTimeoutMs)
             if (host === created && !ready) tearDown("init timeout")
@@ -96,13 +100,20 @@ class RuleEngine(
         request.dispatched = true
         request.timeoutJob = engineScope.launch {
             delay(requestTimeoutMs)
-            complete(requestId, EngineResult.Failed("request timeout"))
+            onRequestTimeout(target, requestId)
         }
         try {
             target.evaluate(requestId, request.rawJson)
         } catch (e: Exception) {
             complete(requestId, EngineResult.Failed("dispatch failed: ${e.message}"))
         }
+    }
+
+    private fun onRequestTimeout(target: EngineHost, requestId: String) {
+        complete(requestId, EngineResult.Failed("request timeout"))
+        if (host !== target) return
+        consecutiveTimeouts++
+        if (consecutiveTimeouts >= UNRESPONSIVE_TIMEOUTS) tearDown("engine unresponsive")
     }
 
     private fun complete(requestId: String, result: EngineResult) {
@@ -118,11 +129,10 @@ class RuleEngine(
         val old = host
         host = null
         ready = false
-        try {
-            old?.destroy()
-        } finally {
-            failAll(reason)
-        }
+        consecutiveTimeouts = 0
+        // Never let a destroy failure escape into an engineScope timer or a renderer callback.
+        runCatching { old?.destroy() }.onFailure { Log.w(TAG, "engine host destroy failed", it) }
+        failAll(reason)
     }
 
     private fun failAll(reason: String) {
@@ -149,7 +159,9 @@ class RuleEngine(
         }
 
         override fun onReport(requestId: String, reportJson: String) {
-            if (!isCurrent || requestId !in pending) return
+            if (!isCurrent) return
+            consecutiveTimeouts = 0
+            if (requestId !in pending) return
             val result = when (val parsed = ReportParser.parse(reportJson)) {
                 is ReportParser.Result.Ok -> EngineResult.Success(parsed.report)
                 is ReportParser.Result.Invalid -> EngineResult.Failed(parsed.reason)
@@ -159,6 +171,7 @@ class RuleEngine(
 
         override fun onEngineError(requestId: String, message: String) {
             if (!isCurrent) return
+            consecutiveTimeouts = 0
             complete(requestId, EngineResult.Failed(message))
         }
 
@@ -166,5 +179,11 @@ class RuleEngine(
             if (!isCurrent) return
             tearDown("render process gone")
         }
+    }
+
+    companion object {
+        /** Request timeouts in a row (no response in between) after which the page is treated as hung. */
+        const val UNRESPONSIVE_TIMEOUTS = 2
+        private const val TAG = "RuleEngine"
     }
 }
