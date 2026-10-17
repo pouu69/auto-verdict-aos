@@ -29,6 +29,10 @@ class CollectorWebView(context: Context) {
     private var callbackFired = false
     private var apiResultHandler: ((String) -> Unit)? = null
 
+    // collect() 호출마다 증가. 이전 수집에서 예약된 재시도/JS 콜백이 새 수집에
+    // 끼어들지 않도록 비교용으로 쓴다.
+    private var sessionId = 0
+
     init {
         setup()
     }
@@ -54,11 +58,13 @@ class CollectorWebView(context: Context) {
 
     fun collect(url: String, carId: String, callback: (Result) -> Unit) {
         cancelTimeout()
+        apiResultHandler = null
         callbackFired = false
+        val session = ++sessionId
         val fullUrl = if (url.startsWith("http")) url else EncarUrl.buildDetailUrl(carId)
 
         val guardedCallback = { result: Result ->
-            if (!callbackFired) {
+            if (session == sessionId && !callbackFired) {
                 callbackFired = true
                 cancelTimeout()
                 callback(result)
@@ -66,14 +72,27 @@ class CollectorWebView(context: Context) {
         }
 
         webView.webViewClient = object : WebViewClient() {
-            private var extracted = false
+            private var extractionStarted = false
+            private var pageFinished = false
+
+            // __PRELOADED_STATE__는 SSR HTML에 인라인으로 들어 있어 문서가 커밋되면
+            // 이미 읽을 수 있다. onPageFinished는 광고/트래커 등 서브리소스까지 기다려
+            // 느린 망에서는 수십 초 늦어지므로, 커밋 시점부터 추출을 시작한다.
+            override fun onPageCommitVisible(view: WebView?, loadedUrl: String?) {
+                super.onPageCommitVisible(view, loadedUrl)
+                startExtraction()
+            }
 
             override fun onPageFinished(view: WebView?, loadedUrl: String?) {
                 super.onPageFinished(view, loadedUrl)
-                if (!extracted && !callbackFired) {
-                    extracted = true
-                    extractPreloadedState(carId, guardedCallback)
-                }
+                pageFinished = true
+                startExtraction()
+            }
+
+            private fun startExtraction() {
+                if (extractionStarted || callbackFired) return
+                extractionStarted = true
+                extractPreloadedState(session, carId, { pageFinished }, guardedCallback)
             }
 
             @Suppress("DEPRECATION")
@@ -97,10 +116,13 @@ class CollectorWebView(context: Context) {
     }
 
     private fun extractPreloadedState(
+        session: Int,
         carId: String,
+        isPageFinished: () -> Boolean,
         callback: (Result) -> Unit,
         attempt: Int = 0,
     ) {
+        if (session != sessionId || callbackFired) return
         val js = """
         (function() {
             try {
@@ -122,46 +144,57 @@ class CollectorWebView(context: Context) {
         })();
         """.trimIndent()
 
+        // 로드 완료 전에는 상태 스크립트가 아직 실행되지 않았을 수 있으므로
+        // 재시도 횟수를 소모하지 않고 계속 폴링한다 (상한은 TIMEOUT_MS).
+        fun retryOr(error: Result.Error) {
+            val nextAttempt = if (isPageFinished()) attempt + 1 else attempt
+            if (nextAttempt <= MAX_RETRIES) {
+                handler.postDelayed(
+                    { extractPreloadedState(session, carId, isPageFinished, callback, nextAttempt) },
+                    RETRY_DELAY_MS,
+                )
+            } else {
+                callback(error)
+            }
+        }
+
         webView.evaluateJavascript(js) { raw ->
+            if (session != sessionId || callbackFired) return@evaluateJavascript
+
             val parsed = raw?.removeSurrounding("\"")
                 ?.replace("\\\"", "\"")
                 ?.replace("\\\\", "\\")
                 ?.replace("\\n", "\n")
 
             if (parsed == null || parsed == "null") {
-                cancelTimeout()
-                callback(Result.Error("페이지 데이터 추출 실패"))
+                // 로드 완료 후의 null은 기존대로 즉시 실패 처리
+                if (isPageFinished()) {
+                    callback(Result.Error("페이지 데이터 추출 실패"))
+                } else {
+                    retryOr(Result.Error("페이지 데이터 추출 실패"))
+                }
                 return@evaluateJavascript
             }
 
             try {
                 val obj = JSONObject(parsed)
                 if (obj.optBoolean("deleted", false)) {
-                    cancelTimeout()
                     callback(Result.Deleted)
                     return@evaluateJavascript
                 }
                 if (obj.has("error")) {
-                    if (attempt < MAX_RETRIES) {
-                        handler.postDelayed(
-                            { extractPreloadedState(carId, callback, attempt + 1) },
-                            RETRY_DELAY_MS,
-                        )
-                    } else {
-                        cancelTimeout()
-                        callback(Result.Error("매물 데이터를 찾을 수 없습니다"))
-                    }
+                    retryOr(Result.Error("매물 데이터를 찾을 수 없습니다"))
                     return@evaluateJavascript
                 }
-                fetchApis(carId, obj.getJSONObject("cars"), callback)
+                fetchApis(session, carId, obj.getJSONObject("cars"), callback)
             } catch (e: Exception) {
-                cancelTimeout()
                 callback(Result.Error("데이터 파싱 오류: ${e.message}"))
             }
         }
     }
 
     private fun fetchApis(
+        session: Int,
         carId: String,
         carsJson: JSONObject,
         callback: (Result) -> Unit,
@@ -178,7 +211,6 @@ class CollectorWebView(context: Context) {
         Log.d(TAG, "vehicleId=$vehicleId vehicleNo=$vehicleNo")
 
         if (vehicleId == 0L || vehicleNo.isEmpty()) {
-            cancelTimeout()
             callback(
                 Result.Success(
                     buildResultJson(carId, carsJson, null, null, null, emptyMap()),
@@ -187,8 +219,8 @@ class CollectorWebView(context: Context) {
             return
         }
 
-        apiResultHandler = { json ->
-            cancelTimeout()
+        apiResultHandler = onApiResult@{ json ->
+            if (session != sessionId) return@onApiResult
             Log.d(TAG, "API result received: ${json.take(200)}")
             try {
                 val apiResponse = JSONObject(json)
@@ -277,6 +309,9 @@ class CollectorWebView(context: Context) {
 
     fun destroy() {
         cancelTimeout()
+        // 예약된 추출 재시도/브리지 콜백이 파괴된 WebView에 접근하지 않도록 무효화
+        sessionId++
+        handler.removeCallbacksAndMessages(null)
         apiResultHandler = null
         webView.removeJavascriptInterface("ApiCallback")
         webView.stopLoading()
@@ -285,7 +320,8 @@ class CollectorWebView(context: Context) {
 
     companion object {
         private const val TAG = "CollectorWebView"
-        private const val TIMEOUT_MS = 15_000L
+        // 콜드 스타트/느린 망에서는 엔카 페이지 로드만 30초 가까이 걸리기도 한다.
+        private const val TIMEOUT_MS = 45_000L
         private const val RETRY_DELAY_MS = 1_000L
         private const val MAX_RETRIES = 5
     }
