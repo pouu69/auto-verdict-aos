@@ -69,7 +69,7 @@ Two entities: `SavedCarEntity` (user-saved evaluations with score/verdict/counts
 
 - UI follows the Toss-style design system in `DESIGN.md`: tokens via `AvTheme.colors/typography/shapes/spacing` (`ui/theme`), shared `Av*` components in `ui/components`. Screens never use raw colors.
 - Navigation is a small saveable back stack, not a navigation library: `ui/navigation/Route` destinations, the pure `AppNavigator` reducer (unit-tested), and the `AppRoot` shell. Screens receive a `ScreenHost` and hold no navigation state.
-- `MainActivity` only parses share intents (`ShareIntentParser`, skipped on restore) and hosts `AppRoot`; app-level state (back stack, last analyzed URL) lives in `AppRoot` via `rememberSaveable`.
+- `MainActivity` only parses share intents (`ShareIntentParser`, skipped on restore) and hosts `AppRoot`; app-level state (back stack, plus a share link held while first-run onboarding is open) lives in `AppRoot` via `rememberSaveable`.
 - Two tabs (홈, 저장한 차); Settings is a sub-screen opened from the home top bar. The tab bar and banner render only on tab roots.
 - Copy split: domain copy (verdict headline, rule messages/why, seller questions, timeline labels, share text) is built by the TS adapter (`webview-bundle/src/report/*`) and tested with vitest; screen chrome copy (section titles, buttons, banners, errors) lives in `strings.xml`. Compose renders report strings as-is.
 - Verdict/score logic is off-limits: do not modify the vendored core (`webview-bundle/src/core/`); fix wording in the adapter instead.
