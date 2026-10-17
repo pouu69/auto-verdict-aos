@@ -6,11 +6,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.car.autoverdict.preferences.AppPreferences
 import com.car.autoverdict.ui.AdBanner
 import com.car.autoverdict.ui.navigation.AppRoot
@@ -18,7 +19,6 @@ import com.car.autoverdict.ui.navigation.AppScreenContent
 import com.car.autoverdict.ui.navigation.NavEvent
 import com.car.autoverdict.ui.navigation.ShareIntentParser
 import com.car.autoverdict.ui.theme.AvTheme
-import kotlinx.coroutines.flow.map
 
 class MainActivity : ComponentActivity() {
 
@@ -40,17 +40,11 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             AvTheme {
-                val savedCount by remember {
-                    app.database.savedCarDao().getAllFlow().map { it.size }
-                }.collectAsState(initial = 0)
-                AppRoot(
-                    onboardingComplete = preferences.isOnboardingComplete,
-                    onOnboardingComplete = preferences::setOnboardingComplete,
+                AutoVerdictAppContent(
+                    app = app,
+                    preferences = preferences,
                     pendingNavEvent = pendingNavEvent.value,
                     onPendingNavEventConsumed = { pendingNavEvent.value = null },
-                    savedCount = savedCount,
-                    adBanner = { AdBanner() },
-                    screenContent = { route, host -> AppScreenContent(route, host) },
                 )
             }
         }
@@ -69,4 +63,25 @@ class MainActivity : ComponentActivity() {
             text = intent?.getStringExtra(Intent.EXTRA_TEXT),
             isRestored = isRestored,
         )
+}
+
+/** Collects the saved count here so its updates recompose only this scope, not setContent's root. */
+@Composable
+private fun AutoVerdictAppContent(
+    app: AutoVerdictApp,
+    preferences: AppPreferences,
+    pendingNavEvent: NavEvent?,
+    onPendingNavEventConsumed: () -> Unit,
+) {
+    val savedCount by remember { app.database.savedCarDao().countFlow() }
+        .collectAsStateWithLifecycle(initialValue = 0)
+    AppRoot(
+        onboardingComplete = preferences.isOnboardingComplete,
+        onOnboardingComplete = preferences::setOnboardingComplete,
+        pendingNavEvent = pendingNavEvent,
+        onPendingNavEventConsumed = onPendingNavEventConsumed,
+        savedCount = savedCount,
+        adBanner = { AdBanner() },
+        screenContent = { route, host -> AppScreenContent(route, host) },
+    )
 }

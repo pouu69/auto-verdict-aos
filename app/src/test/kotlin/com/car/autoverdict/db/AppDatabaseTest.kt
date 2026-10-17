@@ -78,6 +78,16 @@ class AppDatabaseTest {
     }
 
     @Test
+    fun `countFlow tracks the number of saved cars`() = runTest {
+        assertEquals(0, savedCarDao.countFlow().first())
+        savedCarDao.upsert(makeSavedCar("1"))
+        savedCarDao.upsert(makeSavedCar("2"))
+        assertEquals(2, savedCarDao.countFlow().first())
+        savedCarDao.deleteByCarId("1")
+        assertEquals(1, savedCarDao.countFlow().first())
+    }
+
+    @Test
     fun `getByCarId returns null for nonexistent`() = runTest {
         assertNull(savedCarDao.getByCarId("nonexistent"))
     }
