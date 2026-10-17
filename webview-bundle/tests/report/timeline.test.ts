@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import type { MobileOrchestratorInput } from '../../src/orchestrate-mobile';
 import { orchestrateMobile } from '../../src/orchestrate-mobile';
-import { buildTimeline } from '../../src/report/timeline';
+import { accidentGroups, buildTimeline } from '../../src/report/timeline';
+import { formatMan } from '../../src/report/format';
 import { FIXTURE_IDS, load, rawOf } from './fixtures';
 
 const PLATE = /\d{2,3}[가-힣]\s?\d{4}|XXXX/;
@@ -20,8 +21,8 @@ describe('buildTimeline', () => {
     ]);
     expect(t.slice(0, 3)).toEqual([
       { date: '2015-04', label: '신차 등록', detail: null, tone: 'neutral' },
-      { date: '2015-05', label: '사고 · 내차 피해', detail: '보험 처리 합계 95만원', tone: 'warning' },
-      { date: '2015-09', label: '사고 · 내차 피해', detail: '보험 처리 합계 139만원', tone: 'warning' },
+      { date: '2015-05', label: '사고 · 내차 피해', detail: '수리비 합계 50만원', tone: 'warning' },
+      { date: '2015-09', label: '사고 · 내차 피해', detail: '수리비 합계 159만원', tone: 'warning' },
     ]);
     const dates = t.map((e) => e.date);
     expect([...dates].sort()).toEqual(dates);
@@ -35,8 +36,8 @@ describe('buildTimeline', () => {
     const t = buildTimeline(raw, out);
     const dec = t.filter((e) => e.date === '2021-12');
     expect(dec).toEqual([
-      { date: '2021-12', label: '사고 · 내차 피해', detail: '보험 처리 합계 101만원', tone: 'warning' },
-      { date: '2021-12', label: '사고 2건 · 타차 가해', detail: '보험 처리 합계 736만원', tone: 'warning' },
+      { date: '2021-12', label: '사고 · 내차 피해', detail: '수리비 합계 114만원', tone: 'warning' },
+      { date: '2021-12', label: '사고 2건 · 타차 가해', detail: '수리비 합계 589만원', tone: 'warning' },
     ]);
     const accidents = t.filter((e) => e.label.startsWith('사고'));
     for (const a of accidents) expect(a.detail).toMatch(/만원$/);
@@ -48,9 +49,40 @@ describe('buildTimeline', () => {
     const { raw, out } = load('42264483');
     const jan = buildTimeline(raw, out).filter((e) => e.date === '2018-01');
     expect(jan).toEqual([
-      { date: '2018-01', label: '사고 2건 · 내차 피해', detail: '보험 처리 합계 194만원', tone: 'warning' },
-      { date: '2018-01', label: '사고 · 타차 가해', detail: '보험 처리 합계 19만원', tone: 'warning' },
+      { date: '2018-01', label: '사고 2건 · 내차 피해', detail: '수리비 합계 221만원', tone: 'warning' },
+      { date: '2018-01', label: '사고 · 타차 가해', detail: '수리비 합계 13만원', tone: 'warning' },
     ]);
+  });
+
+  it('per-side repair cost totals equal myAccidentCost / otherAccidentCost (the R10 amounts)', () => {
+    let checked = 0;
+    for (const id of FIXTURE_IDS) {
+      const { raw, out } = load(id);
+      const rec = raw.recordJson as Record<string, unknown> | null;
+      const damages = out.facts.minorAccidents;
+      if (!rec || out.parsed.raw.recordApi.kind !== 'value' || damages.kind !== 'value') continue;
+      const groups = accidentGroups(rec);
+      const total = (side: string) => groups.filter((g) => g.side === side).reduce((s, g) => s + g.won, 0);
+      expect(total('내차 피해'), `${id} 내차`).toBe(rec.myAccidentCost);
+      expect(total('타차 가해'), `${id} 타차`).toBe(rec.otherAccidentCost);
+      expect(total('내차 피해'), `${id} 내차 = R10`).toBe(damages.value.ownDamageWon);
+      expect(total('타차 가해'), `${id} 타차 = R10`).toBe(damages.value.otherDamageWon);
+      // Every grouped accident row shows its group's repair cost (order-independent).
+      const key = (date: string, label: string, detail: string | null) => `${date}|${label}|${detail}`;
+      const rows = buildTimeline(raw, out)
+        .filter((e) => e.label.startsWith('사고'))
+        .map((e) => key(e.date, e.label, e.detail));
+      const expected = groups.map((g) =>
+        key(
+          g.ym,
+          g.count > 1 ? `사고 ${g.count}건 · ${g.side}` : `사고 · ${g.side}`,
+          Math.round(g.won / 10_000) > 0 ? `수리비 합계 ${formatMan(g.won)}` : null,
+        ),
+      );
+      expect([...rows].sort(), id).toEqual([...expected].sort());
+      checked += 1;
+    }
+    expect(checked).toBe(3);
   });
 
   it('41623744: no record -> empty', () => {

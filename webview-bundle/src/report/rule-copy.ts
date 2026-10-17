@@ -48,6 +48,9 @@ const gapDuration = (months: number): string => {
   return m === 0 ? `${y}년` : `${y}년 ${m}개월`;
 };
 
+/** "실린더 블록 / 오일팬" -> "실린더 블록·오일팬". */
+const leakPart = (part: string): string => part.trim().replace(/\s*\/\s*/g, '·');
+
 /** Strip the trailing "(상태)" group that the core appends to outer panel names. */
 const panelName = (part: string): string =>
   part.replace(/\((?:[^()]|\([^()]*\))*\)$/, '').trim() || part;
@@ -142,11 +145,12 @@ export function ruleCopy(result: RuleResult, facts: ChecklistFacts): RuleCopy {
       if (!problem) return ok('자차보험 공백이 없어요');
       const g = evidenceOf(result, 'insuranceGap', facts.insuranceGap);
       const periods = g?.periods ?? [];
-      const suffix = periods.length > 1 ? ` (${periods.length}개 구간)` : '';
       const ranges = periods.map((p) => `${koreanMonth(p.from)}~${koreanMonth(p.to)}`).join(', ');
       const months = g?.totalMonths ?? 0;
+      // No parentheses: "(2개 구간)" wrapped mid-phrase at large font sizes.
+      const span = periods.length > 1 ? `${periods.length}개 구간, 총 ${gapDuration(months)}` : gapDuration(months);
       return issue(
-        months > 0 ? `자차보험 없이 운행한 기간이 ${gapDuration(months)} 있어요${suffix}` : '자차보험 없이 운행한 기간이 있어요',
+        months > 0 ? `자차보험 없이 운행한 기간이 ${span} 있어요` : '자차보험 없이 운행한 기간이 있어요',
         ranges ? `${ranges}에 보험 없이 운행했나요?` : '보험 없이 운행한 기간이 있었나요?',
       );
     }
@@ -157,7 +161,8 @@ export function ruleCopy(result: RuleResult, facts: ChecklistFacts): RuleCopy {
     case 'R10': {
       const d = evidenceOf(result, 'damages', facts.minorAccidents);
       const breakdown = d ? ` · 내차 ${formatMan(d.ownDamageWon)} · 타차 ${formatMan(d.otherDamageWon)}` : '';
-      if (problem) return issue(`보험 처리 금액이 커요${breakdown}`, '보험 처리한 사고는 어느 부위를 어떻게 수리했나요?');
+      // Amounts are repair costs (myAccidentCost/otherAccidentCost), the same basis as the timeline.
+      if (problem) return issue(`수리비가 많이 나온 편이에요${breakdown}`, '보험 처리한 사고는 어느 부위를 어떻게 수리했나요?');
       if (d && d.ownDamageWon === 0 && d.otherDamageWon === 0) return ok('보험 처리 기록이 없어요');
       return ok(`경미한 수준이에요${breakdown}`);
     }
@@ -176,7 +181,7 @@ export function ruleCopy(result: RuleResult, facts: ChecklistFacts): RuleCopy {
       const items = evidenceOf(result, 'oilLeak', facts.oilLeak)?.items ?? [];
       const last = items[items.length - 1];
       if (!last) return issue('누유가 있어요', '누유 부위는 수리했나요?');
-      const list = items.map((i) => `${i.part}(${i.status})`).join(', ');
+      const list = items.map((i) => `${leakPart(i.part)}에 ${i.status}`).join(', ');
       return issue(`${list}${josa(last.status, '이', '가')} 있어요`, '누유 부위는 수리했나요?');
     }
     default:
