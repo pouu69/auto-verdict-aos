@@ -46,18 +46,20 @@ class RuleEngineTest {
         }
     }
 
-    private class Harness(val engine: RuleEngine, val hosts: List<FakeHost>) {
+    private class Harness(val engine: RuleEngine, val hosts: List<FakeHost>, val logs: List<String>) {
         val host: FakeHost get() = hosts.last()
     }
 
     /** The engine dispatcher must share runTest's scheduler so advanceTimeBy drives its timers. */
     private fun TestScope.harness(configure: (index: Int, host: FakeHost) -> Unit = { _, _ -> }): Harness {
         val hosts = mutableListOf<FakeHost>()
+        val logs = mutableListOf<String>()
         val engine = RuleEngine(
             hostFactory = { FakeHost().also { configure(hosts.size, it); hosts += it } },
             mainDispatcher = StandardTestDispatcher(testScheduler),
+            logger = { logs += it },
         )
-        return Harness(engine, hosts)
+        return Harness(engine, hosts, logs)
     }
 
     private fun EngineResult.assertFailed(): EngineResult.Failed {
@@ -241,6 +243,39 @@ class RuleEngineTest {
         runCurrent()
         assertEquals("TypeError: x is undefined", result.await().assertFailed().reason)
         assertFalse(h.host.destroyed)
+    }
+
+    @Test
+    fun `failures are logged with their reason but never the raw input`() = runTest {
+        val h = harness()
+        val raw = """{"secret":"raw-payload"}"""
+        val failed = async { h.engine.evaluate(raw) }
+        val ok = async { h.engine.evaluate("B") }
+        runCurrent()
+        h.host.callbacks.onReady()
+        runCurrent()
+        h.host.callbacks.onEngineError(h.host.sent[0].first, "TypeError: x is undefined")
+        h.host.callbacks.onReport(h.host.sent[1].first, sample)
+        runCurrent()
+        failed.await().assertFailed()
+        assertTrue(ok.await() is EngineResult.Success)
+
+        assertEquals(listOf("evaluate failed: TypeError: x is undefined"), h.logs)
+        assertTrue(h.logs.none { "raw-payload" in it })
+    }
+
+    @Test
+    fun `requests failed together by a teardown are each logged`() = runTest {
+        val h = harness()
+        val a = async { h.engine.evaluate("A") }
+        val b = async { h.engine.evaluate("B") }
+        runCurrent()
+        h.host.callbacks.onRenderProcessGone()
+        runCurrent()
+        a.await().assertFailed()
+        b.await().assertFailed()
+
+        assertEquals(List(2) { "evaluate failed: render process gone" }, h.logs)
     }
 
     @Test

@@ -67,6 +67,7 @@
     <string name="result_banner_retry_click_label">정보 다시 가져오기</string>
     <string name="result_section_repairs">교환·수리 부위</string>
     <string name="result_repairs_none">교환·수리 부위가 없어요</string>
+    <string name="result_repairs_none_systems_ok">교환·수리 부위가 없고 주요 장치 %1$d개 항목이 양호해요</string>
     <string name="result_repairs_ok_count">그 외 %1$d개 항목 양호</string>
     <string name="result_system_name">%1$s · %2$s</string>
     <string name="result_section_issues">확인할 것</string>

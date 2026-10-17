@@ -29,12 +29,15 @@ import kotlinx.coroutines.withContext
  * - caller cancellation: the request is dropped; a late report for its id is ignored.
  *
  * All state lives on [mainDispatcher]; host callbacks must arrive on the same thread.
+ * Every request that ends as [EngineResult.Failed] is reported to [logger] with its reason only
+ * (never the raw input). Injectable so pure-JVM tests need no android.util.Log.
  */
 class RuleEngine(
     private val hostFactory: () -> EngineHost,
     private val initTimeoutMs: Long = 10_000,
     private val requestTimeoutMs: Long = 10_000,
     private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main.immediate,
+    private val logger: (String) -> Unit = { Log.w(TAG, it) },
 ) : ReportEvaluator {
 
     private class Request(val rawJson: String) {
@@ -119,6 +122,7 @@ class RuleEngine(
     private fun complete(requestId: String, result: EngineResult) {
         val request = pending.remove(requestId) ?: return // unknown, cancelled or already finished
         request.timeoutJob?.cancel()
+        if (result is EngineResult.Failed) logFailure(result.reason)
         request.result.complete(result)
     }
 
@@ -140,8 +144,13 @@ class RuleEngine(
         pending.clear()
         requests.forEach {
             it.timeoutJob?.cancel()
+            logFailure(reason)
             it.result.complete(EngineResult.Failed(reason))
         }
+    }
+
+    private fun logFailure(reason: String) {
+        logger("evaluate failed: $reason")
     }
 
     /** Bound to one host instance so signals from a discarded host are ignored. */

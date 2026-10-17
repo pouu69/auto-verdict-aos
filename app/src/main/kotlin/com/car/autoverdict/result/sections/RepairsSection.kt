@@ -22,8 +22,8 @@ import com.car.autoverdict.ui.theme.AvTheme
 import com.car.autoverdict.ui.theme.AvTone
 
 /**
- * Spec 5.2-6: replaced/repaired panels, then flagged systems, then how many systems are fine.
- * With nothing to list it says so in one line.
+ * Spec 5.2-6: replaced/repaired panels, then flagged systems, then how many other systems are
+ * fine. With nothing to list it says so — together with the fine-system count — in one line.
  */
 @Composable
 fun RepairsSection(repairs: Repairs, modifier: Modifier = Modifier) {
@@ -39,17 +39,21 @@ fun RepairsSection(repairs: Repairs, modifier: Modifier = Modifier) {
         ) {
             repairs.panels.forEach { PanelRow(it) }
             repairs.systems.flagged.forEach { SystemRow(it) }
+            val okCount = repairs.systems.okCount
             if (repairs.panels.isEmpty() && repairs.systems.flagged.isEmpty()) {
                 Text(
-                    text = stringResource(R.string.result_repairs_none),
+                    text = if (okCount > 0) {
+                        stringResource(R.string.result_repairs_none_systems_ok, okCount)
+                    } else {
+                        stringResource(R.string.result_repairs_none)
+                    },
                     style = typography.body2,
                     color = colors.textPrimary,
                     modifier = Modifier.padding(vertical = 8.dp),
                 )
-            }
-            if (repairs.systems.okCount > 0) {
+            } else if (okCount > 0) {
                 Text(
-                    text = stringResource(R.string.result_repairs_ok_count, repairs.systems.okCount),
+                    text = stringResource(R.string.result_repairs_ok_count, okCount),
                     style = typography.caption1,
                     color = colors.textSecondary,
                     modifier = Modifier.padding(top = 4.dp),

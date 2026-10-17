@@ -130,7 +130,13 @@ class ResultController(
         val update = pendingUpdate ?: return
         pendingUpdate = null
         soldOut = false
-        display(update)
+        // Same report as on screen: keep it (no redraw), only refresh the stored raw.
+        if (update.report == shown?.report) {
+            shown = update
+            publishReady()
+        } else {
+            display(update)
+        }
         scope.launch { persist(update) }
     }
 
@@ -257,7 +263,11 @@ class ResultController(
                 // More data gaps than the saved result (e.g. logged out): keep the saved one.
                 if (report.dataGaps.size > current.report.dataGaps.size) return
                 val fresh = Evaluated(report, outcome.rawJson)
-                if (userScrolled) {
+                if (report == current.report) {
+                    // Nothing visible changed: no swap, no banner — just store the newer raw.
+                    shown = fresh
+                    persist(fresh)
+                } else if (userScrolled) {
                     pendingUpdate = fresh
                     publishReady()
                 } else {
