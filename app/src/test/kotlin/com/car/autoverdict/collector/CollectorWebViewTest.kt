@@ -3,6 +3,8 @@ package com.car.autoverdict.collector
 import android.os.Looper
 import android.webkit.WebView
 import androidx.test.core.app.ApplicationProvider
+import com.car.autoverdict.result.CollectErrorKind
+import com.car.autoverdict.result.CollectStage
 import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -21,6 +23,7 @@ class CollectorWebViewTest {
     private lateinit var collector: CollectorWebView
     private lateinit var shadow: ShadowWebView
     private val results = mutableListOf<CollectorWebView.Result>()
+    private val stages = mutableListOf<CollectStage>()
 
     @Before
     fun setup() {
@@ -36,7 +39,7 @@ class CollectorWebViewTest {
     }
 
     private fun collect(carId: String = CAR_ID, sink: MutableList<CollectorWebView.Result> = results) {
-        collector.collect(URL, carId) { sink += it }
+        collector.collect(URL, carId, onStage = { stages += it }) { sink += it }
     }
 
     private fun idle(seconds: Long) {
@@ -62,6 +65,7 @@ class CollectorWebViewTest {
         idle(15)
         assertEquals(1, results.size)
         val error = results.single() as CollectorWebView.Result.Error
+        assertEquals(CollectErrorKind.Timeout, error.kind)
         assertTrue(error.message.contains("시간 초과"))
 
         idle(60)
@@ -106,6 +110,7 @@ class CollectorWebViewTest {
         }
         assertEquals(1, results.size)
         val error = results.single() as CollectorWebView.Result.Error
+        assertEquals(CollectErrorKind.PageUnreadable, error.kind)
         assertEquals("매물 데이터를 찾을 수 없습니다", error.message)
     }
 
@@ -125,6 +130,60 @@ class CollectorWebViewTest {
         assertTrue("first session's timeout must be cancelled", first.isEmpty())
         assertEquals(1, results.size)
         assertTrue(results.single() is CollectorWebView.Result.Error)
+    }
+
+    @Test
+    @Suppress("DEPRECATION")
+    fun receivedError_reportsNetworkKind() {
+        collect()
+        shadow.webViewClient.onReceivedError(null, -2, "net::ERR_INTERNET_DISCONNECTED", URL)
+
+        val error = results.single() as CollectorWebView.Result.Error
+        assertEquals(CollectErrorKind.Network, error.kind)
+    }
+
+    @Test
+    fun unparseableState_reportsPageUnreadable() {
+        collect()
+        commitVisible()
+        respond("not json")
+
+        val error = results.single() as CollectorWebView.Result.Error
+        assertEquals(CollectErrorKind.PageUnreadable, error.kind)
+    }
+
+    @Test
+    fun nullStateAfterPageFinished_reportsPageUnreadable() {
+        collect()
+        pageFinished()
+        shadow.lastEvaluatedJavascriptCallback.onReceiveValue("null")
+
+        val error = results.single() as CollectorWebView.Result.Error
+        assertEquals(CollectErrorKind.PageUnreadable, error.kind)
+    }
+
+    @Test
+    fun stages_openingPageOnLoad_thenFetchingHistoryBeforeApiCalls() {
+        collect()
+        assertEquals(listOf(CollectStage.OpeningPage), stages)
+
+        commitVisible()
+        // State extraction alone is not the history step.
+        assertEquals(listOf(CollectStage.OpeningPage), stages)
+
+        respond("""{"ok":true,"cars":{"base":{"vehicleId":123,"vehicleNo":"12가3456"}}}""")
+        assertEquals(listOf(CollectStage.OpeningPage, CollectStage.FetchingHistory), stages)
+        assertTrue(shadow.lastEvaluatedJavascript.contains("api.encar.com"))
+    }
+
+    @Test
+    fun stages_noFetchingHistoryWithoutVehicleId() {
+        collect()
+        commitVisible()
+        respond("""{"ok":true,"cars":{"base":{"vehicleNo":""}}}""")
+
+        assertEquals(listOf(CollectStage.OpeningPage), stages)
+        assertTrue(results.single() is CollectorWebView.Result.Success)
     }
 
     @Test
