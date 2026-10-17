@@ -207,6 +207,10 @@
 
 **라이선스 화면 범위 (0번):** 이번에 새로 들어오는 자산만 다룬다. Pretendard(OFL 전문), 토스페이스(출처 문구), Material Symbols(Apache 2.0)다. AndroidX, Play services 등 기존 의존성 전체를 고지하는 작업은 4번에서 한다.
 
+**구현 기록 (Task 2)**
+- Pretendard v1.3.9, 출처 https://github.com/orioncactus/pretendard/releases/download/v1.3.9/Pretendard-1.3.9.zip (public/static), 파일 4종 SHA-256: Regular `3ffbacde6ab8411f1d2db54bb9b1f0b3ee2a738932033722cf0388c06aed1c93`, Medium `d39e50e4bb52b4993b6a4eeb821a171254745bd824446af01e1f616b89fface0`, SemiBold `c89bc43027dc7cde5726e96223376f8eec09302b2fc1f8147fd5b57cfc376118`, Bold `2e91915fab54df71cc9598ebf608b2bdb54c6fe3c066ac61dff0bc44fca71cc7`
+- 토스페이스 v1.6.1, 출처 https://github.com/toss/tossface/releases/download/v1.6.1/TossFaceFontWeb.otf, 번들 파일명 `tossface.otf`, SHA-256: `e99b8642c24631f550aaa90644a17dc164367a79fc7c1584b1ea254b41db770b`, 테이블: CFF, COLR, CPAL, GDEF, GSUB, OS/2, cmap, head, hhea, hmtx, maxp, name, post, vhea, vmtx, 1차 판정: 보류(COLR/CPAL — Task 6A 에뮬레이터 검증이 최종 판정)
+
 ## 6. 공용 컴포넌트
 
 위치: `app/src/main/kotlin/com/car/autoverdict/ui/components/`. 모든 컴포넌트는 상태를 갖지 않는다(stateless). 텍스트, 상태, 콜백만 파라미터로 받고 색·크기는 토큰에서만 가져온다.
