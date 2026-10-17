@@ -12,6 +12,8 @@
 
 ---
 
+> **결정 기록 (2026-10-17, Task 6A 이후):** 토스페이스는 Android 9 이하에서 컬러로 그려지지 않아 **제외**했고(`tossface.otf` 삭제), 용량을 줄이려고 Pretendard **Medium도 제외**했다(3종: Regular·SemiBold·Bold, `body1`→Regular, `caption2`→SemiBold). 아래 Task 12·14·19·27·28은 이 결정을 반영해 고쳐 두었다. `AvEmoji`는 만들지 않고 `AvIllustrationIcon`을 만든다.
+
 ## 공통 사항
 
 **작업 위치:** worktree `~/study/auto-verdict-aos-ux`, 브랜치 `feat/ux-revamp`. 모든 명령은 이 디렉터리에서 실행한다. `cd`로 원본 저장소로 이동하지 않는다.
@@ -2316,95 +2318,45 @@ git commit -m "feat(ui): add AvBottomSheet, AvDialog and AvToast"
 
 ---
 
-### Task 12: `AvEmoji`·`AvEmptyState`, `AvLoadingSteps`
+### Task 12: `AvIllustrationIcon`·`AvEmptyState`, `AvLoadingSteps`
 
 **Files:**
-- Create: `app/src/main/kotlin/com/car/autoverdict/ui/components/AvEmoji.kt`
+- Create: `app/src/main/kotlin/com/car/autoverdict/ui/components/AvIllustration.kt`
 - Create: `app/src/main/kotlin/com/car/autoverdict/ui/components/AvLoadingSteps.kt`
 - Modify: `app/src/main/res/values/strings.xml`
 
-**분기:** Task 2 Step 4에서 토스페이스가 **실패**였다면 Step 1 대신 Step 1-B를 따른다.
+토스페이스는 제외됐다(맨 위 결정 기록). 그림 자리는 톤 배경 원 안의 `Icons.Rounded` 아이콘으로 채운다(스펙 6절 `AvIllustrationIcon`).
 
-- [ ] **Step 1: `AvEmoji.kt` 구현 (토스페이스 통과/보류)**
+- [ ] **Step 1: `AvIllustration.kt` 구현**
 
 ```kotlin
 package com.car.autoverdict.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.text.EmojiSupportMatch
-import androidx.compose.ui.text.PlatformTextStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.car.autoverdict.ui.theme.AvTheme
-import com.car.autoverdict.ui.theme.Tossface
+import com.car.autoverdict.ui.theme.AvTone
+import com.car.autoverdict.ui.theme.tone
 
-/**
- * Decorative Tossface emoji. EmojiCompat replacement is disabled so the bundled
- * Tossface glyph is drawn instead of the system emoji (spec 5).
- */
-@Composable
-fun AvEmoji(emoji: String, size: Dp, modifier: Modifier = Modifier) {
-    val fontSize = with(LocalDensity.current) { size.toSp() }
-    Text(
-        text = emoji,
-        modifier = modifier.clearAndSetSemantics {},
-        style = TextStyle(
-            fontFamily = Tossface,
-            fontSize = fontSize,
-            lineHeight = fontSize,
-            platformStyle = PlatformTextStyle(emojiSupportMatch = EmojiSupportMatch.None),
-        ),
-    )
-}
-
-@Composable
-fun AvEmptyState(
-    emoji: String,
-    title: String,
-    modifier: Modifier = Modifier,
-    description: String? = null,
-    actionLabel: String? = null,
-    onAction: (() -> Unit)? = null,
-) {
-    val colors = AvTheme.colors
-    val typography = AvTheme.typography
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 48.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        AvEmoji(emoji = emoji, size = 56.dp)
-        Spacer(Modifier.height(16.dp))
-        Text(text = title, style = typography.title3, color = colors.textPrimary, textAlign = TextAlign.Center)
-        if (description != null) {
-            Spacer(Modifier.height(6.dp))
-            Text(text = description, style = typography.body2, color = colors.textSecondary, textAlign = TextAlign.Center)
-        }
-        if (actionLabel != null && onAction != null) {
-            Spacer(Modifier.height(20.dp))
-            AvButton(text = actionLabel, onClick = onAction, style = AvButtonStyle.Weak, size = AvButtonSize.Medium)
-        }
-    }
-}
-```
-
-- [ ] **Step 1-B: (토스페이스 실패 시) `AvIllustrationIcon` 구현**
-
-Step 1 대신 같은 파일에 다음을 만든다. 필요한 import: `androidx.compose.foundation.background`, `androidx.compose.foundation.layout.Box`, `androidx.compose.foundation.layout.size`, `androidx.compose.foundation.shape.CircleShape`, `androidx.compose.material3.Icon`, `androidx.compose.ui.draw.clip`, `androidx.compose.ui.graphics.vector.ImageVector`, `com.car.autoverdict.ui.theme.AvTone`, `com.car.autoverdict.ui.theme.tone` (Step 1의 `Tossface`, `EmojiSupportMatch`, `PlatformTextStyle`, `TextStyle`, `LocalDensity` import는 빼고). `AvEmptyState`는 `emoji: String` 대신 `icon: ImageVector, tone: AvTone` 파라미터를 받고 `AvIllustrationIcon(icon, tone, 56.dp)`을 그린다(나머지는 Step 1과 같다).
-```kotlin
+/** Decorative illustration: a rounded icon inside a tone-tinted circle (replaces Tossface; spec 6). */
 @Composable
 fun AvIllustrationIcon(icon: ImageVector, tone: AvTone, size: Dp, modifier: Modifier = Modifier) {
     val toneColors = AvTheme.colors.tone(tone)
@@ -2419,8 +2371,39 @@ fun AvIllustrationIcon(icon: ImageVector, tone: AvTone, size: Dp, modifier: Modi
         Icon(imageVector = icon, contentDescription = null, tint = toneColors.fill, modifier = Modifier.size(size * 0.5f))
     }
 }
+
+@Composable
+fun AvEmptyState(
+    icon: ImageVector,
+    title: String,
+    modifier: Modifier = Modifier,
+    tone: AvTone = AvTone.Neutral,
+    description: String? = null,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null,
+) {
+    val colors = AvTheme.colors
+    val typography = AvTheme.typography
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        AvIllustrationIcon(icon = icon, tone = tone, size = 64.dp)
+        Spacer(Modifier.height(16.dp))
+        Text(text = title, style = typography.title3, color = colors.textPrimary, textAlign = TextAlign.Center)
+        if (description != null) {
+            Spacer(Modifier.height(6.dp))
+            Text(text = description, style = typography.body2, color = colors.textSecondary, textAlign = TextAlign.Center)
+        }
+        if (actionLabel != null && onAction != null) {
+            Spacer(Modifier.height(20.dp))
+            AvButton(text = actionLabel, onClick = onAction, style = AvButtonStyle.Weak, size = AvButtonSize.Medium)
+        }
+    }
+}
 ```
-그리고 스펙 5절과 6절 표의 `AvEmoji` 행을 `AvIllustrationIcon`으로 고치고, 이후 Task의 `AvEmoji` 사용처(Task 14 갤러리)를 `AvIllustrationIcon`으로 바꾼다.
 
 - [ ] **Step 2: `AvLoadingSteps.kt` 구현**
 
@@ -2504,8 +2487,8 @@ Expected: `BUILD SUCCESSFUL`.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add app/src/main/kotlin/com/car/autoverdict/ui/components/AvEmoji.kt app/src/main/kotlin/com/car/autoverdict/ui/components/AvLoadingSteps.kt app/src/main/res/values/strings.xml
-git commit -m "feat(ui): add AvEmoji, AvEmptyState and AvLoadingSteps"
+git add app/src/main/kotlin/com/car/autoverdict/ui/components/AvIllustration.kt app/src/main/kotlin/com/car/autoverdict/ui/components/AvLoadingSteps.kt app/src/main/res/values/strings.xml
+git commit -m "feat(ui): add AvIllustrationIcon, AvEmptyState and AvLoadingSteps"
 ```
 
 ---
@@ -2704,9 +2687,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Block
+import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.DirectionsCar
 import androidx.compose.material.icons.rounded.Link
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Shield
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -2724,7 +2712,7 @@ import com.car.autoverdict.ui.components.AvButton
 import com.car.autoverdict.ui.components.AvButtonSize
 import com.car.autoverdict.ui.components.AvButtonStyle
 import com.car.autoverdict.ui.components.AvDialog
-import com.car.autoverdict.ui.components.AvEmoji
+import com.car.autoverdict.ui.components.AvIllustrationIcon
 import com.car.autoverdict.ui.components.AvEmptyState
 import com.car.autoverdict.ui.components.AvFactTile
 import com.car.autoverdict.ui.components.AvListRow
@@ -2842,16 +2830,20 @@ fun ComponentGalleryScreen(onBack: () -> Unit) {
                 }
                 AvSectionDivider()
 
-                AvSectionHeader(title = "Tossface")
+                AvSectionHeader(title = "Illustration · Empty state")
                 Row(
                     modifier = Modifier.padding(horizontal = 20.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    listOf("🚗", "🛡️", "📄", "🔍", "✅", "⚠️").forEach { AvEmoji(emoji = it, size = 40.dp) }
+                    AvIllustrationIcon(icon = Icons.Rounded.DirectionsCar, tone = AvTone.Accent, size = 48.dp)
+                    AvIllustrationIcon(icon = Icons.Rounded.Shield, tone = AvTone.Success, size = 48.dp)
+                    AvIllustrationIcon(icon = Icons.Rounded.Warning, tone = AvTone.Warning, size = 48.dp)
+                    AvIllustrationIcon(icon = Icons.Rounded.Block, tone = AvTone.Danger, size = 48.dp)
+                    AvIllustrationIcon(icon = Icons.Rounded.Search, tone = AvTone.Neutral, size = 48.dp)
                 }
                 AvEmptyState(
-                    emoji = "🚗",
+                    icon = Icons.Rounded.BookmarkBorder,
                     title = "마음에 드는 차를 저장해 보세요",
                     description = "결과 화면에서 저장하면 여기서 비교할 수 있어요",
                     actionLabel = "차 확인하러 가기",
@@ -2915,7 +2907,7 @@ fun ComponentGalleryScreen(onBack: () -> Unit) {
     }
 }
 ```
-(Task 2·6A에서 토스페이스가 실패였다면 `AvEmoji` 줄과 `AvEmptyState(emoji=…)`를 Task 12 Step 1-B의 API로 바꾼다.)
+(아이콘 중 `material-icons-extended`에 없는 이름이 있으면 컴파일 오류 메시지를 보고 같은 의미의 `Icons.Rounded.*`로 바꾼다.)
 
 - [ ] **Step 2: 빌드 확인**
 
@@ -3568,25 +3560,19 @@ git commit -m "feat(nav): add pure ShareIntentParser with url normalization"
 ```xml
     <string name="licenses_title">오픈소스 라이선스</string>
     <string name="license_pretendard_notice">Pretendard는 SIL Open Font License 1.1에 따라 사용합니다.</string>
-    <string name="license_tossface_notice">이 앱에는 토스팀에서 제공한 토스페이스가 적용되어 있습니다.</string>
     <string name="license_material_notice">Material Symbols 아이콘은 Apache License 2.0에 따라 사용합니다.</string>
     <string name="license_show_full">전문 보기</string>
     <string name="license_hide_full">접기</string>
-    <string name="license_open_source">출처 보기</string>
 ```
-(Task 2 또는 Task 6A에서 토스페이스가 실패였다면 `license_tossface_notice`와 Step 2의 토스페이스 섹션(및 그 앞뒤 `AvSectionDivider` 하나)을 넣지 않는다.)
+(토스페이스는 제외됐으므로 고지하지 않는다.)
 
 - [ ] **Step 2: `LicensesScreen.kt` 구현**
 
 ```kotlin
 package com.car.autoverdict.ui.screen
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -3615,8 +3601,6 @@ import com.car.autoverdict.ui.components.AvSectionDivider
 import com.car.autoverdict.ui.components.AvTopBar
 import com.car.autoverdict.ui.theme.AvTheme
 
-private const val TOSSFACE_COPYRIGHT_URL = "https://toss.im/tossface/copyright"
-
 /** Notices for assets added in sub-project 0 (spec 5). Full OSS list is sub-project 4. */
 @Composable
 fun LicensesScreen(onBack: () -> Unit) {
@@ -3629,16 +3613,6 @@ fun LicensesScreen(onBack: () -> Unit) {
         LazyColumn(modifier = Modifier.weight(1f)) {
             item { LicenseSection(title = "Pretendard", notice = stringResource(R.string.license_pretendard_notice), fullText = oflText) }
             item { AvSectionDivider() }
-            item {
-                LicenseSection(
-                    title = "Tossface",
-                    notice = stringResource(R.string.license_tossface_notice),
-                    onOpenSource = {
-                        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(TOSSFACE_COPYRIGHT_URL))) }
-                    },
-                )
-            }
-            item { AvSectionDivider() }
             item { LicenseSection(title = "Material Symbols", notice = stringResource(R.string.license_material_notice), fullText = apacheText) }
             item { Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars)) }
         }
@@ -3649,8 +3623,7 @@ fun LicensesScreen(onBack: () -> Unit) {
 private fun LicenseSection(
     title: String,
     notice: String,
-    fullText: String? = null,
-    onOpenSource: (() -> Unit)? = null,
+    fullText: String,
 ) {
     val colors = AvTheme.colors
     val typography = AvTheme.typography
@@ -3660,25 +3633,13 @@ private fun LicenseSection(
         Spacer(Modifier.height(4.dp))
         Text(text = notice, style = typography.body2, color = colors.textSecondary)
         Spacer(Modifier.height(12.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (fullText != null) {
-                AvButton(
-                    text = stringResource(if (expanded) R.string.license_hide_full else R.string.license_show_full),
-                    onClick = { expanded = !expanded },
-                    style = AvButtonStyle.Secondary,
-                    size = AvButtonSize.Small,
-                )
-            }
-            if (onOpenSource != null) {
-                AvButton(
-                    text = stringResource(R.string.license_open_source),
-                    onClick = onOpenSource,
-                    style = AvButtonStyle.Secondary,
-                    size = AvButtonSize.Small,
-                )
-            }
-        }
-        if (expanded && fullText != null) {
+        AvButton(
+            text = stringResource(if (expanded) R.string.license_hide_full else R.string.license_show_full),
+            onClick = { expanded = !expanded },
+            style = AvButtonStyle.Secondary,
+            size = AvButtonSize.Small,
+        )
+        if (expanded) {
             Spacer(Modifier.height(12.dp))
             Text(text = fullText, style = typography.caption1, color = colors.textSecondary)
         }
@@ -4660,8 +4621,8 @@ Verdict tones: `AvTone.fromVerdict()` — NEVER→Danger "피하세요", CAUTION
 OK→Success "괜찮아요", UNKNOWN→Neutral "확인 필요".
 
 Type (Pretendard): `title1` 26 Bold · `title2` 22 Bold · `title3` 19 SemiBold ·
-`body1` 17 Medium · `body2` 15 · `buttonL/M/S` 17/15/13 SemiBold · `caption1` 13 ·
-`caption2` 11 Medium (minimum size).
+`body1` 17 · `body2` 15 · `buttonL/M/S` 17/15/13 SemiBold · `caption1` 13 ·
+`caption2` 11 SemiBold (minimum size). Only Regular, SemiBold and Bold are bundled — don't use Medium.
 
 Shapes: chip pill · tile 12 · button S/M/L 10/14/16 · input 16 · dialog 24 · sheet top 24.
 Spacing: 4 · 8 · 12 · 16 · 20 · 24 · 32; screen side padding 20.
@@ -4670,7 +4631,7 @@ Spacing: 4 · 8 · 12 · 16 · 20 · 24 · 32; screen side padding 20.
 
 `AvTopBar` (+`AvIconButton`) · `AvButton` (Primary/Weak/Secondary/Danger × L/M/S; Primary is
 L/M only) · `AvBottomCta` · `AvListRow` · `AvTextField` · `AvBadge` · `AvFactTile` ·
-`AvSectionHeader` · `AvSectionDivider` · `AvEmptyState` · `AvEmoji` (Tossface) ·
+`AvSectionHeader` · `AvSectionDivider` · `AvEmptyState` · `AvIllustrationIcon` ·
 `AvBottomSheet` · `AvDialog` · `AvToastHost`/`LocalAvToast` · `AvTabBar` · `AvLoadingSteps`.
 Debug builds show all of them under Settings → 컴포넌트 갤러리.
 
@@ -4687,12 +4648,10 @@ Insets: `AvTopBar` owns the status bar, `AvTabBar`/`AvBottomCta` own the navigat
 - Errors: what happened + what to do next.
 - Buttons: verb, 2–3 words ("저장하기", "비교하기", "다시 시도").
 - Numbers: "8.2만km", "2,180만원", "2022년 2월~9월".
-- No emoji in body text; use `AvEmoji` slots.
+- No emoji in UI text; use `AvIllustrationIcon` for pictures.
 - New UI strings (components, navigation, new screens) go in `res/values/strings.xml`.
   Existing screen copy moves there when that screen is redesigned (sub-projects 1–4).
 ````
-
-(Task 2 또는 6A에서 토스페이스를 대체했다면 위 문서의 `AvEmoji (Tossface)`를 `AvIllustrationIcon`으로 쓰고 토스페이스 언급을 뺀다.)
 
 - [ ] **Step 2: `CLAUDE.md`의 Key Conventions 교체**
 
@@ -4734,7 +4693,7 @@ Expected: 모두 성공. Kotlin 테스트 수는 42 + 이번에 추가한 수(Ta
 ```bash
 ./gradlew :app:bundleRelease -q && ls -l app/build/outputs/bundle/release/app-release.aab | awk '{print $5}'
 ```
-기준선(`2026-10-17-ux-revamp-0-baseline.md`)과의 차이를 계산하고, Task 6A와 같은 기준으로 **AAB 증가량 + 토스페이스 압축 크기**(`gzip -9 -c app/src/main/res/font/tossface.ttf | wc -c`, 토스페이스를 뺐다면 0)를 판정값으로 쓴다. 판정값이 10MB(10,485,760 bytes)를 넘으면 **멈추고** 사용자와 대안을 정한다(스펙 5절 크기 예산). 넘지 않으면 스펙 5절 구현 기록과 기준선 파일에 "최종 크기, 증가량"을 적는다.
+기준선(`2026-10-17-ux-revamp-0-baseline.md`)과의 차이를 계산하고, AAB 증가량을 판정값으로 쓴다(토스페이스는 제외됐다). 판정값이 10MB(10,485,760 bytes)를 넘으면 **멈추고** 사용자와 대안을 정한다(스펙 5절 크기 예산). 넘지 않으면 스펙 5절 구현 기록과 기준선 파일에 "최종 크기, 증가량"을 적는다.
 
 - [ ] **Step 3: 스펙 범위 대조**
 

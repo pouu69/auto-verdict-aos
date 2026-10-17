@@ -37,9 +37,9 @@
 | 테마 | **라이트만**. 다크 토큰은 정의하지 않음 | 사용자 결정 |
 | 렌더링 | **결과 UI를 Compose로 이전**. WebView는 규칙 엔진만 헤드리스로 실행 (구현은 1번) | 디자인 시스템을 하나로, 네이티브 시트·제스처·접근성 |
 | 컴포넌트 | **직접 구현** (TDS 사용 불가) | TDS·토스 아이콘은 앱인토스 전용 라이선스. 독립 Play 앱 + 광고 수익에는 사용 불가 |
-| 그림 아이콘 | **토스페이스**(Tossface) 원본 폰트 번들, 출처 표기 | 무료 사용 허용. 변형·판매 금지, 출처 표기 필수 |
+| 그림 아이콘 | **`AvIllustrationIcon`**: 톤 배경 원 안의 `Icons.Rounded` 아이콘. (토스페이스는 검토했으나 제외 — 5절 검증 기록) | Android 8~9에서 컬러 폰트를 그리지 못하고, 앱 크기를 줄이기 위해 사용자 결정으로 제외 |
 | UI 아이콘 | `Icons.Rounded` (기존 의존성 `material-icons-extended`) | 추가 의존성 없음, 둥근 형태 |
-| 폰트 | **Pretendard** 번들 (OFL) | 토스 느낌에 가장 가까운 무료 한글 폰트 |
+| 폰트 | **Pretendard** 3종(Regular·SemiBold·Bold) 번들 (OFL) | 토스 느낌에 가장 가까운 무료 한글 폰트. 용량을 위해 Medium은 제외(사용자 결정) |
 | 내비게이션 | **2탭(홈, 저장한 차) + 우상단 설정 아이콘**, 자체 `Route` 백스택 | 설정은 사용 빈도 낮음. 저장·비교는 구매 과정에서 자주 감 |
 | 광고 | **현재 위치 유지**: 탭바 위 배너, 설정 화면 하단 배너, 결과 로딩 중 MREC, 결과 화면 하단 배너 | 사용자 결정. 스타일만 맞춤 |
 | 전문 용어 | 중고차 업계 용어(전손, 침수, 성능점검, 프레임, 자차보험 공백)는 **그대로** 사용 | 사용자 결정. 설명은 상세 시트에서만 |
@@ -125,15 +125,16 @@
 | `title1` | 26sp / Bold | 1.35 | -0.6sp | 화면 결론 문장 |
 | `title2` | 22sp / Bold | 1.35 | -0.5sp | 화면 제목 |
 | `title3` | 19sp / SemiBold | 1.4 | -0.4sp | 시트 제목, 섹션 강조 |
-| `body1` | 17sp / Medium | 1.5 | -0.3sp | 리스트 행 제목 |
+| `body1` | 17sp / Regular | 1.5 | -0.3sp | 리스트 행 제목 (크기·색으로 위계) |
 | `buttonL` | 17sp / SemiBold | 1.3 | -0.3sp | 버튼 L 라벨 |
 | `body2` | 15sp / Regular | 1.5 | -0.2sp | 본문, 리스트 부제 |
 | `buttonM` | 15sp / SemiBold | 1.3 | -0.2sp | 버튼 M 라벨 |
 | `buttonS` | 13sp / SemiBold | 1.3 | 0 | 버튼 S 라벨 (Primary 스타일로는 쓰지 않음) |
 | `caption1` | 13sp / Regular | 1.45 | 0 | 메타 정보 |
-| `caption2` | 11sp / Medium | 1.3 | 0 | 배지·칩 라벨 전용 (최소 크기) |
+| `caption2` | 11sp / SemiBold | 1.3 | 0 | 배지·칩 라벨 전용 (최소 크기) |
 
 - 11sp 미만은 쓰지 않는다.
+- 번들 굵기는 Regular·SemiBold·Bold 3종이다. 새 코드는 `FontWeight.Medium`을 쓰지 않는다(요청해도 Regular로 매칭된다).
 - M3 `Typography`의 모든 슬롯에 위 토큰 중 가장 가까운 값을 연결한다. 정의되지 않은 슬롯이 기본값으로 노출되지 않게 하기 위해서다.
 - 모든 크기는 `sp`이고, 높이를 고정하지 않아 시스템 글꼴 크기 확대를 따른다.
 
@@ -189,8 +190,8 @@
 
 | 자산 | 방식 | 라이선스 처리 |
 |---|---|---|
-| Pretendard | Regular·Medium·SemiBold·Bold 정적 4종을 `res/font/`에 번들. `FontFamily`로 묶어 `AvTypography`에서 사용 | SIL OFL 1.1. 라이선스 전문을 앱 내 "오픈소스 라이선스" 화면에 표시 |
-| 토스페이스 | 공식 배포 TTF **원본 그대로** `res/font/`에 번들. 서브셋·형식 변환 금지 | 변형·판매 금지, 출처 표기 필수. 라이선스 화면에 "이 앱에는 토스팀에서 제공한 토스페이스가 적용되어 있습니다." 표기 |
+| Pretendard | Regular·SemiBold·Bold 정적 3종을 `res/font/`에 번들. `FontFamily`로 묶어 `AvTypography`에서 사용 | SIL OFL 1.1. 라이선스 전문을 앱 내 "오픈소스 라이선스" 화면에 표시 |
+| ~~토스페이스~~ | **제외됨** (아래 검증 기록) | — |
 | UI 아이콘 | `Icons.Rounded.*` | Apache 2.0 (Compose 의존성에 포함). 라이선스 화면에 표기 |
 
 **크기 예산:** 폰트 추가로 release AAB가 10MB 넘게 커지면 구현을 멈추고 사용자와 대안(예: 토스페이스 제외)을 다시 정한다. 실제 증가량은 구현 시 측정해 이 문서에 기록한다.
@@ -205,11 +206,23 @@
 - 판정 기준: 네 API 모두에서 컬러 토스페이스 글리프가 보이면 통과다. 하나라도 시스템 이모지나 빈 글리프(□)로 나오면 실패다.
 - **실패 시:** 토스페이스를 번들에서 빼고, `AvEmoji`를 `AvIllustrationIcon(icon: ImageVector, tone: AvTone)`으로 바꾼다. 이 컴포넌트는 톤 배경의 원 안에 `Icons.Rounded` 아이콘을 그린다. 형식 변환이나 이미지 추출 같은 우회는 하지 않는다. 결과는 사용자에게 보고하고 이 문서에 기록한다.
 
-**라이선스 화면 범위 (0번):** 이번에 새로 들어오는 자산만 다룬다. Pretendard(OFL 전문), 토스페이스(출처 문구), Material Symbols(Apache 2.0)다. AndroidX, Play services 등 기존 의존성 전체를 고지하는 작업은 4번에서 한다.
+**라이선스 화면 범위 (0번):** 이번에 새로 들어오는 자산만 다룬다. Pretendard(OFL 전문), Material Symbols(Apache 2.0)다. AndroidX, Play services 등 기존 의존성 전체를 고지하는 작업은 4번에서 한다.
 
 **구현 기록 (Task 2)**
 - Pretendard v1.3.9, 출처 https://github.com/orioncactus/pretendard/releases/download/v1.3.9/Pretendard-1.3.9.zip (public/static), 파일 4종 SHA-256: Regular `3ffbacde6ab8411f1d2db54bb9b1f0b3ee2a738932033722cf0388c06aed1c93`, Medium `d39e50e4bb52b4993b6a4eeb821a171254745bd824446af01e1f616b89fface0`, SemiBold `c89bc43027dc7cde5726e96223376f8eec09302b2fc1f8147fd5b57cfc376118`, Bold `2e91915fab54df71cc9598ebf608b2bdb54c6fe3c066ac61dff0bc44fca71cc7`
 - 토스페이스 v1.6.1, 출처 https://github.com/toss/tossface/releases/download/v1.6.1/TossFaceFontWeb.otf, 번들 파일명 `tossface.otf`, SHA-256: `e99b8642c24631f550aaa90644a17dc164367a79fc7c1584b1ea254b41db770b`, 테이블: CFF, COLR, CPAL, GDEF, GSUB, OS/2, cmap, head, hhea, hmtx, maxp, name, post, vhea, vmtx, 1차 판정: 보류(COLR/CPAL — Task 6A 에뮬레이터 검증이 최종 판정)
+
+**구현 기록 (Task 6A, 2026-10-17)**
+- 검증 화면: Tossface 행 / 시스템 행 / FE0F 제거한 Tossface 행(진단용)을 나란히 렌더링.
+- API 36·33·29: 컬러 렌더링. 단 FE0F가 붙은 🛡️ ⚠️는 시스템 이모지로 대체됨 — 폰트 cmap에 format 14(변형 시퀀스) 서브테이블이 없어서. FE0F를 빼면 모두 토스페이스.
+- API 26(minSdk): 모든 글리프가 검은 단색 실루엣 — Android 9 이하는 COLRv0 컬러 폰트를 그리지 못함. API 27·28은 AVD가 없어 미검증(같을 것으로 추정).
+- API 35: AVD가 잠금 상태에서 풀리지 않아 미검증.
+- 판정: **실패.** 사용자 결정으로 토스페이스를 번들에서 **제외**하고 `AvIllustrationIcon`으로 대체. 같은 결정에서 앱 크기를 줄이려고 Pretendard Medium도 제외(3종).
+- 캡처: `/tmp/tossface-api{26,29,33,36}.png`(로컬, 저장소 미포함).
+
+**크기 기록**
+- 기준선 AAB 7,071,758 bytes → 토스페이스·Pretendard 4종 포함 시 13,195,781 (+6,124,023)
+- 토스페이스·Medium 제외 후(웨이브 1 코드 포함) 10,301,582 bytes (**+3,229,824**, 예산 10MB 이내)
 
 ## 6. 공용 컴포넌트
 
@@ -226,8 +239,8 @@
 | `AvFactTile` | `(label, value, tone: AvTone = Neutral)` | Neutral은 `surfaceMuted`, 그 외는 톤의 `*Bg` 배경 |
 | `AvSectionHeader` | `(title, count: Int? = null, actionLabel: String? = null, onAction: (() -> Unit)? = null)` | |
 | `AvSectionDivider` | `()` | 8dp 띠 |
-| `AvEmptyState` | `(emoji: String, title, description: String? = null, actionLabel: String? = null, onAction: (() -> Unit)? = null)` | 그림은 `AvEmoji` 사용 |
-| `AvEmoji` | `(emoji: String, size: Dp)` | 토스페이스 `FontFamily` + `emojiSupportMatch = None`. 장식용이면 `contentDescription` 없음. 렌더링 검증 실패 시 `AvIllustrationIcon`으로 대체(5절) |
+| `AvEmptyState` | `(icon: ImageVector, title, tone: AvTone = Neutral, description: String? = null, actionLabel: String? = null, onAction: (() -> Unit)? = null)` | 그림은 `AvIllustrationIcon` 사용 |
+| `AvIllustrationIcon` | `(icon: ImageVector, tone: AvTone, size: Dp)` | 톤 `bg` 원 안에 톤 `fill` 색 `Icons.Rounded` 아이콘(지름의 50%). 장식용이라 시맨틱 없음 |
 | `AvBottomSheet` | `(onDismiss, title: String? = null, content: @Composable ColumnScope.() -> Unit)` | 상단 24dp 반경, 핸들, 드래그 닫기 |
 | `AvToastHost` / `AvToastState` | `state.show(message, actionLabel: String? = null, onAction: (() -> Unit)? = null)` | `SnackbarHost` 기반. `toastBg` 배경, 액션 글자는 `toastAction`. `AvToastState`는 앱 루트(`AppRoot`)가 소유하고 `CompositionLocal`로 내려준다 |
 | `AvDialog` | `(title, message, confirmLabel, onConfirm, dismissLabel, onDismiss, destructive = false)` | `destructive`면 확인 버튼이 Danger 스타일 |
@@ -389,7 +402,7 @@ sealed interface Route {
 | 에러는 무슨 일 + 다음 행동 | "엔카 페이지를 열지 못했어요. 네트워크를 확인하고 다시 시도해 주세요" |
 | 버튼은 동사형, 2~3단어 이내 | "저장하기", "비교하기", "다시 시도" |
 | 숫자는 읽기 쉬운 단위 | "8.2만km", "2,180만원", "2022년 2월~9월" |
-| 본문에 이모지 금지 | 그림이 필요하면 `AvEmoji` 자리에만 |
+| 본문에 이모지 금지 | 그림이 필요하면 `AvIllustrationIcon`을 쓴다 |
 
 - 새로 만들거나 손대는 화면의 문구는 `res/values/strings.xml`로 옮긴다. 0번에서 옮기는 대상은 새 컴포넌트·내비게이션·라이선스 화면·토스트 문구다.
 - 이 가이드는 새 `DESIGN.md`에 포함한다.
@@ -409,7 +422,7 @@ sealed interface Route {
 
 **0번에 포함**
 1. `AvTheme`와 토큰 4종, M3 컬러스킴·타이포 슬롯 연결(4.6절), `colors.xml` 정렬, 기존 `Color.kt` 상수 제거
-2. 토스페이스 렌더링 검증(5절), Pretendard·토스페이스 번들, `LicensesScreen`
+2. 토스페이스 렌더링 검증(5절, 결과: 제외), Pretendard 3종 번들, `LicensesScreen`
 3. 공용 컴포넌트 16종과 `Modifier.avPressable()`, 컴포넌트 갤러리(debug)
 4. `Route` 백스택, `NavStateSaver`, `AppNavigator`, `AppRoot`, 2탭 + 설정 아이콘, 뒤로가기 규칙, 공유 인텐트 처리, OS 스플래시 단일화, 화면 전환 애니메이션
 5. 기존 화면 적용(7.3절 표 범위로 한정)
@@ -436,7 +449,7 @@ sealed interface Route {
 | 인텐트 처리 | JUnit으로 `ShareIntentParser.parse` 검증: SEND+text/plain+유효 링크, 무효 텍스트, 다른 action/type, `isRestored = true`면 `null`. `launchMode`가 standard라 공유는 대부분 새 인스턴스의 `onCreate`로 들어오고 `onNewIntent`는 드물다. 두 경로 모두 같은 파서를 거치는지 수동 시나리오로 각각 확인 |
 | 토큰 | JUnit: 4.2절 대비 표의 "통과" 조합이 모두 4.5:1 이상, `AvTone.fromVerdict` 매핑(null·알 수 없는 값 포함) |
 | 컴포넌트 | Robolectric + Compose UI 테스트(`testImplementation` `ui-test-junit4`, `debugImplementation` `ui-test-manifest`): `AvButton`(클릭, 비활성, 로딩 중 클릭 무시), `AvListRow`(Role, 병합 시맨틱), `AvBottomCta`(렌더링), `AvTextField`(에러 문구 노출), `AvTabBar`(선택 콜백) |
-| 토스페이스 | 5절 렌더링 검증 결과(API 26/29/33/36 스크린샷)를 이 문서에 기록 |
+| 토스페이스 | 5절 렌더링 검증 결과를 이 문서에 기록 (완료, 제외 결정) |
 | 시각 | debug 빌드 컴포넌트 갤러리와 기존 화면 6종을 에뮬레이터에서 확인, 스크린샷을 PR에 첨부 |
 | 크기 | release AAB 크기 변화를 측정해 5절에 기록 |
 
@@ -446,8 +459,7 @@ sealed interface Route {
 |---|---|
 | 0번만 머지된 과도기에 새 내비게이션 + 기존 화면이 섞임 | 0~1번은 `feat/ux-revamp`에서 이어서 진행. 1번 완료 전에는 출시하지 않음 |
 | 폰트 번들로 앱 크기 증가 | 5절 크기 예산(10MB) 초과 시 중단하고 재결정 |
-| 토스페이스 컬러 글리프를 일부 Android 버전이 그리지 못함 | 5절 검증 단계에서 먼저 확인. 실패하면 `AvIllustrationIcon`으로 대체 |
-| 토스페이스 라이선스 해석(서브셋·변환이 "변형"인지 불명) | 원본 파일을 그대로 번들(파일명만 변경, 해시로 동일성 확인). 서브셋·변환하지 않음 |
+| 토스페이스 컬러 글리프를 일부 Android 버전이 그리지 못함 | **발생함** → 토스페이스 제외, `AvIllustrationIcon`으로 대체 (5절 기록) |
 | `onAccent` on `accent` 대비 3.71:1 | 토스 파랑 유지 결정에 따른 의도된 예외. Primary 버튼 라벨에만 사용하고 SemiBold 15sp 이상 |
 | `Route` 직렬화 크기(Compare carIds, Result url) | 값이 작아 `Bundle` 한도 문제 없음. 대용량 데이터는 Route에 넣지 않는다 |
 | 기존 화면 색 치환으로 미세한 시각 변화 | 의도된 변화. 갤러리와 주요 화면 스크린샷으로 확인 |

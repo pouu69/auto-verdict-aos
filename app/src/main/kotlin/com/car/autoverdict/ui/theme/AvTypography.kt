@@ -8,15 +8,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.car.autoverdict.R
 
+/**
+ * Three weights only, to keep the APK small (Medium was dropped; spec 4.3).
+ * New code shouldn't ask for FontWeight.Medium; font matching resolves it to Regular.
+ */
 val Pretendard = FontFamily(
     Font(R.font.pretendard_regular, FontWeight.Normal),
-    Font(R.font.pretendard_medium, FontWeight.Medium),
     Font(R.font.pretendard_semibold, FontWeight.SemiBold),
     Font(R.font.pretendard_bold, FontWeight.Bold),
 )
-
-/** Tossface emoji font (bundled unmodified; credit shown on the licenses screen). */
-val Tossface = FontFamily(Font(R.font.tossface))
 
 /** Type scale from spec 4.3. Never go below [caption2] (11sp). */
 @Immutable
@@ -45,11 +45,11 @@ val DefaultAvTypography = AvTypography(
     title1 = avStyle(26, FontWeight.Bold, 1.35f, -0.6f),
     title2 = avStyle(22, FontWeight.Bold, 1.35f, -0.5f),
     title3 = avStyle(19, FontWeight.SemiBold, 1.4f, -0.4f),
-    body1 = avStyle(17, FontWeight.Medium, 1.5f, -0.3f),
+    body1 = avStyle(17, FontWeight.Normal, 1.5f, -0.3f),
     body2 = avStyle(15, FontWeight.Normal, 1.5f, -0.2f),
     buttonL = avStyle(17, FontWeight.SemiBold, 1.3f, -0.3f),
     buttonM = avStyle(15, FontWeight.SemiBold, 1.3f, -0.2f),
     buttonS = avStyle(13, FontWeight.SemiBold, 1.3f, 0f),
     caption1 = avStyle(13, FontWeight.Normal, 1.45f, 0f),
-    caption2 = avStyle(11, FontWeight.Medium, 1.3f, 0f),
+    caption2 = avStyle(11, FontWeight.SemiBold, 1.3f, 0f),
 )
