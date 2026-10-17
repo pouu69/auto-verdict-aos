@@ -11,7 +11,7 @@ import type { FrameSource } from '../frame-source';
 import { formatMan, koreanMonth } from '../format';
 import { arr, count, num } from '../raw';
 import { reasonShort } from '../reasons';
-import { ratioOf, unknownStatus } from '../rule-copy';
+import { gapPeriods, ratioOf, unknownStatus } from '../rule-copy';
 import { walkSystems, codeTone } from '../repairs';
 import { accidentRecords } from '../timeline';
 import { block, duration, fullDate, inspectionOf, recordOf, row, sourceBlock, sourcesOk, times, won, type SourceKey } from './common';
@@ -229,9 +229,14 @@ const r08 = ({ out }: Ctx): DetailBlock[] => {
   const g = out.facts.insuranceGap;
   if (g.kind !== 'value') return [];
   const note = '자차보험에 가입하지 않은 기간이에요. 이 기간에 난 사고는 보험이력에 남지 않아요';
-  if (g.value.periods.length === 0) return [block('보험 미가입 기간', [row('미가입 기간', '없음', 'success')], note)];
-  const rows = g.value.periods.map((p) => row(`${koreanMonth(p.from)}~${koreanMonth(p.to)}`, duration(p.months), 'warning'));
-  rows.push(row('합계', duration(g.value.totalMonths), 'warning'));
+  const { periods, totalMonths } = gapPeriods(g.value);
+  if (periods.length === 0) {
+    // The engine may still count a gap whose dates cannot be read.
+    const gap = g.value.hasGap === true;
+    return [block('보험 미가입 기간', [row('미가입 기간', gap ? '있음' : '없음', gap ? 'warning' : 'success')], note)];
+  }
+  const rows = periods.map((p) => row(`${koreanMonth(p.from)}~${koreanMonth(p.to)}`, duration(p.months), 'warning'));
+  rows.push(row('합계', duration(totalMonths), 'warning'));
   return [block('보험 미가입 기간', rows, note)];
 };
 

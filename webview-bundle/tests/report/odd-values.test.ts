@@ -71,6 +71,45 @@ describe('unreadable numbers', () => {
   });
 });
 
+describe('malformed dates', () => {
+  it('shows the month, not the raw string, when the day cannot be read', () => {
+    const r = reportWith('39339524', (raw) => {
+      rec(raw).ownerChanges = ['202503abc'];
+      (rec(raw).accidents as Obj[])[0]!.date = '2021-12-99';
+    });
+    const owner = r.timeline.find((t) => t.label === '소유자 변경')!;
+    expect(rowValue(owner.sheet, '변경일')).toBe('2025년 3월');
+    const accident = r.timeline.find((t) => t.date === '2021-12' && t.label.endsWith('내차 피해'))!;
+    expect(accident.sheet!.blocks[0]!.title).toBe('2021년 12월 · 내차 피해');
+    expect(JSON.stringify(r)).not.toMatch(/202503abc|2021-12-99/);
+  });
+
+  it('drops insurance gaps whose months cannot be read', () => {
+    const r = reportWith('39339524', (raw) => {
+      rec(raw).notJoinDate1 = '202313~202499';
+      rec(raw).notJoinDate2 = '202301~202303';
+    });
+    const r08 = rule(r, 'R08');
+    expect(r08.message).toBe('자차보험 없이 운행한 기간이 3개월 있어요');
+    expect(r08.sellerQuestion).toBe('2023년 1월~2023년 3월에 보험 없이 운행했나요?');
+    expect(r08.summary).toBe('자차보험 공백 3개월');
+    expect(r.timeline.filter((t) => t.label === '보험 미가입').map((t) => t.date)).toEqual(['2023-01']);
+    expect(JSON.stringify(r)).not.toMatch(/13월|99월/);
+  });
+
+  it('keeps R08 consistent when no gap period can be read', () => {
+    const r = reportWith('39339524', (raw) => {
+      rec(raw).notJoinDate1 = '209912~200001';
+    });
+    const r08 = rule(r, 'R08');
+    expect(r08.tone).toBe('warning');
+    expect(r08.message).toBe('자차보험 없이 운행한 기간이 있어요');
+    expect(r08.summary).toBe('자차보험 공백 있음');
+    expect(rowValue(r08.detail, '미가입 기간')).toBe('있음');
+    expect(r.timeline.some((t) => t.label === '보험 미가입')).toBe(false);
+  });
+});
+
 describe('성능점검 items without titles', () => {
   it('names untitled flagged items instead of leaving them blank', () => {
     const r = reportWith('39339524', (raw) => {

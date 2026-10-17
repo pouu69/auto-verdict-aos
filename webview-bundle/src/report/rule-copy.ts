@@ -11,7 +11,7 @@ import { RULE_META } from './rule-meta';
 import type { FrameSource } from './frame-source';
 import { formatMan, josa, koreanMonth, partName } from './format';
 import { reasonMessage } from './reasons';
-import { count } from './raw';
+import { count, toYearMonth } from './raw';
 
 export interface RuleCopy {
   message: string;
@@ -112,6 +112,26 @@ export const leakItems = (result: RuleResult, facts: ChecklistFacts): Array<{ pa
     (i) => typeof i?.part === 'string' && i.part.trim() !== '' && typeof i.status === 'string' && i.status.trim() !== '',
   );
 
+export interface GapPeriod {
+  from: string;
+  to: string;
+  months: number;
+}
+
+const isMonth = (ym: unknown): boolean => typeof ym === 'string' && toYearMonth(ym) === ym;
+
+/**
+ * R08 periods that read as real months, and their total. Core builds them from
+ * "YYYYMM~YYYYMM" without checking the month ("202313~202499" -> 2023-13) or the
+ * order ("209912~200001" -> 0 months); such periods are dropped.
+ */
+export const gapPeriods = (g: { periods?: GapPeriod[] } | undefined): { periods: GapPeriod[]; totalMonths: number } => {
+  const periods = (Array.isArray(g?.periods) ? g.periods : []).filter(
+    (p) => isMonth(p?.from) && isMonth(p.to) && (count(p.months) ?? 0) > 0,
+  );
+  return { periods, totalMonths: periods.reduce((s, p) => s + p.months, 0) };
+};
+
 /** R11 price ratio, or undefined when missing, zero or not a sane number. */
 export const ratioOf = (result: RuleResult, facts: ChecklistFacts): number | undefined => {
   const ratio =
@@ -189,10 +209,8 @@ export function ruleCopy(result: RuleResult, facts: ChecklistFacts, frameSource:
     }
     case 'R08': {
       if (!problem) return ok('자차보험 공백이 없어요');
-      const g = evidenceOf(result, 'insuranceGap', facts.insuranceGap);
-      const periods = g?.periods ?? [];
+      const { periods, totalMonths: months } = gapPeriods(evidenceOf(result, 'insuranceGap', facts.insuranceGap));
       const ranges = periods.map((p) => `${koreanMonth(p.from)}~${koreanMonth(p.to)}`).join(', ');
-      const months = g?.totalMonths ?? 0;
       // No parentheses: "(2개 구간)" wrapped mid-phrase at large font sizes.
       const span = periods.length > 1 ? `${periods.length}개 구간, 총 ${gapDuration(months)}` : gapDuration(months);
       return issue(

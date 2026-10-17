@@ -8,7 +8,7 @@ import type { RuleResult } from '@core/types/RuleTypes.js';
 import type { MobileOrchestratorResult } from '../orchestrate-mobile';
 import type { FrameSource } from './frame-source';
 import { formatMan, partName } from './format';
-import { damagesOf, evidenceOf, gapDuration, leakItems, lossHits, ownerCount, ratioOf, unknownStatus, usageKinds } from './rule-copy';
+import { damagesOf, evidenceOf, gapDuration, gapPeriods, leakItems, lossHits, ownerCount, ratioOf, unknownStatus, usageKinds } from './rule-copy';
 import { reasonShort } from './reasons';
 
 const FRAME_KILLER: Record<FrameSource, string> = {
@@ -53,9 +53,9 @@ export function ruleSummary(result: RuleResult, out: MobileOrchestratorResult, f
     }
     case 'R08': {
       if (!problem) return '자차보험 공백 없음';
-      const g = evidenceOf(result, 'insuranceGap', facts.insuranceGap);
-      const months = g?.totalMonths ?? 0;
-      const periods = g?.periods.length ?? 0;
+      const g = gapPeriods(evidenceOf(result, 'insuranceGap', facts.insuranceGap));
+      const months = g.totalMonths;
+      const periods = g.periods.length;
       if (months <= 0) return '자차보험 공백 있음';
       return periods > 1 ? `자차보험 공백 ${gapDuration(months)} · ${periods}구간` : `자차보험 공백 ${gapDuration(months)}`;
     }

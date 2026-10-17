@@ -5,7 +5,7 @@
  */
 import type { DetailBlock, DetailRow, DetailSheet } from '../types';
 import { koreanMonth } from '../format';
-import { block, duration, fullDate, row, won } from './common';
+import { block, dateText, duration, row, won } from './common';
 
 export type AccidentSide = '내차 피해' | '타차 가해';
 
@@ -32,7 +32,7 @@ export function accidentBlocks(records: AccidentRecord[]): DetailBlock[] {
     .map((a, i) => ({ a, i }))
     .sort((x, y) => (x.a.date < y.a.date ? 1 : x.a.date > y.a.date ? -1 : x.i - y.i))
     .map(({ a }) =>
-      block(`${fullDate(a.date) ?? a.date} · ${a.side}`, [
+      block(`${dateText(a.date)} · ${a.side}`, [
         row('보험금', amount(a.insuranceBenefit)),
         row('부품비', amount(a.partCost)),
         row('공임', amount(a.laborCost)),
@@ -59,7 +59,7 @@ export function ownerSheet(date: string, index: number, total: number): DetailSh
   return {
     title: '소유자 변경',
     subtitle: null,
-    blocks: [block(null, [row('변경일', fullDate(date) ?? date), orderRow(index, total)])],
+    blocks: [block(null, [row('변경일', dateText(date)), orderRow(index, total)])],
   };
 }
 
@@ -82,13 +82,13 @@ export function plateSheet(date: string, index: number, total: number): DetailSh
   return {
     title: '번호 변경',
     subtitle: null,
-    blocks: [block(null, [row('변경일', fullDate(date) ?? date), orderRow(index, total)])],
+    blocks: [block(null, [row('변경일', dateText(date)), orderRow(index, total)])],
   };
 }
 
 /** 침수 피해 / 전손 처리 / 도난, with the matching counts from the record. */
 export function lossSheet(title: string, date: string, counts: Array<[string, number | null]>): DetailSheet {
-  const rows = [row('날짜', fullDate(date) ?? date)];
+  const rows = [row('날짜', dateText(date))];
   for (const [label, n] of counts) if (n !== null) rows.push(row(label, n > 0 ? `${n}회` : '없음', n > 0 ? 'danger' : null));
   return { title, subtitle: null, blocks: [block(null, rows)] };
 }
