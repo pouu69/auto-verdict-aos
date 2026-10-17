@@ -58,7 +58,7 @@ describe('ruleCopy on fixtures', () => {
     expect(r07.sellerQuestion).toContain('5번');
 
     const r08 = ruleCopy(resultOf('41878112', 'R08'), out.facts);
-    expect(r08.message).toBe('자차보험 없이 운행한 기간이 7개월 있어요 (2개 구간)');
+    expect(r08.message).toBe('자차보험 없이 운행한 기간이 2개 구간, 총 7개월 있어요');
     expect(r08.sellerQuestion).toBe('2023년 11월~2024년 1월, 2026년 4월~2026년 7월에 보험 없이 운행했나요?');
   });
 
@@ -69,14 +69,14 @@ describe('ruleCopy on fixtures', () => {
       sellerQuestion: '프레임 수리 내역과 사진을 볼 수 있을까요?',
     });
     expect(ruleCopy(resultOf('39339524', 'R10'), out.facts).message).toBe(
-      '보험 처리 금액이 커요 · 내차 1,126만원 · 타차 589만원',
+      '수리비가 많이 나온 편이에요 · 내차 1,126만원 · 타차 589만원',
     );
   });
 
   it('42264483 R12 warn names the leaking part', () => {
     const { out } = load('42264483');
     expect(ruleCopy(resultOf('42264483', 'R12'), out.facts)).toEqual({
-      message: '실린더 블록 / 오일팬(누유)가 있어요',
+      message: '실린더 블록·오일팬에 누유가 있어요',
       sellerQuestion: '누유 부위는 수리했나요?',
     });
   });
@@ -167,6 +167,19 @@ describe('ruleCopy on synthetic results', () => {
     });
   });
 
+  it('R12 joins several leaks as "부위에 상태" with the right particle', () => {
+    const leaks = (items: Array<{ part: string; status: string }>) =>
+      ruleCopy(result('R12', 'warn', [{ field: 'oilLeak', value: { hasLeak: true, items } }]), facts).message;
+    expect(
+      leaks([
+        { part: '실린더 블록 / 오일팬', status: '누유' },
+        { part: '실린더 헤드', status: '미세누유' },
+      ]),
+    ).toBe('실린더 블록·오일팬에 누유, 실린더 헤드에 미세누유가 있어요');
+    expect(leaks([{ part: '변속기', status: '누수' }])).toBe('변속기에 누수가 있어요');
+    expect(leaks([{ part: '로커암 커버', status: '미세 누유 흔적' }])).toBe('로커암 커버에 미세 누유 흔적이 있어요');
+  });
+
   it('R09, R11 warn', () => {
     expect(ruleCopy(result('R09', 'warn', [{ field: 'unconfirmed', value: true }]), facts)).toEqual({
       message: '수리비가 확정되지 않은 사고가 있어요',
@@ -196,7 +209,7 @@ describe('ruleCopy without numbers', () => {
       message: '자차보험 없이 운행한 기간이 있어요',
       sellerQuestion: '보험 없이 운행한 기간이 있었나요?',
     });
-    expect(ruleCopy(result('R10', 'warn', []), blank).message).toBe('보험 처리 금액이 커요');
+    expect(ruleCopy(result('R10', 'warn', []), blank).message).toBe('수리비가 많이 나온 편이에요');
     expect(ruleCopy(result('R10', 'pass', []), blank).message).toBe('경미한 수준이에요');
     expect(ruleCopy(result('R11', 'warn', []), noRatio)).toEqual({
       message: '신차 가격과 차이가 커요',

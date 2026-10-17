@@ -40,6 +40,34 @@ const LOSS_FIELDS: Array<[string, string]> = [
 
 const cmp = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
 
+export interface AccidentGroup {
+  ym: string;
+  firstDate: string;
+  side: '내차 피해' | '타차 가해';
+  count: number;
+  /** Repair cost (partCost + laborCost + paintingCost), the basis of myAccidentCost/otherAccidentCost and R10. */
+  won: number;
+}
+
+/** Accidents grouped by (month, side): the timeline shows months only. */
+export function accidentGroups(rec: Record<string, unknown>): AccidentGroup[] {
+  const groups = new Map<string, AccidentGroup>();
+  for (const a of arr(rec.accidents)) {
+    if (!isObj(a)) continue;
+    const date = str(a, 'date');
+    const ym = toYearMonth(date);
+    const side = accidentSide(a.type);
+    if (!date || !ym || !side) continue;
+    const key = `${ym}|${side}`;
+    const g = groups.get(key) ?? { ym, firstDate: date, side, count: 0, won: 0 };
+    g.count += 1;
+    g.won += (num(a, 'partCost') ?? 0) + (num(a, 'laborCost') ?? 0) + (num(a, 'paintingCost') ?? 0);
+    if (date < g.firstDate) g.firstDate = date;
+    groups.set(key, g);
+  }
+  return [...groups.values()];
+}
+
 export function buildTimeline(raw: MobileOrchestratorInput, out: MobileOrchestratorResult): TimelineEntry[] {
   // Gate on the parsed API; the raw body carries the extra fields RecordApi does not type.
   if (out.parsed.raw.recordApi.kind !== 'value') return [];
@@ -51,24 +79,9 @@ export function buildTimeline(raw: MobileOrchestratorInput, out: MobileOrchestra
   const firstYm = toYearMonth(first);
   if (first && firstYm) rows.push(row(Kind.Registration, firstYm, first, '신차 등록', null, 'neutral'));
 
-  // Accidents grouped by (month, side): the timeline shows months only.
-  const groups = new Map<string, { ym: string; firstDate: string; side: string; count: number; won: number }>();
-  for (const a of arr(rec.accidents)) {
-    if (!isObj(a)) continue;
-    const date = str(a, 'date');
-    const ym = toYearMonth(date);
-    const side = accidentSide(a.type);
-    if (!date || !ym || !side) continue;
-    const key = `${ym}|${side}`;
-    const g = groups.get(key) ?? { ym, firstDate: date, side, count: 0, won: 0 };
-    g.count += 1;
-    g.won += num(a, 'insuranceBenefit') ?? 0;
-    if (date < g.firstDate) g.firstDate = date;
-    groups.set(key, g);
-  }
-  for (const g of groups.values()) {
+  for (const g of accidentGroups(rec)) {
     const label = g.count > 1 ? `사고 ${g.count}건 · ${g.side}` : `사고 · ${g.side}`;
-    const detail = Math.round(g.won / 10_000) > 0 ? `보험 처리 합계 ${formatMan(g.won)}` : null;
+    const detail = Math.round(g.won / 10_000) > 0 ? `수리비 합계 ${formatMan(g.won)}` : null;
     rows.push(row(Kind.Accident, g.ym, g.firstDate, label, detail, 'warning'));
   }
 
