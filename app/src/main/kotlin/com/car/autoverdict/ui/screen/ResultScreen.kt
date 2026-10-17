@@ -199,34 +199,33 @@ fun ResultScreen(
 @Composable
 private fun OpenInEncarChip(onClick: () -> Unit) {
     val colors = AvTheme.colors
-    Box(
+    // minimumInteractiveComponentSize is outermost: it keeps the 48dp touch target (centring the
+    // pill inside it) while avPressable sizes to the pill, so the focus ring follows the pill.
+    Row(
         modifier = Modifier
-            .avPressable(onClick = onClick)
-            .minimumInteractiveComponentSize(),
-        contentAlignment = Alignment.Center,
+            .minimumInteractiveComponentSize()
+            .avPressable(onClick = onClick, focusShape = EncarChipShape)
+            .clip(EncarChipShape)
+            .background(colors.accentWeak)
+            .padding(horizontal = 12.dp, vertical = 7.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier
-                .clip(RoundedCornerShape(999.dp))
-                .background(colors.accentWeak)
-                .padding(horizontal = 12.dp, vertical = 7.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
-                contentDescription = null,
-                tint = colors.accentText,
-                modifier = Modifier.size(14.dp),
-            )
-            Spacer(Modifier.width(6.dp))
-            Text(
-                text = "엔카에서 보기",
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = colors.accentText,
-            )
-        }
+        Icon(
+            imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
+            contentDescription = null,
+            tint = colors.accentText,
+            modifier = Modifier.size(14.dp),
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            text = "엔카에서 보기",
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+            color = colors.accentText,
+        )
     }
 }
+
+private val EncarChipShape = RoundedCornerShape(999.dp)
 
 @Composable
 private fun LoadingOverlay(statusText: String) {

@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
@@ -23,6 +24,7 @@ import androidx.compose.ui.node.DrawModifierNode
 import androidx.compose.ui.node.invalidateDraw
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.car.autoverdict.ui.theme.AvPalette
 import kotlinx.coroutines.launch
@@ -92,10 +94,32 @@ private class AvPressIndicationNode(
     private fun ContentDrawScope.drawFocusRing() {
         val strokeWidth = RING_WIDTH.toPx()
         val offset = RING_GAP.toPx() + strokeWidth / 2
-        val ringSize = Size(size.width + offset * 2, size.height + offset * 2)
-        val outline = focusShape.grownBy(offset).createOutline(ringSize, layoutDirection, this)
+        val outline = ringOutline(offset)
         translate(-offset, -offset) {
             drawOutline(outline, color = AvPalette.Blue500, style = Stroke(width = strokeWidth))
+        }
+    }
+
+    // Outline cache: only rebuilt when the inputs to createOutline change, not on every draw frame.
+    private var cachedOutline: Outline? = null
+    private var cachedSize = Size.Unspecified
+    private var cachedLayoutDirection: LayoutDirection? = null
+    private var cachedDensity = 0f
+    private var cachedFontScale = 0f
+
+    private fun ContentDrawScope.ringOutline(offset: Float): Outline {
+        cachedOutline?.let { outline ->
+            if (size == cachedSize && layoutDirection == cachedLayoutDirection &&
+                density == cachedDensity && fontScale == cachedFontScale
+            ) return outline
+        }
+        val ringSize = Size(size.width + offset * 2, size.height + offset * 2)
+        return focusShape.grownBy(offset).createOutline(ringSize, layoutDirection, this).also {
+            cachedOutline = it
+            cachedSize = size
+            cachedLayoutDirection = layoutDirection
+            cachedDensity = density
+            cachedFontScale = fontScale
         }
     }
 
