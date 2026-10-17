@@ -155,6 +155,12 @@
     <string name="compare_row_year">연식</string>
     <string name="compare_row_mileage">주행거리</string>
     <string name="compare_row_fuel">연료</string>
+    <string name="compare_row_danger">위험</string>
+    <string name="compare_row_hidden">비공개</string>
+    <string name="compare_row_warning">주의</string>
+    <string name="compare_row_pass">통과</string>
+    <string name="compare_row_unknown">미확인</string>
+    <string name="compare_row_excluded">평가 제외</string>
     <string name="compare_issues_more">외 %1$d개</string>
     <string name="compare_issues_none">없어요</string>
     <string name="compare_fallback_note">저장 당시 요약이에요</string>
