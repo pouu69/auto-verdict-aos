@@ -7,6 +7,7 @@ import type { DetailSheet, TimelineEntry } from './types';
 import { groupDigits, koreanMonth } from './format';
 import { arr, isObj, num, str, toYearMonth } from './raw';
 import { safe } from './safe';
+import { gapPeriods } from './rule-copy';
 import {
   type AccidentRecord,
   type AccidentSide,
@@ -170,7 +171,7 @@ export function buildTimeline(raw: MobileOrchestratorInput, out: MobileOrchestra
 
   // Same periods the R08 copy uses.
   const gap = out.facts.insuranceGap;
-  for (const p of gap.kind === 'value' ? gap.value.periods : []) {
+  for (const p of gapPeriods(gap.kind === 'value' ? gap.value : undefined).periods) {
     const detail = `${koreanMonth(p.from)}~${koreanMonth(p.to)}`;
     rows.push(row(Kind.Gap, p.from, p.from, '보험 미가입', detail, 'warning', () => gapSheet(p)));
   }

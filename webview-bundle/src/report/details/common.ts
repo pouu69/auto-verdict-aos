@@ -5,8 +5,8 @@
 import type { FieldStatus } from '@core/types/FieldStatus.js';
 import type { MobileOrchestratorResult } from '../../orchestrate-mobile';
 import type { DetailBlock, DetailRow, Tone } from '../types';
-import { groupDigits } from '../format';
-import { isObj, type Obj } from '../raw';
+import { groupDigits, koreanMonth } from '../format';
+import { isObj, toYearMonth, type Obj } from '../raw';
 import { reasonShort } from '../reasons';
 
 export const row = (label: string, value: string, tone: Tone | null = null): DetailRow => ({ label, value, tone });
@@ -28,6 +28,15 @@ export const fullDate = (s: unknown): string | null => {
   const month = Number(m[2]);
   const day = Number(m[3]);
   return month >= 1 && month <= 12 && day >= 1 && day <= 31 ? `${m[1]}-${m[2]}-${m[3]}` : null;
+};
+
+/**
+ * A record date for display: [fullDate], else "2021년 5월" when only the month
+ * reads ("2021-05", "2021-05-99"). The raw string is never shown.
+ */
+export const dateText = (s: string): string => {
+  const ym = toYearMonth(s);
+  return fullDate(s) ?? (ym ? koreanMonth(ym) : '날짜 없음');
 };
 
 /** Months as "7개월" / "1년" / "1년 2개월". */

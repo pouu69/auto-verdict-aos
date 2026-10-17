@@ -89,7 +89,8 @@ export function diagnosisBlocks(out: MobileOrchestratorResult): DetailBlock[] | 
   const parts: DetailRow[] = [];
   for (const i of items) {
     const name = str(i, 'name') ?? '';
-    if (isComment(name)) continue;
+    // Comment rows carry a null resultCode (core getFrameIntact): skip them even without a name.
+    if (isComment(name) || i.resultCode === null) continue;
     const result = (str(i, 'result') ?? '').trim() || '기록 없음';
     const code = typeof i.resultCode === 'string' ? i.resultCode : null;
     // Unmapped parts keep their code in readable form so rows stay distinct.
