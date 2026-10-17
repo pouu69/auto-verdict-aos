@@ -56,8 +56,15 @@ class AppNavigatorTest {
     }
 
     @Test fun `back on home or first-run onboarding is left to the system`() {
-        assertFalse(reduce(state(Route.Home), NavEvent.Back).handled)
-        assertFalse(reduce(state(Route.Onboarding), NavEvent.Back).handled)
+        val home = state(Route.Home)
+        val homeResult = reduce(home, NavEvent.Back)
+        assertFalse(homeResult.handled)
+        assertEquals(home, homeResult.state)
+
+        val onboarding = state(Route.Onboarding)
+        val onboardingResult = reduce(onboarding, NavEvent.Back)
+        assertFalse(onboardingResult.handled)
+        assertEquals(onboarding, onboardingResult.state)
     }
 
     @Test fun `canHandleBack mirrors the back rules`() {
@@ -79,6 +86,12 @@ class AppNavigatorTest {
         assertEquals(listOf(Route.Onboarding), r.state.stack)
         assertEquals(url, r.state.pendingSharedUrl)
         assertEquals(NavTransition.None, r.transition)
+    }
+
+    @Test fun `share during a replayed onboarding replaces the stack`() {
+        val r = reduce(state(Route.Home, Route.Settings, Route.Onboarding), NavEvent.OpenShared(url))
+        assertEquals(listOf(Route.Home, Route.Result(url, fromSaved = false)), r.state.stack)
+        assertEquals(NavTransition.Replace, r.transition)
     }
 
     @Test fun `invalid share keeps the stack and asks for a toast`() {
@@ -126,6 +139,7 @@ class AppNavigatorTest {
         val s = state(Route.Home, Route.Result(url, fromSaved = false))
         val r = reduce(s, NavEvent.Open(Route.Result(otherUrl, fromSaved = false)))
         assertEquals(3, r.state.stack.size)
+        assertEquals(Route.Result(otherUrl, fromSaved = false), r.state.top)
         assertEquals(NavTransition.Push, r.transition)
     }
 }

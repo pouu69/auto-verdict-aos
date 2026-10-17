@@ -15,6 +15,7 @@ data class NavState(
 }
 
 sealed interface NavEvent {
+    /** Pushes [route]. Tab roots ([Route.Home], [Route.Saved]) must be reached via [SelectTab], not Open. */
     data class Open(val route: Route) : NavEvent
     data object Back : NavEvent
     data class SelectTab(val tab: MainTab) : NavEvent
@@ -42,8 +43,7 @@ object AppNavigator {
     fun initial(onboardingComplete: Boolean): NavState =
         NavState(listOf(if (onboardingComplete) Route.Home else Route.Onboarding))
 
-    fun canHandleBack(state: NavState): Boolean =
-        state.stack.size > 1 || state.top == Route.Saved
+    fun canHandleBack(state: NavState): Boolean = back(state).handled
 
     fun reduce(state: NavState, event: NavEvent): NavResult = when (event) {
         is NavEvent.Open -> open(state, event.route)
@@ -82,7 +82,7 @@ object AppNavigator {
             NavResult(state.copy(pendingSharedUrl = url), NavTransition.None)
         } else {
             NavResult(
-                state.copy(stack = listOf(Route.Home, Route.Result(url, fromSaved = false))),
+                NavState(listOf(Route.Home, Route.Result(url, fromSaved = false))),
                 NavTransition.Replace,
             )
         }

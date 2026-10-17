@@ -3,7 +3,10 @@ package com.car.autoverdict.ui.navigation
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.listSaver
 
-/** String form of [Route] for saved-instance state. Unknown or malformed input decodes to null. */
+/**
+ * String form of [Route] for saved-instance state. [decode] returns null for an unknown kind or
+ * missing parts; extra trailing parts are ignored.
+ */
 object RouteCodec {
 
     fun encode(route: Route): String = when (route) {
