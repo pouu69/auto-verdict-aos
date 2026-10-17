@@ -1,5 +1,8 @@
 package com.car.autoverdict.ui.navigation
 
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.listSaver
+
 /** String form of [Route] for saved-instance state. Unknown or malformed input decodes to null. */
 object RouteCodec {
 
@@ -35,3 +38,24 @@ object RouteCodec {
         }
     }
 }
+
+/** Saved form: first element is the pending shared url ("" if none), then encoded routes. */
+object NavStateCodec {
+
+    fun encode(state: NavState): List<String> =
+        listOf(state.pendingSharedUrl.orEmpty()) + state.stack.map(RouteCodec::encode)
+
+    fun decode(saved: List<String>): NavState? {
+        if (saved.isEmpty()) return null
+        // Any unreadable route invalidates the whole stack, so we never restore e.g. [Settings] without its root.
+        val stack = saved.drop(1).map { RouteCodec.decode(it) ?: return null }
+        if (stack.isEmpty()) return null
+        return NavState(stack, pendingSharedUrl = saved.first().ifEmpty { null })
+    }
+}
+
+/** rememberSaveable saver for the navigation state (no Parcelize plugin needed). */
+val NavStateSaver: Saver<NavState, Any> = listSaver(
+    save = { NavStateCodec.encode(it) },
+    restore = { NavStateCodec.decode(it) },
+)
