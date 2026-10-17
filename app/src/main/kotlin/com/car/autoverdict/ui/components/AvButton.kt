@@ -13,8 +13,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.car.autoverdict.R
 import com.car.autoverdict.ui.theme.AvTheme
 
 enum class AvButtonStyle { Primary, Weak, Secondary, Danger }
@@ -47,12 +52,16 @@ fun AvButton(
     val colors = AvTheme.colors
     val shapes = AvTheme.shapes
     val typography = AvTheme.typography
-    val (container, content) = when {
-        !enabled -> colors.surfaceMuted to colors.textDisabled
-        style == AvButtonStyle.Primary -> colors.accent to colors.onAccent
-        style == AvButtonStyle.Weak -> colors.accentWeak to colors.accentText
-        style == AvButtonStyle.Secondary -> colors.surfaceMuted to colors.textSecondary
-        else -> colors.dangerBg to colors.dangerText
+    val loadingDescription = stringResource(R.string.button_loading)
+    val (container, content) = if (!enabled) {
+        colors.surfaceMuted to colors.textDisabled
+    } else {
+        when (style) {
+            AvButtonStyle.Primary -> colors.accent to colors.onAccent
+            AvButtonStyle.Weak -> colors.accentWeak to colors.accentText
+            AvButtonStyle.Secondary -> colors.surfaceMuted to colors.textSecondary
+            AvButtonStyle.Danger -> colors.dangerBg to colors.dangerText
+        }
     }
     val shape = when (size) {
         AvButtonSize.Large -> shapes.buttonL
@@ -69,6 +78,7 @@ fun AvButton(
             // Small (36dp) still gets a 48dp touch target (spec 6).
             .minimumInteractiveComponentSize()
             .avPressable(onClick = onClick, enabled = enabled && !loading)
+            .semantics { if (loading) stateDescription = loadingDescription }
             .heightIn(min = size.minHeight)
             .clip(shape)
             .background(container)
@@ -80,6 +90,7 @@ fun AvButton(
             style = textStyle,
             color = content,
             maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.alpha(if (loading) 0f else 1f),
         )
         if (loading) {

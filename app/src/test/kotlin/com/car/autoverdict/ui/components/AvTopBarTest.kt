@@ -3,6 +3,8 @@ package com.car.autoverdict.ui.components
 import android.app.Application
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.isHeading
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -28,6 +30,11 @@ class AvTopBarTest {
         rule.onNodeWithText("저장된 매물").assertExists()
         rule.onNodeWithContentDescription("뒤로").performClick()
         assertEquals(1, backs)
+    }
+
+    @Test fun `title has heading semantics`() {
+        rule.setContent { AvTheme { AvTopBar(onBack = {}, title = "분석 결과") } }
+        rule.onNodeWithText("분석 결과").assert(isHeading())
     }
 
     @Test fun `tab root bar has no back button`() {

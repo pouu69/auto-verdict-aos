@@ -1,7 +1,11 @@
 package com.car.autoverdict.ui.components
 
 import android.app.Application
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -32,6 +36,15 @@ class AvTextFieldTest {
             }
         }
         rule.onNodeWithText("엔카 매물 링크가 아니에요").assertIsDisplayed()
+    }
+
+    @Test fun `error is exposed on the editable field semantics`() {
+        rule.setContent {
+            AvTheme {
+                AvTextField(value = "abc", onValueChange = {}, placeholder = "p", errorText = "엔카 매물 링크가 아니에요")
+            }
+        }
+        rule.onNode(hasSetTextAction()).assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Error))
     }
 
     @Test fun `clear button appears with text and calls onClear`() {

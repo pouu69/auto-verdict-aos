@@ -1,8 +1,13 @@
 package com.car.autoverdict.ui.components
 
 import android.app.Application
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertTouchHeightIsEqualTo
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -37,8 +42,17 @@ class AvButtonTest {
     @Test fun `loading button keeps its label for accessibility but ignores clicks`() {
         var clicks = 0
         rule.setContent { AvTheme { AvButton(text = "저장하기", onClick = { clicks++ }, loading = true) } }
-        rule.onNodeWithText("저장하기").assertExists().assertIsNotEnabled().performClick()
+        rule.onNodeWithText("저장하기").assertExists().assertIsNotEnabled()
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "진행 중"))
+            .performClick()
         assertEquals(0, clicks)
+    }
+
+    @Test fun `small button still has a 48dp touch target`() {
+        rule.setContent {
+            AvTheme { AvButton(text = "더보기", onClick = {}, style = AvButtonStyle.Secondary, size = AvButtonSize.Small) }
+        }
+        rule.onNodeWithText("더보기").assertTouchHeightIsEqualTo(48.dp)
     }
 
     @Test fun `primary is allowed only in large and medium`() {

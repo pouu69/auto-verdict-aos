@@ -24,8 +24,10 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.car.autoverdict.R
 import com.car.autoverdict.ui.theme.AvTheme
@@ -57,7 +59,9 @@ fun AvTextField(
             cursorBrush = SolidColor(colors.accent),
             keyboardOptions = keyboardOptions,
             keyboardActions = keyboardActions,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { if (errorText != null) error(errorText) },
             decorationBox = { innerTextField ->
                 Row(
                     modifier = Modifier
@@ -74,7 +78,13 @@ fun AvTextField(
                     }
                     Box(modifier = Modifier.weight(1f).padding(vertical = 14.dp)) {
                         if (value.isEmpty()) {
-                            Text(text = placeholder, style = typography.body1, color = colors.textTertiary, maxLines = 1)
+                            Text(
+                                text = placeholder,
+                                style = typography.body1,
+                                color = colors.textTertiary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
                         }
                         innerTextField()
                     }

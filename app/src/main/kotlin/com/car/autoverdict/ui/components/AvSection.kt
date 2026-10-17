@@ -17,6 +17,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.car.autoverdict.ui.theme.AvTheme
 
+/**
+ * Section title with an optional count and trailing text action. The action is shown
+ * only when both [actionLabel] and [onAction] are given.
+ */
 @Composable
 fun AvSectionHeader(
     title: String,
@@ -44,8 +48,8 @@ fun AvSectionHeader(
         if (actionLabel != null && onAction != null) {
             Box(
                 modifier = Modifier
-                    .avPressable(onClick = onAction)
                     .minimumInteractiveComponentSize()
+                    .avPressable(onClick = onAction)
                     .padding(horizontal = 12.dp),
                 contentAlignment = Alignment.Center,
             ) {
