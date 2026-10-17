@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,19 +19,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -46,10 +44,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.car.autoverdict.AutoVerdictApp
 import com.car.autoverdict.BuildConfig
+import com.car.autoverdict.R
+import com.car.autoverdict.ui.components.AvTopBar
 import com.car.autoverdict.ui.theme.Background
 import com.car.autoverdict.ui.theme.Border
 import com.car.autoverdict.ui.theme.Danger
@@ -60,12 +61,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
+    onBack: () -> Unit = {},
     onPrivacyPolicy: () -> Unit = {},
+    onLicenses: () -> Unit = {},
     onReplayGuide: () -> Unit = {},
+    onGallery: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -82,19 +85,7 @@ fun SettingsScreen(
             .fillMaxSize()
             .background(Background),
     ) {
-        TopAppBar(
-            title = {
-                Text(
-                    text = "설정",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                )
-            },
-            windowInsets = WindowInsets(0, 0, 0, 0),
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Background,
-                titleContentColor = TextPrimary,
-            ),
-        )
+        AvTopBar(onBack = onBack, title = "설정")
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -192,6 +183,22 @@ fun SettingsScreen(
                     )
                     SettingsDivider()
                     SettingsRow(
+                        icon = Icons.Outlined.Description,
+                        iconTint = Primary,
+                        iconBg = Primary.copy(alpha = 0.1f),
+                        title = stringResource(R.string.settings_licenses_title),
+                        subtitle = stringResource(R.string.settings_licenses_subtitle),
+                        onClick = onLicenses,
+                        trailing = {
+                            Icon(
+                                imageVector = Icons.Outlined.ChevronRight,
+                                contentDescription = null,
+                                tint = TextSecondary,
+                            )
+                        },
+                    )
+                    SettingsDivider()
+                    SettingsRow(
                         icon = Icons.Outlined.Info,
                         iconTint = Primary,
                         iconBg = Primary.copy(alpha = 0.1f),
@@ -205,6 +212,30 @@ fun SettingsScreen(
                             )
                         },
                     )
+                }
+            }
+
+            if (onGallery != null) {
+                item { Spacer(Modifier.height(16.dp)) }
+                item { SectionHeader(stringResource(R.string.settings_section_dev)) }
+                item {
+                    SettingsGroup {
+                        SettingsRow(
+                            icon = Icons.Outlined.Palette,
+                            iconTint = Primary,
+                            iconBg = Primary.copy(alpha = 0.1f),
+                            title = stringResource(R.string.settings_gallery_title),
+                            subtitle = stringResource(R.string.settings_gallery_subtitle),
+                            onClick = onGallery,
+                            trailing = {
+                                Icon(
+                                    imageVector = Icons.Outlined.ChevronRight,
+                                    contentDescription = null,
+                                    tint = TextSecondary,
+                                )
+                            },
+                        )
+                    }
                 }
             }
 

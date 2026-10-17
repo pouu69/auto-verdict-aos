@@ -12,4 +12,9 @@
     <string name="cd_clear">지우기</string>
     <string name="cd_settings">설정</string>
     <string name="button_loading">진행 중</string>
+    <string name="settings_licenses_title">오픈소스 라이선스</string>
+    <string name="settings_licenses_subtitle">폰트·아이콘 라이선스 고지</string>
+    <string name="settings_section_dev">개발</string>
+    <string name="settings_gallery_title">컴포넌트 갤러리</string>
+    <string name="settings_gallery_subtitle">debug 빌드 전용</string>
 </resources>
