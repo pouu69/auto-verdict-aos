@@ -6,6 +6,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.car.autoverdict.AutoVerdictApp
 import com.car.autoverdict.BuildConfig
+import com.car.autoverdict.onboarding.OnboardingMode
+import com.car.autoverdict.onboarding.OnboardingScreen
 import com.car.autoverdict.result.ResultRoute
 import com.car.autoverdict.ui.AdBanner
 import com.car.autoverdict.ui.AdMediumRectangle
@@ -13,7 +15,6 @@ import com.car.autoverdict.ui.gallery.ComponentGalleryScreen
 import com.car.autoverdict.ui.screen.AnalyzeScreen
 import com.car.autoverdict.ui.screen.CompareScreen
 import com.car.autoverdict.ui.screen.LicensesScreen
-import com.car.autoverdict.ui.screen.OnboardingScreen
 import com.car.autoverdict.ui.screen.PrivacyPolicyScreen
 import com.car.autoverdict.ui.screen.SavedListScreen
 import com.car.autoverdict.ui.screen.SettingsRoute
@@ -22,7 +23,15 @@ import com.car.autoverdict.ui.screen.SettingsRoute
 @Composable
 fun AppScreenContent(route: Route, host: ScreenHost) {
     when (route) {
-        Route.Onboarding -> OnboardingScreen(onComplete = host.finishOnboarding)
+        Route.Onboarding -> {
+            val mode = if (host.isFirstRunOnboarding) OnboardingMode.FirstRun else OnboardingMode.Replay
+            OnboardingScreen(
+                mode = mode,
+                hasPendingShare = host.hasPendingShare,
+                onFinish = host.finishOnboarding,
+                onBack = host.back.takeIf { mode == OnboardingMode.Replay },
+            )
+        }
         Route.Home -> AnalyzeScreen(
             onOpenSettings = { host.navigate(Route.Settings) },
             onAnalyze = { url -> host.navigate(Route.Result(url, fromSaved = false)) },
