@@ -109,4 +109,24 @@
     <string name="result_repairs_full_inspection">성능점검 전체 보기</string>
     <string name="result_detail_seller_question">판매자에게 물어보기</string>
     <string name="result_detail_copy_question">복사</string>
+
+    <!-- Share guide sheet and share illustrations (UX revamp 2, T3) -->
+    <string name="guide_title">엔카에서 공유하는 법</string>
+    <string name="guide_from_app">엔카 앱에서</string>
+    <string name="guide_from_browser">브라우저에서</string>
+    <string name="guide_app_step_share">매물 화면에서 공유 버튼을 눌러요</string>
+    <string name="guide_browser_step_share">매물 페이지에서 메뉴를 열고 공유를 눌러요</string>
+    <string name="guide_step_pick_app">공유 목록에서 AutoVerdict를 골라요</string>
+    <string name="guide_tip_more">목록에 없으면 공유 목록 끝의 더보기를 눌러 보세요</string>
+    <string name="guide_open_encar">엔카 열기</string>
+    <string name="toast_open_encar_failed">엔카를 열지 못했어요</string>
+    <string name="illus_share_sheet_caption">공유 목록에서 이렇게 보여요</string>
+    <string name="illus_tap_here">여기를 눌러요</string>
+    <string name="illus_menu_caption">메뉴를 열면</string>
+    <string name="illus_menu_favorite">즐겨찾기</string>
+    <string name="illus_menu_share">공유</string>
+    <string name="illus_menu_print">인쇄</string>
+    <string name="illus_app_messenger">메신저</string>
+    <string name="illus_app_message">메시지</string>
+    <string name="illus_browser_note">크롬은 오른쪽 위, 삼성 인터넷은 아래쪽 메뉴에 있어요</string>
 </resources>
