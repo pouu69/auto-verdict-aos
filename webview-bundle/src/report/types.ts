@@ -40,6 +40,12 @@ export interface DetailSheet {
 export interface ReportCar {
   /** Saved-list format: "{year} {manufacturer} {model}", or "차량 정보 없음". */
   title: string;
+  /**
+   * Display name: "{manufacturer} {model} {grade}" without the year, plus the
+   * grade detail while it fits ~30 characters, e.g. "BMW 3시리즈 (F30) 320d";
+   * "차량 정보 없음" when none is known.
+   */
+  name: string;
   year: number | null;
   mileageKm: number | null;
   priceWon: number | null;
@@ -109,7 +115,7 @@ export interface RuleItem {
   tone: Tone;
   label: RuleLabel;
   message: string;
-  /** One-line noun phrase for the "전체 항목" rows, e.g. "소유자 변경 5회" (spec 4.0). */
+  /** One-line noun phrase for the "전체 항목" rows, shown under the title, e.g. "소유자 변경 5회" (spec 4.0). */
   summary: string;
   /** Filled for issues (non-pass); null for pass rows. */
   why: string | null;

@@ -1,8 +1,10 @@
 /**
  * One-line noun-phrase result for the "전체 항목" rows (spec 4.0), e.g.
- * "소유자 변경 5회". No 해요체: the full sentence stays in `message` for
- * cards, sheets and share text. Numbers come from evidence, then facts,
- * the same way [ruleCopy] reads them.
+ * "소유자 변경 5회". The row shows the rule title right above, so a summary
+ * is never the title word for word (R01/R02 say just "공개"/"비공개"). No
+ * 해요체: the full sentence stays in `message` for cards, sheets and share
+ * text. Numbers come from evidence, then facts, the same way [ruleCopy]
+ * reads them.
  */
 import type { RuleResult } from '@core/types/RuleTypes.js';
 import type { MobileOrchestratorResult } from '../orchestrate-mobile';
@@ -24,9 +26,8 @@ export function ruleSummary(result: RuleResult, out: MobileOrchestratorResult, f
   const problem = s === 'killer' || s === 'fail' || s === 'warn';
   switch (result.ruleId) {
     case 'R01':
-      return problem ? '보험이력 비공개' : '보험이력 공개';
     case 'R02':
-      return problem ? '성능점검 비공개' : '성능점검 공개';
+      return problem ? '비공개' : '공개';
     case 'R03':
       return '엔카진단 통과 차량';
     case 'R04': {

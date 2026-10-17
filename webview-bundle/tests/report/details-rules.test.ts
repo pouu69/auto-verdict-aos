@@ -122,6 +122,8 @@ describe('rule detail sheets', () => {
       '판정 기준',
       '데이터 출처',
     ]);
+    // Only outer panels (1·2랭크) are recorded, so the row names the 성능점검 flag, not "프레임 손상".
+    expect(blockOf(d, '판정 근거').rows).toEqual([{ label: '성능점검 사고 이력', value: '있음', tone: 'danger' }]);
     expect(blockOf(d, '판정 근거').note).toMatch(/성능점검을 근거로/);
     expect(blockOf(d, '성능점검').rows).toEqual([
       { label: '사고 이력', value: '있음', tone: 'danger' },
@@ -149,14 +151,15 @@ describe('rule detail sheets', () => {
     expect(rows.map((r) => r.label)).toEqual(['5번째 변경', '4번째 변경', '3번째 변경', '2번째 변경', '1번째 변경']);
   });
 
-  it('41878112 R08: both periods, months summing to the engine total', () => {
+  it('41878112 R08: both periods newest first, months summing to the engine total', () => {
     const { out } = load('41878112');
     const gap = out.facts.insuranceGap;
     if (gap.kind !== 'value') throw new Error('no gap');
     const rows = blockOf(detailOf(reportOf('41878112'), 'R08'), '보험 미가입 기간').rows;
+    // Newest first, like the R07 change dates; the total stays last.
     expect(rows).toEqual([
-      { label: '2023년 11월~2024년 1월', value: '3개월', tone: 'warning' },
       { label: '2026년 4월~2026년 7월', value: '4개월', tone: 'warning' },
+      { label: '2023년 11월~2024년 1월', value: '3개월', tone: 'warning' },
       { label: '합계', value: '7개월', tone: 'warning' },
     ]);
     const periods = rows.slice(0, -1).reduce((s, r) => s + monthsOf(r.value), 0);
@@ -166,8 +169,8 @@ describe('rule detail sheets', () => {
 
   it('R12 rows match the engine oilLeak items (restated OIL_LEAK_CODES)', () => {
     const check = (report: EvaluationReport, items: unknown[], label: string) => {
-      const rows = blockOf(detailOf(report, 'R12'), '누유 항목').rows;
-      const leaks = rows.filter((r) => r.label !== '누유 항목');
+      const rows = blockOf(detailOf(report, 'R12'), '누유 부위').rows;
+      const leaks = rows.filter((r) => r.tone !== 'success');
       expect(leaks, label).toHaveLength(items.length);
     };
     for (const id of FIXTURE_IDS) {
@@ -188,9 +191,36 @@ describe('rule detail sheets', () => {
     check(buildReport(raw, out), ev.items, 'synthetic');
   });
 
-  it('42264483 R12: the leaking part with its group, danger tone', () => {
-    const rows = blockOf(detailOf(reportOf('42264483'), 'R12'), '누유 항목').rows;
-    expect(rows).toEqual([{ label: '오일누유 · 실린더 블록·오일팬', value: '누유', tone: 'danger' }]);
+  it('42264483 R12: 누유 부위 lists the part and its status, danger tone', () => {
+    const rows = blockOf(detailOf(reportOf('42264483'), 'R12'), '누유 부위').rows;
+    expect(rows).toEqual([{ label: '실린더 블록·오일팬', value: '누유', tone: 'danger' }]);
+  });
+
+  it('R12 without leaks: one 없음 row whose label is not the block title', () => {
+    const b = blockOf(detailOf(reportOf('41878112'), 'R12'), '누유 부위');
+    expect(b.rows).toEqual([{ label: '미세누유·누유', value: '없음', tone: 'success' }]);
+  });
+
+  it('R12: a leak item named 오일누유 is labelled with the unit it belongs to', () => {
+    const raw = rawOf('42264483');
+    const inners = (raw.inspectionJson as { inners: Array<{ type: { title: string }; children?: Array<{ type: { title: string }; children?: Array<{ type: { title: string }; statusType: unknown }> }> }> }).inners;
+    const at = inners.find((n) => n.type.title === '변속기')!.children![0]!;
+    at.children!.find((n) => n.type.title === '오일누유')!.statusType = { code: '6', title: '미세누유' };
+    const rows = blockOf(detailOf(buildReport(raw, orchestrateMobile(raw)), 'R12'), '누유 부위').rows;
+    expect(rows).toEqual([
+      { label: '실린더 블록·오일팬', value: '누유', tone: 'danger' },
+      { label: '자동변속기(A/T)', value: '미세누유', tone: 'warning' },
+    ]);
+  });
+
+  it('no evidence row repeats its block title as its label', () => {
+    for (const id of FIXTURE_IDS) {
+      for (const item of reportOf(id).rules) {
+        for (const b of item.detail!.blocks) {
+          for (const r of b.rows) expect(r.label, `${id} ${item.ruleId} ${b.title}`).not.toBe(b.title);
+        }
+      }
+    }
   });
 });
 
@@ -234,6 +264,60 @@ describe('rule detail evidence rows', () => {
     });
   });
 
+});
+
+describe('R04 판정 근거 by source', () => {
+  const r04Of = (raw: ReturnType<typeof rawOf>) => {
+    const report = buildReport(raw, orchestrateMobile(raw));
+    return report.rules.find((r) => r.ruleId === 'R04')!;
+  };
+
+  it('엔카진단 source keeps the 프레임 손상 row', () => {
+    const d = detailOf(reportOf('41878112'), 'R04');
+    expect(blockOf(d, '판정 근거')).toEqual({
+      title: '판정 근거',
+      rows: [{ label: '프레임 손상', value: '없음', tone: 'success' }],
+      note: null,
+    });
+  });
+
+  it('성능점검 source names the 사고 이력 flag, also when it is 없음', () => {
+    const raw = rawOf('42264483');
+    (raw.inspectionJson as { master: { accdient: boolean } }).master.accdient = false;
+    const item = r04Of(raw);
+    expect(item.label).toBe('통과');
+    expect(blockOf(item.detail!, '판정 근거').rows).toEqual([{ label: '성능점검 사고 이력', value: '없음', tone: 'success' }]);
+  });
+
+  it('판정 기준 restates the engine: 엔카진단 프레임 손상 or 성능점검 사고 이력', () => {
+    for (const id of FIXTURE_IDS) {
+      expect(blockOf(detailOf(reportOf(id), 'R04'), '판정 기준').rows, id).toEqual([
+        { label: '위험', value: '엔카진단에서 프레임 손상 판정 또는 성능점검 사고 이력 있음', tone: 'danger' },
+        { label: '통과', value: '둘 다 없음(외판 단순 교환·수리만 있으면 감점 없음)', tone: 'success' },
+      ]);
+    }
+  });
+
+  it('a 성능점검 사고 이력 overruled by 엔카진단 is explained, not left contradicting 통과', () => {
+    const raw = rawOf('41878112');
+    (raw.inspectionJson as { master: { accdient: boolean } }).master.accdient = true;
+    const item = r04Of(raw);
+    expect(item.label).toBe('통과');
+    const basis = blockOf(item.detail!, '판정 근거');
+    expect(basis.rows).toEqual([{ label: '프레임 손상', value: '없음', tone: 'success' }]);
+    expect(basis.note).toBe('성능점검에는 사고 이력이 있지만, 엔카진단이 프레임 손상 없음으로 판정해 엔카진단을 따랐어요');
+  });
+
+  it('엔카진단 프레임 손상 with a clean 성능점검: 위험, the row and note agree', () => {
+    const raw = rawOf('41878112');
+    const items = (raw.diagnosisJson as { items: Array<{ name: string; result: string }> }).items;
+    items.find((i) => i.name === 'CHECKER_COMMENT')!.result = "본 차량은 '사고' 차량으로 판정합니다.";
+    const item = r04Of(raw);
+    expect(item.label).toBe('위험');
+    const basis = blockOf(item.detail!, '판정 근거');
+    expect(basis.rows).toEqual([{ label: '프레임 손상', value: '있음', tone: 'danger' }]);
+    expect(basis.note).toBe('성능점검에는 사고 이력이 없지만, 엔카진단이 프레임 손상으로 판정해 엔카진단을 따랐어요');
+  });
 });
 
 describe('rule detail edge cases', () => {

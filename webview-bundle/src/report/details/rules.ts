@@ -9,7 +9,7 @@ import type { DetailBlock, DetailRow, DetailSheet } from '../types';
 import { RULE_META } from '../rule-meta';
 import type { FrameSource } from '../frame-source';
 import { formatMan, koreanMonth } from '../format';
-import { arr, count, num } from '../raw';
+import { arr, count, isObj, num, type Obj } from '../raw';
 import { reasonShort } from '../reasons';
 import { gapPeriods, ratioOf, unknownStatus } from '../rule-copy';
 import { walkSystems, codeTone } from '../repairs';
@@ -75,7 +75,10 @@ const criteriaBlock = (ruleId: string): DetailBlock | null => {
     case 'R04':
       return block(
         '판정 기준',
-        [danger('엔카진단 프레임 손상 또는 성능점검 사고 이력'), pass('프레임 손상 없음(외판 교환·수리는 감점 없음)')],
+        [
+          danger('엔카진단에서 프레임 손상 판정 또는 성능점검 사고 이력 있음'),
+          pass('둘 다 없음(외판 단순 교환·수리만 있으면 감점 없음)'),
+        ],
         '엔카진단 판정을 먼저 보고, 판정이 분명하지 않으면 성능점검의 사고 이력을 봐요',
       );
     case 'R05':
@@ -136,21 +139,35 @@ const FRAME_SOURCE_NAME: Record<FrameSource, string> = {
   unknown: '엔카진단 통과 표시',
 };
 
+/** `master.accdient` of the 성능점검, or null when it was not read or carries no flag. */
+const inspectionAccident = (ins: Obj | null): boolean | null => {
+  const master = ins && isObj(ins.master) ? ins.master : null;
+  return master && typeof master.accdient === 'boolean' ? master.accdient : null;
+};
+
 const r04 = ({ out, frameSource }: Ctx): DetailBlock[] => {
   const frame = out.facts.frameDamage;
-  // The source itself is the sheet subtitle ("근거: 성능점검").
+  const ins = inspectionOf(out);
+  // The source itself is the sheet subtitle ("근거: 성능점검"). A 성능점검 사고 이력
+  // also covers welded outer panels (quarter panels), so it is not called 프레임 손상.
   const rows: DetailRow[] = [];
   if (frame.kind === 'value') {
-    rows.push(row('프레임 손상', frame.value.hasDamage ? '있음' : '없음', frame.value.hasDamage ? 'danger' : 'success'));
+    const label = frameSource === 'inspection' ? '성능점검 사고 이력' : '프레임 손상';
+    rows.push(row(label, frame.value.hasDamage ? '있음' : '없음', frame.value.hasDamage ? 'danger' : 'success'));
   }
   let note: string | null = null;
+  const accident = inspectionAccident(ins);
   if (frameSource === 'inspection' && out.parsed.raw.diagnosisApi.kind === 'value') {
     note = '엔카진단 판정이 프레임 손상 여부를 분명히 밝히지 않아 성능점검을 근거로 썼어요';
+  } else if (frameSource === 'diagnosis' && frame.kind === 'value' && accident !== null && accident !== frame.value.hasDamage) {
+    // The 성능점검 rows below disagree with the verdict; say which one won.
+    note = frame.value.hasDamage
+      ? '성능점검에는 사고 이력이 없지만, 엔카진단이 프레임 손상으로 판정해 엔카진단을 따랐어요'
+      : '성능점검에는 사고 이력이 있지만, 엔카진단이 프레임 손상 없음으로 판정해 엔카진단을 따랐어요';
   } else if (frameSource === 'unknown') {
     note = '엔카진단을 통과한 차는 프레임 손상이 없는 차로 봐요';
   }
   const blocks = [block('판정 근거', rows, note)];
-  const ins = inspectionOf(out);
   if (ins) blocks.push(block('성능점검', accidentRows(ins)), panelBlock(out));
   blocks.push(...(diagnosisBlocks(out) ?? []));
   return blocks;
@@ -235,7 +252,9 @@ const r08 = ({ out }: Ctx): DetailBlock[] => {
     const gap = g.value.hasGap === true;
     return [block('보험 미가입 기간', [row('미가입 기간', gap ? '있음' : '없음', gap ? 'warning' : 'success')], note)];
   }
-  const rows = periods.map((p) => row(`${koreanMonth(p.from)}~${koreanMonth(p.to)}`, duration(p.months), 'warning'));
+  // Newest first, like the R07 change dates ("YYYY-MM" sorts as text).
+  const newest = [...periods].sort((a, b) => (a.from < b.from ? 1 : a.from > b.from ? -1 : 0));
+  const rows = newest.map((p) => row(`${koreanMonth(p.from)}~${koreanMonth(p.to)}`, duration(p.months), 'warning'));
   rows.push(row('합계', duration(totalMonths), 'warning'));
   return [block('보험 미가입 기간', rows, note)];
 };
@@ -295,15 +314,22 @@ const r11 = ({ result, out }: Ctx): DetailBlock[] => {
   return [block('가격 비교', rows)];
 };
 
+/**
+ * Where the leak is: the item itself ("실린더 블록·오일팬" under 원동기 ›
+ * 오일누유), or its unit when the item is just called "오일누유"
+ * (변속기 › 자동변속기(A/T) › 오일누유 -> "자동변속기(A/T)").
+ */
+const leakPart = (n: { group: string; name: string }): string => (n.name === '오일누유' && n.group ? n.group : n.name);
+
 const r12 = ({ out }: Ctx): DetailBlock[] => {
   const ins = inspectionOf(out);
   if (!ins) return [];
   const leaks = walkSystems(ins.inners).filter((n) => OIL_LEAK_CODES.has(n.code));
   const rows =
     leaks.length > 0
-      ? leaks.map((n) => row(n.group ? `${n.group} · ${n.name}` : n.name, n.status, codeTone(n.code)))
-      : [row('누유 항목', '없음', 'success')];
-  return [block('누유 항목', rows, '미세누유·누유만 판정에 써요. 누수 같은 다른 항목은 성능점검 전체 보기에서 볼 수 있어요')];
+      ? leaks.map((n) => row(leakPart(n), n.status, codeTone(n.code)))
+      : [row('미세누유·누유', '없음', 'success')];
+  return [block('누유 부위', rows, '미세누유·누유만 판정에 써요. 누수 같은 다른 항목은 성능점검 전체 보기에서 볼 수 있어요')];
 };
 
 const EVIDENCE: Record<string, (ctx: Ctx) => DetailBlock[]> = {

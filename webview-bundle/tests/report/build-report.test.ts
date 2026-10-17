@@ -85,6 +85,7 @@ describe('buildReport on fixtures', () => {
     ]);
     expect(report.car).toEqual({
       title: '2015 BMW 3시리즈 (F30)',
+      name: 'BMW 3시리즈 (F30) 320d ED에디션',
       year: 2015,
       mileageKm: 119559,
       priceWon: 9_200_000,
@@ -144,12 +145,44 @@ describe('buildCar', () => {
     raw.preloadedState = {};
     expect(buildCar(orchestrateMobile(raw))).toEqual({
       title: '차량 정보 없음',
+      name: '차량 정보 없음',
       year: null,
       mileageKm: null,
       priceWon: null,
       fuel: null,
       summary: '',
     });
+  });
+
+  it('name: manufacturer, model and grade without the year', () => {
+    const names = Object.fromEntries(
+      FIXTURE_IDS.map((id) => {
+        const { out } = load(id);
+        return [id, buildCar(out).name];
+      }),
+    );
+    expect(names).toEqual({
+      '39339524': 'BMW 3시리즈 (F30) 320d',
+      '41878112': 'BMW 3시리즈 (F30) 320d ED에디션',
+      // gradeDetailName is appended while the name stays within 30 characters.
+      '42264483': '쉐보레(GM대우) 라세티 프리미어 1.6 SX 일반형',
+      '41623744': '쉐보레(GM대우) 라세티 프리미어 1.8 CDX ID',
+    });
+    // title keeps the saved-list format.
+    expect(buildCar(load('39339524').out).title).toBe('2012 BMW 3시리즈 (F30)');
+  });
+
+  it('name skips empty parts and tidies spaces', () => {
+    const raw = rawOf('41878112');
+    const category = (raw.preloadedState as { cars: { base: { category: Record<string, unknown> } } }).cars.base.category;
+    category.modelName = '  3시리즈   (F30) ';
+    category.gradeName = '   ';
+    expect(buildCar(orchestrateMobile(raw)).name).toBe('BMW 3시리즈 (F30)');
+    delete category.manufacturerName;
+    delete category.modelName;
+    delete category.gradeName;
+    category.gradeDetailName = '일반형';
+    expect(buildCar(orchestrateMobile(raw)).name).toBe('차량 정보 없음');
   });
 
   it('short mileage and partial info', () => {

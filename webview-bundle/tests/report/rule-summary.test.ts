@@ -48,8 +48,8 @@ describe('rule summary (전체 항목 rows)', () => {
       R06: '전손·침수·도난 없음',
       R07: '소유자 변경 1회',
       R10: '수리비 큼 · 내차 1,126만원 · 타차 589만원',
-      R01: '보험이력 공개',
-      R02: '성능점검 공개',
+      R01: '공개',
+      R02: '공개',
     });
     expect(summaries(reportOf('41878112'))).toMatchObject({
       R04: '프레임 무사고',
@@ -64,6 +64,14 @@ describe('rule summary (전체 항목 rows)', () => {
       R12: '실린더 블록·오일팬 누유',
     });
     expect(summaries(reportOf('41623744')).R07).toBe('확인 불가 · 자료 없음');
+  });
+
+  it('is never the row title word for word (the row shows it above)', () => {
+    for (const id of FIXTURE_IDS) {
+      for (const item of reportOf(id).rules) {
+        expect(item.summary, `${id} ${item.ruleId}`).not.toBe(item.title);
+      }
+    }
   });
 
   it('message keeps the 해요체 sentence', () => {
@@ -118,8 +126,12 @@ describe('rule summary (전체 항목 rows)', () => {
     ).toBe('침수전손 1회');
     expect(ruleSummary(result('R07', 'pass', [{ field: 'ownerChangeCount', value: 0 }]), out)).toBe('소유자 변경 없음');
     expect(ruleSummary(result('R09', 'warn', []), out)).toBe('수리비 미확정 있음');
-    expect(ruleSummary(result('R01', 'fail', []), out)).toBe('보험이력 비공개');
-    expect(ruleSummary(result('R02', 'fail', []), out)).toBe('성능점검 비공개');
+    expect(ruleSummary(result('R01', 'fail', []), out)).toBe('비공개');
+    expect(ruleSummary(result('R02', 'fail', []), out)).toBe('비공개');
+    expect(
+      ruleSummary(result('R10', 'pass', [{ field: 'damages', value: { ownDamageWon: 0, otherDamageWon: 0, domestic: true } }]), out),
+    ).toBe('보험 처리 없음');
+    expect(ruleSummary(result('R12', 'pass', []), out)).toBe('누유 없음');
     expect(
       ruleSummary(
         result('R12', 'warn', [
