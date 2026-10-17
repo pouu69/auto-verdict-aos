@@ -8,17 +8,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isHeading
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -54,10 +57,13 @@ class ResultSectionsTest {
     private val caution by lazy { sampleReport("sample-caution.json") }
     private val minimal by lazy { sampleReport("sample-minimal.json") }
 
-    private fun show(report: EvaluationReport, banner: ResultBanner? = null) {
+    private fun show(report: EvaluationReport, banner: ResultBanner? = null, refreshing: Boolean = false) {
         rule.setContent {
             AvTheme {
-                ResultScreen(state = ResultUiState.Ready(report, saved = false, banner = banner), actions = recorder.actions)
+                ResultScreen(
+                    state = ResultUiState.Ready(report, saved = false, banner = banner, refreshing = refreshing),
+                    actions = recorder.actions,
+                )
             }
         }
     }
@@ -199,6 +205,36 @@ class ResultSectionsTest {
         banner = null
         rule.onNodeWithText("일부 정보를 가져오지 못했어요").assertDoesNotExist()
         assertEquals(listOf("applyUpdate", "retry"), recorder.calls)
+    }
+
+    private val spinning = hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate)
+
+    @Test fun `refreshing swaps the partial-data retry for a progress label and ignores taps`() {
+        show(caution, banner = ResultBanner.PartialData, refreshing = true)
+        rule.onNodeWithText("일부 정보를 가져오지 못했어요").assertExists()
+        rule.onNodeWithText("다시 시도").assertDoesNotExist()
+        rule.onNodeWithText("다시 가져오는 중").assertExists().performClick()
+        // The banner already shows the progress, so there is no second bar under the top bar.
+        rule.onAllNodes(spinning, useUnmergedTree = true).assertCountEquals(1)
+        assertEquals(emptyList<String>(), recorder.calls)
+    }
+
+    @Test fun `refreshing without a banner shows a slim progress bar under the top bar`() {
+        show(caution, refreshing = true)
+        rule.onNode(spinning and hasContentDescription("다시 가져오는 중")).assertExists()
+        rule.onAllNodes(spinning, useUnmergedTree = true).assertCountEquals(1)
+    }
+
+    @Test fun `refreshing under another banner still shows the slim progress bar`() {
+        show(caution, banner = ResultBanner.LoginRequired, refreshing = true)
+        rule.onNodeWithContentDescription("다시 가져오는 중").assertExists()
+    }
+
+    @Test fun `no progress while not refreshing`() {
+        show(caution, banner = ResultBanner.PartialData)
+        rule.onNodeWithText("다시 시도").assertExists()
+        rule.onNodeWithText("다시 가져오는 중").assertDoesNotExist()
+        rule.onAllNodes(spinning, useUnmergedTree = true).assertCountEquals(0)
     }
 }
 

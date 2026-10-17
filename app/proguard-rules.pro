@@ -1,13 +1,19 @@
 # === JavascriptInterface (WebView bridge) ===
--keepclassmembers class com.car.autoverdict.webview.NativeBridge {
-    @android.webkit.JavascriptInterface <methods>;
-}
 -keepclassmembers class com.car.autoverdict.engine.EngineBridge {
     @android.webkit.JavascriptInterface <methods>;
 }
 -keepclassmembers class com.car.autoverdict.collector.CollectorWebView$ApiBridge {
     @android.webkit.JavascriptInterface <methods>;
 }
+
+# === kotlinx.serialization (EvaluationReport contract) ===
+# The library ships consumer rules for the runtime; these keep the generated serializers of
+# our @Serializable report classes reachable through Companion.serializer().
+-keepclassmembers class com.car.autoverdict.report.** {
+    *** Companion;
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keep,includedescriptorclasses class com.car.autoverdict.report.**$$serializer { *; }
 
 # === Room ===
 -keep class com.car.autoverdict.db.*Entity { *; }
