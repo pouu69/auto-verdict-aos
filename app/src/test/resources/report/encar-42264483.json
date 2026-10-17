@@ -521,7 +521,7 @@
       "tone": "warning",
       "label": "주의",
       "message": "자차보험 없이 운행한 기간이 9개월 있어요",
-      "summary": "9개월",
+      "summary": "자차보험 공백 9개월",
       "why": "보험에 가입하지 않은 기간에 난 사고는 이력에 남지 않아요. 이력이 깨끗해 보여도 숨은 사고가 있을 수 있는 공백 구간이에요.",
       "sellerQuestion": "2025년 11월~2026년 7월에 보험 없이 운행했나요?",
       "detail": {
@@ -1208,7 +1208,7 @@
       "tone": "success",
       "label": "통과",
       "message": "전손·침수·도난 이력이 없어요",
-      "summary": "없음",
+      "summary": "전손·침수·도난 없음",
       "why": null,
       "sellerQuestion": null,
       "detail": {
@@ -1278,7 +1278,7 @@
       "tone": "success",
       "label": "통과",
       "message": "소유자 변경 2회로 정상 범위예요",
-      "summary": "2회",
+      "summary": "소유자 변경 2회",
       "why": null,
       "sellerQuestion": null,
       "detail": {
@@ -1349,7 +1349,7 @@
       "tone": "warning",
       "label": "주의",
       "message": "자차보험 없이 운행한 기간이 9개월 있어요",
-      "summary": "9개월",
+      "summary": "자차보험 공백 9개월",
       "why": "보험에 가입하지 않은 기간에 난 사고는 이력에 남지 않아요. 이력이 깨끗해 보여도 숨은 사고가 있을 수 있는 공백 구간이에요.",
       "sellerQuestion": "2025년 11월~2026년 7월에 보험 없이 운행했나요?",
       "detail": {
@@ -1409,7 +1409,7 @@
       "tone": "success",
       "label": "통과",
       "message": "수리비가 확정되지 않은 사고는 없어요",
-      "summary": "미확정 사고 없음",
+      "summary": "수리비 미확정 없음",
       "why": null,
       "sellerQuestion": null,
       "detail": {

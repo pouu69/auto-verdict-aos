@@ -1,10 +1,10 @@
 /**
  * One-line noun-phrase result for the "전체 항목" rows (spec 4.0), e.g.
- * "5회" under the "소유자 변경" title. The row shows the rule title right
- * above, so a summary never starts by repeating it (R03 keeps "엔카진단 통과
- * 차량"). No 해요체: the full sentence stays in `message` for cards, sheets
- * and share text. Numbers come from evidence, then facts, the same way
- * [ruleCopy] reads them.
+ * "소유자 변경 5회". The row shows the rule title right above, so a summary
+ * is never the title word for word (R01/R02 say just "공개"/"비공개"). No
+ * 해요체: the full sentence stays in `message` for cards, sheets and share
+ * text. Numbers come from evidence, then facts, the same way [ruleCopy]
+ * reads them.
  */
 import type { RuleResult } from '@core/types/RuleTypes.js';
 import type { MobileOrchestratorResult } from '../orchestrate-mobile';
@@ -43,29 +43,29 @@ export function ruleSummary(result: RuleResult, out: MobileOrchestratorResult, f
       return s === 'warn' ? '관용 이력 있음' : '렌트·택시·영업용 이력 없음';
     }
     case 'R06': {
-      if (!problem) return '없음';
+      if (!problem) return '전손·침수·도난 없음';
       const l = evidenceOf(result, 'totalLoss', facts.totalLossHistory);
-      return (l ? lossHits(l) : []).join(' · ') || '이력 있음';
+      return (l ? lossHits(l) : []).join(' · ') || '전손·침수·도난 이력 있음';
     }
     case 'R07': {
       const n = evidenceOf(result, 'ownerChangeCount', facts.ownerChangeCount);
-      if (n === undefined) return problem ? '잦음' : '정상 범위';
-      return n === 0 ? '없음' : `${n}회`;
+      if (n === undefined) return problem ? '소유자 변경 잦음' : '소유자 변경 정상 범위';
+      return n === 0 ? '소유자 변경 없음' : `소유자 변경 ${n}회`;
     }
     case 'R08': {
-      if (!problem) return '없음';
+      if (!problem) return '자차보험 공백 없음';
       const g = evidenceOf(result, 'insuranceGap', facts.insuranceGap);
       const months = g?.totalMonths ?? 0;
       const periods = g?.periods.length ?? 0;
-      if (months <= 0) return '있음';
-      return periods > 1 ? `${gapDuration(months)} · ${periods}구간` : gapDuration(months);
+      if (months <= 0) return '자차보험 공백 있음';
+      return periods > 1 ? `자차보험 공백 ${gapDuration(months)} · ${periods}구간` : `자차보험 공백 ${gapDuration(months)}`;
     }
     case 'R09':
-      return problem ? '미확정 사고 있음' : '미확정 사고 없음';
+      return problem ? '수리비 미확정 있음' : '수리비 미확정 없음';
     case 'R10': {
       const d = evidenceOf(result, 'damages', facts.minorAccidents);
       if (!d) return problem ? '수리비 큼' : '경미';
-      if (!problem && d.ownDamageWon === 0 && d.otherDamageWon === 0) return '없음';
+      if (!problem && d.ownDamageWon === 0 && d.otherDamageWon === 0) return '보험 처리 없음';
       return `${problem ? '수리비 큼' : '경미'} · 내차 ${formatMan(d.ownDamageWon)} · 타차 ${formatMan(d.otherDamageWon)}`;
     }
     case 'R11': {
@@ -77,10 +77,10 @@ export function ruleSummary(result: RuleResult, out: MobileOrchestratorResult, f
       return `신차가 대비 ${Math.round(ratio * 100)}% · ${tag}`;
     }
     case 'R12': {
-      if (!problem) return '없음';
+      if (!problem) return '누유 없음';
       const items = evidenceOf(result, 'oilLeak', facts.oilLeak)?.items ?? [];
       const first = items[0];
-      if (!first) return '있음';
+      if (!first) return '누유 있음';
       const head = `${partName(first.part)} ${first.status}`;
       // Keep one line: the sheet lists every item.
       return items.length > 1 ? `${head} 외 ${items.length - 1}곳` : head;

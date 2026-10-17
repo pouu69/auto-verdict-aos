@@ -364,7 +364,7 @@
       "tone": "warning",
       "label": "주의",
       "message": "주인이 5번 바뀌었어요",
-      "summary": "5회",
+      "summary": "소유자 변경 5회",
       "why": "소유자가 자주 바뀐 차는 문제가 있어 자주 되팔렸거나, 정비 이력이 끊겨 관리 상태를 알기 어려운 경우가 많아요. 3회 이상부터 주의 신호로 봐요.",
       "sellerQuestion": "주인이 5번 바뀐 이유를 알 수 있을까요?",
       "detail": {
@@ -450,7 +450,7 @@
       "tone": "warning",
       "label": "주의",
       "message": "자차보험 없이 운행한 기간이 2개 구간, 총 7개월 있어요",
-      "summary": "7개월 · 2구간",
+      "summary": "자차보험 공백 7개월 · 2구간",
       "why": "보험에 가입하지 않은 기간에 난 사고는 이력에 남지 않아요. 이력이 깨끗해 보여도 숨은 사고가 있을 수 있는 공백 구간이에요.",
       "sellerQuestion": "2023년 11월~2024년 1월, 2026년 4월~2026년 7월에 보험 없이 운행했나요?",
       "detail": {
@@ -787,7 +787,7 @@
       "tone": "success",
       "label": "통과",
       "message": "누유가 없어요",
-      "summary": "없음",
+      "summary": "누유 없음",
       "why": null,
       "sellerQuestion": null,
       "detail": {
@@ -922,7 +922,7 @@
       "tone": "success",
       "label": "통과",
       "message": "전손·침수·도난 이력이 없어요",
-      "summary": "없음",
+      "summary": "전손·침수·도난 없음",
       "why": null,
       "sellerQuestion": null,
       "detail": {
@@ -992,7 +992,7 @@
       "tone": "warning",
       "label": "주의",
       "message": "주인이 5번 바뀌었어요",
-      "summary": "5회",
+      "summary": "소유자 변경 5회",
       "why": "소유자가 자주 바뀐 차는 문제가 있어 자주 되팔렸거나, 정비 이력이 끊겨 관리 상태를 알기 어려운 경우가 많아요. 3회 이상부터 주의 신호로 봐요.",
       "sellerQuestion": "주인이 5번 바뀐 이유를 알 수 있을까요?",
       "detail": {
@@ -1078,7 +1078,7 @@
       "tone": "warning",
       "label": "주의",
       "message": "자차보험 없이 운행한 기간이 2개 구간, 총 7개월 있어요",
-      "summary": "7개월 · 2구간",
+      "summary": "자차보험 공백 7개월 · 2구간",
       "why": "보험에 가입하지 않은 기간에 난 사고는 이력에 남지 않아요. 이력이 깨끗해 보여도 숨은 사고가 있을 수 있는 공백 구간이에요.",
       "sellerQuestion": "2023년 11월~2024년 1월, 2026년 4월~2026년 7월에 보험 없이 운행했나요?",
       "detail": {
@@ -1143,7 +1143,7 @@
       "tone": "success",
       "label": "통과",
       "message": "수리비가 확정되지 않은 사고는 없어요",
-      "summary": "미확정 사고 없음",
+      "summary": "수리비 미확정 없음",
       "why": null,
       "sellerQuestion": null,
       "detail": {

@@ -1159,7 +1159,7 @@
       "tone": "success",
       "label": "통과",
       "message": "누유가 없어요",
-      "summary": "없음",
+      "summary": "누유 없음",
       "why": null,
       "sellerQuestion": null,
       "detail": {
@@ -1294,7 +1294,7 @@
       "tone": "success",
       "label": "통과",
       "message": "전손·침수·도난 이력이 없어요",
-      "summary": "없음",
+      "summary": "전손·침수·도난 없음",
       "why": null,
       "sellerQuestion": null,
       "detail": {
@@ -1364,7 +1364,7 @@
       "tone": "success",
       "label": "통과",
       "message": "소유자 변경 1회로 정상 범위예요",
-      "summary": "1회",
+      "summary": "소유자 변경 1회",
       "why": null,
       "sellerQuestion": null,
       "detail": {
@@ -1430,7 +1430,7 @@
       "tone": "success",
       "label": "통과",
       "message": "자차보험 공백이 없어요",
-      "summary": "없음",
+      "summary": "자차보험 공백 없음",
       "why": null,
       "sellerQuestion": null,
       "detail": {
@@ -1485,7 +1485,7 @@
       "tone": "success",
       "label": "통과",
       "message": "수리비가 확정되지 않은 사고는 없어요",
-      "summary": "미확정 사고 없음",
+      "summary": "수리비 미확정 없음",
       "why": null,
       "sellerQuestion": null,
       "detail": {
