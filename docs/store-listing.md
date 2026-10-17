@@ -172,7 +172,7 @@ v1.0.2 첫 출시
 - [x] keystore.properties 생성 및 keystore 파일 준비 (`secrets/autoverdict-upload.jks`, 2026-10-17 재발급)
 - [x] `./gradlew :app:bundleRelease` 실행 → AAB 빌드 성공 확인 (`app/build/outputs/bundle/release/app-release.aab`, 약 7.1MB)
 - [x] 개인정보처리방침 공개 URL 발급 — https://pouu69.github.io/auto-verdict-aos/
-- [ ] 새 디자인 스크린샷 8장 (`docs/assets/screenshots/play/01~08.png`, 2·3번 서브프로젝트 병합 뒤 촬영)
+- [x] 새 디자인 스크린샷 8장 (`docs/assets/screenshots/play/01~08.png`)
 - [x] 피처 그래픽 1024×500 PNG 제작 (`docs/assets/feature-graphic-1024x500.png`)
 - [x] 앱 아이콘 512×512 PNG (`docs/assets/play-icon-512.png`)
 - [ ] Play Console에서 AdMob 사용 선언

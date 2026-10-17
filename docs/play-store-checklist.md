@@ -18,7 +18,7 @@
 | 개인정보처리방침 작성 | ✅ 완료 — `docs/privacy-policy.md` |
 | 스토어 카피 작성 | ✅ 완료 — `docs/store-listing.md` |
 | 개인정보처리방침 호스팅 | ✅ 완료 — https://pouu69.github.io/auto-verdict-aos/ |
-| 스크린샷 캡처 | ⚠️ 새 디자인으로 다시 촬영 필요 — 기존 `docs/assets/screenshots/`는 옛 화면. 목록·캡션은 `docs/assets-guide.md`, 결과는 `screenshots/raw`·`play` |
+| 스크린샷 캡처 | ✅ 완료 — 새 디자인 8장, 스토어용 `docs/assets/screenshots/play/01~08.png` (원본 `raw/`, 목록·캡션은 `docs/assets-guide.md`) |
 | 오픈소스 고지 | 의존성을 바꿨으면 `scripts/oss-notices/README.md` 절차로 다시 생성 |
 | EEA·영국 광고 동의(UMP) | ⛔ 미구현 — 해당 지역 배포 전 동의 흐름 필요 |
 | targetSdk 36 대응 | ✅ 완료 — compileSdk/targetSdk 36, Robolectric 4.16 |
@@ -143,7 +143,7 @@ Play Console은 **공개 URL**을 요구합니다. 앱 내 정책 화면만으�
 
 ## STEP 2 — 스크린샷 캡처 (최소 2장, 권장 8장) ✅ 완료
 
-> ✅ 캡처 완료: `docs/assets/screenshots/` (`01.png` …) — 아래 절차는 재촬영 시 참고용.
+> ✅ 캡처 완료: 원본 `docs/assets/screenshots/raw/01~08.png`, 틀에 넣은 스토어용 `docs/assets/screenshots/play/01~08.png` — 촬영·합성 절차는 `docs/assets-guide.md` 3절, 아래는 참고용.
 
 ### 디바이스 준비
 
@@ -174,8 +174,8 @@ export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 ```bash
 # Android Studio: Logcat 옆 카메라 버튼 (가장 편함)
 # 또는 adb로:
-adb exec-out screencap -p > docs/assets/screenshots/01.png
-adb exec-out screencap -p > docs/assets/screenshots/02.png
+adb exec-out screencap -p > docs/assets/screenshots/raw/01.png
+adb exec-out screencap -p > docs/assets/screenshots/raw/02.png
 # ... 8장 반복
 ```
 
@@ -215,7 +215,7 @@ adb exec-out screencap -p > docs/assets/screenshots/02.png
 - **자세한 설명** (4000자) — 긴 설명 그대로
 - **앱 아이콘** — `docs/assets/play-icon-512.png`
 - **피처 그래픽** — `docs/assets/feature-graphic-1024x500.png`
-- **휴대전화 스크린샷** — `docs/assets/screenshots/*.png` (Step 2에서 생성)
+- **휴대전화 스크린샷** — `docs/assets/screenshots/play/01~08.png` (Step 2에서 생성)
 - **앱 카테고리** — 자동차
 
 ### 3-5. 앱 콘텐츠 (정책 페이지)
