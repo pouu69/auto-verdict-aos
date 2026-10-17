@@ -13,3 +13,9 @@ data class RecentViewRow(
     val verdict: String,
     val cachedAt: Long,
 )
+
+/** One cache row's payload, fetched only to resolve its vehicle identity for the recent list. */
+data class RecentIdentitySource(
+    val carId: String,
+    val rawInputJson: String,
+)
