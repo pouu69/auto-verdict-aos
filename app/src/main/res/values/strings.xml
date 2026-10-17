@@ -109,4 +109,11 @@
     <string name="result_repairs_full_inspection">성능점검 전체 보기</string>
     <string name="result_detail_seller_question">판매자에게 물어보기</string>
     <string name="result_detail_copy_question">복사</string>
+    <!-- Home input and recent views data (sub-project 2) -->
+    <string name="home_error_invalid">엔카 매물 링크가 아니에요. 매물 페이지 주소를 넣어 주세요</string>
+    <string name="home_error_clipboard_empty">복사한 내용이 없어요. 엔카에서 매물 링크를 복사해 주세요</string>
+    <string name="home_error_clipboard_not_encar">복사한 내용에 엔카 매물 링크가 없어요</string>
+    <string name="time_just_now">방금 전</string>
+    <string name="time_minutes_ago">%1$d분 전</string>
+    <string name="time_hours_ago">%1$d시간 전</string>
 </resources>
