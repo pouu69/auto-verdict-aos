@@ -15,6 +15,8 @@ class RouteCodecTest {
             Route.Result(url, fromSaved = false),
             Route.Result(url, fromSaved = true),
             Route.Compare(listOf("111", "222")),
+            Route.LicenseDetail("lib:jetpack-compose"),
+            Route.LicenseDetail("google:Animal Sniffer"),
         )
         routes.forEach { assertEquals(it, RouteCodec.decode(RouteCodec.encode(it))) }
     }
@@ -28,6 +30,8 @@ class RouteCodecTest {
         assertNull(RouteCodec.decode("nope"))
         assertNull(RouteCodec.decode("result|1"))
         assertNull(RouteCodec.decode("compare|"))
+        assertNull(RouteCodec.decode("license|"))
+        assertNull(RouteCodec.decode("license"))
         assertNull(RouteCodec.decode(""))
     }
 

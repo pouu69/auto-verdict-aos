@@ -16,6 +16,7 @@ object RouteCodec {
         Route.Settings -> "settings"
         Route.PrivacyPolicy -> "privacy"
         Route.Licenses -> "licenses"
+        is Route.LicenseDetail -> "license|${route.id}"
         Route.Gallery -> "gallery"
         is Route.Result -> "result|${if (route.fromSaved) 1 else 0}|${route.url}"
         is Route.Compare -> "compare|${route.carIds.joinToString(",")}"
@@ -30,6 +31,7 @@ object RouteCodec {
             "settings" -> Route.Settings
             "privacy" -> Route.PrivacyPolicy
             "licenses" -> Route.Licenses
+            "license" -> value.substringAfter("|", "").takeIf { it.isNotEmpty() }?.let { Route.LicenseDetail(it) }
             "gallery" -> Route.Gallery
             "result" -> if (parts.size == 3) Route.Result(parts[2], fromSaved = parts[1] == "1") else null
             "compare" -> parts.getOrNull(1)

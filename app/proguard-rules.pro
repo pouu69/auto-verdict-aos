@@ -15,6 +15,13 @@
 }
 -keep,includedescriptorclasses class com.car.autoverdict.report.**$$serializer { *; }
 
+# === kotlinx.serialization (open-source notices, spec 7.3) ===
+-keepclassmembers class com.car.autoverdict.licenses.** {
+    *** Companion;
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keep,includedescriptorclasses class com.car.autoverdict.licenses.**$$serializer { *; }
+
 # === Room ===
 -keep class com.car.autoverdict.db.*Entity { *; }
 -keep class com.car.autoverdict.db.*Dao { *; }
