@@ -2,10 +2,12 @@ package com.car.autoverdict.ui.navigation
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.car.autoverdict.AutoVerdictApp
 import com.car.autoverdict.BuildConfig
+import com.car.autoverdict.preferences.AppPreferences
 import com.car.autoverdict.result.ResultRoute
 import com.car.autoverdict.ui.AdBanner
 import com.car.autoverdict.ui.AdMediumRectangle
@@ -15,7 +17,7 @@ import com.car.autoverdict.ui.screen.CompareScreen
 import com.car.autoverdict.ui.screen.LicensesScreen
 import com.car.autoverdict.ui.screen.OnboardingScreen
 import com.car.autoverdict.ui.screen.PrivacyPolicyScreen
-import com.car.autoverdict.ui.screen.SavedListScreen
+import com.car.autoverdict.ui.screen.SavedListRoute
 import com.car.autoverdict.ui.screen.SettingsScreen
 
 /** Maps each [Route] to its real screen. Kept apart from AppRoot so tests can inject fakes. */
@@ -27,10 +29,18 @@ fun AppScreenContent(route: Route, host: ScreenHost) {
             onOpenSettings = { host.navigate(Route.Settings) },
             onAnalyze = { url -> host.navigate(Route.Result(url, fromSaved = false)) },
         )
-        Route.Saved -> SavedListScreen(
-            onCarClick = { url -> host.navigate(Route.Result(url, fromSaved = true)) },
-            onCompare = { ids -> host.navigate(Route.Compare(ids)) },
-        )
+        Route.Saved -> {
+            val context = LocalContext.current
+            val app = context.applicationContext as AutoVerdictApp
+            val preferences = remember(context) { AppPreferences(context) }
+            SavedListRoute(
+                repository = app.savedCarsRepository,
+                preferences = preferences,
+                onOpenResult = { url -> host.navigate(Route.Result(url, fromSaved = true)) },
+                onCompare = { ids -> host.navigate(Route.Compare(ids)) },
+                onGoHome = { host.selectTab(MainTab.Home) },
+            )
+        }
         Route.Settings -> SettingsScreen(
             onBack = host.back,
             onPrivacyPolicy = { host.navigate(Route.PrivacyPolicy) },

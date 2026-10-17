@@ -1,517 +1,316 @@
 package com.car.autoverdict.ui.screen
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.outlined.BookmarkBorder
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.automirrored.outlined.CompareArrows
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material.icons.rounded.BookmarkBorder
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import com.car.autoverdict.AutoVerdictApp
-import com.car.autoverdict.db.SavedCarEntity
-import com.car.autoverdict.ui.components.AvIconButton
+import com.car.autoverdict.R
+import com.car.autoverdict.preferences.AppPreferences
+import com.car.autoverdict.saved.SavedCarItem
+import com.car.autoverdict.saved.SavedCarsRepository
+import com.car.autoverdict.saved.SavedSort
+import com.car.autoverdict.saved.sortedForSaved
+import com.car.autoverdict.saved.toDisplay
+import com.car.autoverdict.ui.components.AvBottomCta
+import com.car.autoverdict.ui.components.AvButton
+import com.car.autoverdict.ui.components.AvEmptyState
 import com.car.autoverdict.ui.components.AvTopBar
+import com.car.autoverdict.ui.components.LocalAvToast
+import com.car.autoverdict.ui.components.avPressable
+import com.car.autoverdict.ui.saved.SavedCarRow
+import com.car.autoverdict.ui.saved.SavedSortSheet
 import com.car.autoverdict.ui.theme.AvTheme
-import java.text.NumberFormat
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 
-private enum class SortMode(val label: String) {
-    RECENT("최근순"),
-    SCORE_DESC("점수 높은순"),
-    SCORE_ASC("점수 낮은순"),
+/** Most cars one comparison takes (spec 3 2). */
+private const val MAX_COMPARE = 3
+private const val MIN_COMPARE = 2
+
+/**
+ * Saved tab wiring (spec 3 4): grouped items from the app-scoped [repository], sort kept in
+ * [preferences], delete with an undo toast that outlives this screen (spec 4.6).
+ */
+@Composable
+fun SavedListRoute(
+    repository: SavedCarsRepository,
+    preferences: AppPreferences,
+    onOpenResult: (url: String) -> Unit,
+    onCompare: (carIds: List<String>) -> Unit,
+    onGoHome: () -> Unit,
+) {
+    // Null until the first emission, so the empty state doesn't flash while loading (spec 4.7).
+    val items by repository.items.collectAsState(initial = null)
+    var sort by remember { mutableStateOf(preferences.savedSort) }
+    val toast = LocalAvToast.current
+    val scope = rememberCoroutineScope()
+    val deletedMessage = stringResource(R.string.saved_toast_deleted)
+    val undoLabel = stringResource(R.string.saved_toast_undo)
+    val deleteFailedMessage = stringResource(R.string.saved_toast_delete_failed)
+    val restoreFailedMessage = stringResource(R.string.saved_toast_restore_failed)
+
+    SavedListScreen(
+        items = items,
+        sort = sort,
+        onSortChange = {
+            sort = it
+            preferences.savedSort = it
+        },
+        onOpenResult = { onOpenResult(it.representative.url) },
+        onDelete = { item ->
+            scope.launch {
+                val rows = try {
+                    repository.delete(item)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: RuntimeException) {
+                    // SQLite and closed-database errors are runtime exceptions.
+                    toast.show(deleteFailedMessage)
+                    return@launch
+                }
+                // A repeated delete of the same item finds nothing; keep the first toast's undo.
+                if (rows.isEmpty()) return@launch
+                toast.show(deletedMessage, actionLabel = undoLabel, long = true) {
+                    repository.restoreDetached(rows) { toast.show(restoreFailedMessage) }
+                }
+            }
+        },
+        onCompare = onCompare,
+        onGoHome = onGoHome,
+    )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Stateless saved list. [items] null means not loaded yet (draws nothing). Selection mode is
+ * local UI state: "비교" enters it, the top-bar "취소" or system back leaves it.
+ * [onCompare] gets the representatives' carIds in on-screen order.
+ */
 @Composable
 fun SavedListScreen(
+    items: List<SavedCarItem>?,
+    sort: SavedSort,
+    onSortChange: (SavedSort) -> Unit,
+    onOpenResult: (SavedCarItem) -> Unit,
+    onDelete: (SavedCarItem) -> Unit,
+    onCompare: (carIds: List<String>) -> Unit,
+    onGoHome: () -> Unit,
     modifier: Modifier = Modifier,
-    onCarClick: (String) -> Unit,
-    onCompare: (List<String>) -> Unit = {},
+    nowMillis: Long = System.currentTimeMillis(),
 ) {
-    val colors = AvTheme.colors
-    val context = LocalContext.current
-    val app = context.applicationContext as AutoVerdictApp
-    val savedFlow = remember { app.database.savedCarDao().getAllFlow() }
-    val savedCars by savedFlow.collectAsState(initial = emptyList())
+    val toast = LocalAvToast.current
+    // Fixed per composition: the default argument would change on every recomposition.
+    val now = remember { nowMillis }
+    val maxMessage = stringResource(R.string.saved_select_max)
 
-    var compareMode by remember { mutableStateOf(false) }
-    var selectedCarIds by remember { mutableStateOf(emptySet<String>()) }
-    var sortMode by remember { mutableStateOf(SortMode.RECENT) }
+    var selecting by rememberSaveable { mutableStateOf(false) }
+    // Identities, so a re-evaluated representative stays selected.
+    var selected by rememberSaveable { mutableStateOf(listOf<String>()) }
+    var sortSheetOpen by rememberSaveable { mutableStateOf(false) }
 
-    val sortedCars = remember(savedCars, sortMode) {
-        when (sortMode) {
-            SortMode.RECENT -> savedCars
-            SortMode.SCORE_DESC -> savedCars.sortedByDescending { it.score }
-            SortMode.SCORE_ASC -> savedCars.sortedBy { it.score }
-        }
+    val sorted = remember(items, sort) { items?.sortedForSaved(sort) { it.representative }.orEmpty() }
+    val canCompare = sorted.size >= MIN_COMPARE
+
+    // Drop selections deleted elsewhere (e.g. unsaved from the result screen), and leave the mode
+    // once there is nothing left to compare.
+    LaunchedEffect(sorted) {
+        if (items == null) return@LaunchedEffect
+        val identities = sorted.mapTo(HashSet()) { it.identity }
+        selected = selected.filter { it in identities }
+        if (!canCompare) selecting = false
     }
 
-    Box(modifier = modifier.fillMaxSize().background(colors.surfaceMuted)) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            AvTopBar(
-                onBack = null,
-                title = "저장한 차",
-                actions = {
-                    if (savedCars.size >= 2) {
-                        AvIconButton(
-                            icon = if (compareMode) Icons.Outlined.Close else Icons.AutoMirrored.Outlined.CompareArrows,
-                            contentDescription = if (compareMode) "비교 취소" else "비교 모드",
+    fun exitSelection() {
+        selecting = false
+        selected = emptyList()
+    }
+
+    // Registered after AppRoot's, so it wins while selecting (spec 4.5).
+    BackHandler(enabled = selecting) { exitSelection() }
+
+    Column(modifier = modifier.fillMaxSize()) {
+        AvTopBar(
+            onBack = null,
+            title = stringResource(if (selecting) R.string.saved_select_title else R.string.saved_title),
+            actions = {
+                when {
+                    selecting -> TopBarTextButton(stringResource(R.string.saved_select_cancel), ::exitSelection)
+                    canCompare -> TopBarTextButton(stringResource(R.string.saved_action_compare)) { selecting = true }
+                }
+            },
+        )
+        when {
+            items == null -> Unit
+            sorted.isEmpty() -> EmptyBody(onGoHome = onGoHome, modifier = Modifier.weight(1f))
+            else -> {
+                ListHeader(
+                    count = if (selecting) selected.size else sorted.size,
+                    selecting = selecting,
+                    sort = sort,
+                    onOpenSort = { sortSheetOpen = true },
+                )
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    items(sorted, key = { it.identity }) { item ->
+                        val display = remember(item.representative) { item.representative.toDisplay(now) }
+                        val isSelected = item.identity in selected
+                        SavedCarRow(
+                            display = display,
+                            selecting = selecting,
+                            selected = isSelected,
                             onClick = {
-                                compareMode = !compareMode
-                                if (!compareMode) selectedCarIds = emptySet()
+                                when {
+                                    !selecting -> onOpenResult(item)
+                                    isSelected -> selected = selected - item.identity
+                                    selected.size >= MAX_COMPARE -> toast.show(maxMessage)
+                                    else -> selected = selected + item.identity
+                                }
                             },
-                            tint = if (compareMode) colors.dangerText else colors.accentText,
+                            onDelete = { onDelete(item) },
+                            modifier = Modifier.animateItem(),
                         )
                     }
-                },
-            )
-
-            // Compare mode banner
-            AnimatedVisibility(
-                visible = compareMode,
-                enter = slideInVertically(tween(220)) + fadeIn(tween(220)),
-                exit = slideOutVertically(tween(180)) + fadeOut(tween(180)),
-            ) {
-                CompareModeBanner(selectedCount = selectedCarIds.size)
-            }
-
-            if (savedCars.isEmpty()) {
-                SavedEmptyState()
-                return@Column
-            }
-
-            // Sort chips
-            if (!compareMode) {
-                SortChipRow(
-                    current = sortMode,
-                    onSelect = { sortMode = it },
-                )
-            }
-
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    start = 20.dp,
-                    end = 20.dp,
-                    top = if (compareMode) 12.dp else 4.dp,
-                    bottom = if (compareMode && selectedCarIds.size == 2) 96.dp else 24.dp,
-                ),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                items(sortedCars, key = { it.carId }) { car ->
-                    val isSelected = car.carId in selectedCarIds
-                    SavedCarRow(
-                        car = car,
-                        compareMode = compareMode,
-                        isSelected = isSelected,
-                        onClick = {
-                            if (compareMode) {
-                                selectedCarIds = if (isSelected) {
-                                    selectedCarIds - car.carId
-                                } else if (selectedCarIds.size < 2) {
-                                    selectedCarIds + car.carId
-                                } else {
-                                    selectedCarIds
-                                }
+                }
+                if (selecting) {
+                    val count = selected.size
+                    // Tab root: the tab bar below owns the navigation-bar inset (spec 0 6).
+                    AvBottomCta(windowInsets = WindowInsets(0)) {
+                        AvButton(
+                            text = if (count >= MIN_COMPARE) {
+                                stringResource(R.string.saved_select_cta, count)
                             } else {
-                                onCarClick(car.url)
-                            }
-                        },
-                    )
+                                stringResource(R.string.saved_select_cta_min)
+                            },
+                            onClick = {
+                                val ids = sorted.filter { it.identity in selected }.map { it.representative.carId }
+                                exitSelection()
+                                onCompare(ids)
+                            },
+                            enabled = count >= MIN_COMPARE,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                 }
             }
         }
+    }
 
-        // FAB for compare action
-        AnimatedVisibility(
-            visible = compareMode && selectedCarIds.size == 2,
-            enter = slideInVertically(tween(220), initialOffsetY = { it }) + fadeIn(tween(220)),
-            exit = slideOutVertically(tween(180), targetOffsetY = { it }) + fadeOut(tween(180)),
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(20.dp),
-        ) {
-            ExtendedFloatingActionButton(
-                onClick = {
-                    onCompare(selectedCarIds.toList())
-                    compareMode = false
-                    selectedCarIds = emptySet()
-                },
-                containerColor = colors.accent,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.CompareArrows,
-                    contentDescription = null,
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = "2대 비교하기",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                )
-            }
-        }
+    if (sortSheetOpen) {
+        SavedSortSheet(
+            current = sort,
+            onSelect = onSortChange,
+            onDismiss = { sortSheetOpen = false },
+        )
     }
 }
 
+/** "5대 · 최근 저장순 ⌄", or "2대 선택" while selecting (spec 4.1, 4.5). */
 @Composable
-private fun CompareModeBanner(selectedCount: Int) {
+private fun ListHeader(count: Int, selecting: Boolean, sort: SavedSort, onOpenSort: () -> Unit) {
     val colors = AvTheme.colors
+    val typography = AvTheme.typography
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .background(colors.accentWeak)
-            .padding(horizontal = 14.dp, vertical = 12.dp),
+            .heightIn(min = 48.dp)
+            .padding(start = 20.dp, end = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(
-            modifier = Modifier
-                .size(32.dp)
-                .clip(CircleShape)
-                .background(colors.accent.copy(alpha = 0.16f)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Outlined.CompareArrows,
-                contentDescription = null,
-                tint = colors.accentText,
-                modifier = Modifier.size(18.dp),
-            )
-        }
-        Spacer(Modifier.width(10.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = "비교할 매물 2대를 선택하세요",
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = colors.accentText,
-            )
-            Text(
-                text = "$selectedCount / 2 선택됨",
-                style = MaterialTheme.typography.labelSmall,
-                color = colors.textSecondary,
-            )
-        }
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(999.dp))
-                .background(colors.accent)
-                .padding(horizontal = 10.dp, vertical = 4.dp),
-        ) {
-            Text(
-                text = "$selectedCount/2",
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onPrimary,
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SortChipRow(
-    current: SortMode,
-    onSelect: (SortMode) -> Unit,
-) {
-    val colors = AvTheme.colors
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        SortMode.entries.forEach { mode ->
-            FilterChip(
-                selected = current == mode,
-                onClick = { onSelect(mode) },
-                label = {
-                    Text(
-                        text = mode.label,
-                        style = MaterialTheme.typography.labelMedium,
-                    )
-                },
-                shape = RoundedCornerShape(999.dp),
-                colors = FilterChipDefaults.filterChipColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    selectedContainerColor = colors.accent,
-                    labelColor = colors.textSecondary,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                ),
-                border = FilterChipDefaults.filterChipBorder(
-                    enabled = true,
-                    selected = current == mode,
-                    borderColor = colors.border,
-                    selectedBorderColor = Color.Transparent,
-                    borderWidth = 1.dp,
-                ),
-            )
-        }
-    }
-}
-
-@Composable
-private fun SavedCarRow(
-    car: SavedCarEntity,
-    compareMode: Boolean,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-) {
-    val colors = AvTheme.colors
-    val dateFormat = remember { SimpleDateFormat("yyyy.MM.dd", Locale.getDefault()) }
-    val numberFormat = remember { NumberFormat.getNumberInstance(Locale.KOREA) }
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .then(
-                if (compareMode && isSelected) {
-                    Modifier.border(2.dp, colors.accent, RoundedCornerShape(16.dp))
-                } else {
-                    Modifier.border(1.dp, colors.border.copy(alpha = 0.6f), RoundedCornerShape(16.dp))
-                },
-            )
-            .clickable(onClick = onClick)
-            .padding(14.dp),
-    ) {
-        Row(verticalAlignment = Alignment.Top) {
-            // Leading: Score badge or selection checkbox
-            if (compareMode) {
-                Box(
-                    modifier = Modifier
-                        .size(52.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(
-                            if (isSelected) colors.accent else colors.surfaceMuted,
-                        )
-                        .then(
-                            if (!isSelected) {
-                                Modifier.border(1.5.dp, colors.border, RoundedCornerShape(12.dp))
-                            } else Modifier,
-                        ),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    if (isSelected) {
-                        Icon(
-                            imageVector = Icons.Filled.Check,
-                            contentDescription = "선택됨",
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(24.dp),
-                        )
-                    } else {
-                        Text(
-                            text = "${car.score}",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                            color = scoreColorList(car.score),
-                        )
-                    }
-                }
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(52.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(scoreColorList(car.score)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = "${car.score}",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                    )
-                }
-            }
-
-            Spacer(Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = car.title.ifBlank { "매물 #${car.carId}" },
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-                    color = colors.textPrimary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+        Text(
+            text = stringResource(if (selecting) R.string.saved_select_count else R.string.saved_total, count),
+            style = typography.caption1,
+            color = colors.textTertiary,
+            modifier = Modifier.weight(1f),
+        )
+        if (!selecting) {
+            val sortLabel = stringResource(sort.label)
+            val description = "${stringResource(R.string.saved_sort_title)}, $sortLabel"
+            Row(
+                modifier = Modifier
+                    .minimumInteractiveComponentSize()
+                    .avPressable(onClick = onOpenSort)
+                    .semantics { contentDescription = description }
+                    .padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(text = sortLabel, style = typography.body2, color = colors.textSecondary)
+                Spacer(Modifier.width(2.dp))
+                Icon(
+                    imageVector = Icons.Rounded.KeyboardArrowDown,
+                    contentDescription = null,
+                    tint = colors.textSecondary,
+                    modifier = Modifier.size(20.dp),
                 )
-
-                val details = buildList {
-                    car.year?.let { add("${it}년") }
-                    car.mileageKm?.let { add("${numberFormat.format(it)}km") }
-                    car.priceWon?.let { add("${numberFormat.format(it / 10000)}만원") }
-                }
-                if (details.isNotEmpty()) {
-                    Spacer(Modifier.height(3.dp))
-                    Text(
-                        text = details.joinToString(" · "),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.textSecondary,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-
-                Spacer(Modifier.height(8.dp))
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    if (car.dangerCount > 0) {
-                        SeverityChip("위험 ${car.dangerCount}", colors.dangerText, colors.dangerBg)
-                    }
-                    if (car.cautionCount > 0) {
-                        SeverityChip("주의 ${car.cautionCount}", colors.warningText, colors.warningBg)
-                    }
-                    if (car.passCount > 0) {
-                        SeverityChip("양호 ${car.passCount}", colors.successText, colors.successBg)
-                    }
-                    Spacer(Modifier.weight(1f))
-                    Text(
-                        text = dateFormat.format(Date(car.savedAt)),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = colors.textSecondary,
-                    )
-                }
             }
         }
     }
 }
 
+/** Top-bar text action (buttonM, accentText) with a 48dp touch target (spec 4.5, 8). */
 @Composable
-private fun SeverityChip(
-    label: String,
-    textColor: Color,
-    bgColor: Color,
-) {
+private fun TopBarTextButton(text: String, onClick: () -> Unit) {
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(bgColor)
-            .padding(horizontal = 7.dp, vertical = 3.dp),
+            .minimumInteractiveComponentSize()
+            .avPressable(onClick = onClick)
+            .padding(horizontal = 12.dp),
+        contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
-            color = textColor,
-        )
+        Text(text = text, style = AvTheme.typography.buttonM, color = AvTheme.colors.accentText)
     }
 }
 
 @Composable
-private fun SavedEmptyState() {
-    val colors = AvTheme.colors
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 32.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+private fun EmptyBody(onGoHome: () -> Unit, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState()),
+        contentAlignment = Alignment.Center,
     ) {
-        Box(
-            modifier = Modifier
-                .size(96.dp)
-                .clip(RoundedCornerShape(28.dp))
-                .background(colors.accentWeak),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.BookmarkBorder,
-                contentDescription = null,
-                tint = colors.accentText,
-                modifier = Modifier.size(44.dp),
-            )
-        }
-        Spacer(Modifier.height(20.dp))
-        Text(
-            text = "저장된 매물이 없습니다",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = colors.textPrimary,
-        )
-        Spacer(Modifier.height(6.dp))
-        Text(
-            text = "분석 결과 화면에서 저장하면\n여기에 모아 비교할 수 있어요",
-            style = MaterialTheme.typography.bodyMedium,
-            color = colors.textSecondary,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        AvEmptyState(
+            icon = Icons.Rounded.BookmarkBorder,
+            title = stringResource(R.string.saved_empty_title),
+            description = stringResource(R.string.saved_empty_desc),
+            actionLabel = stringResource(R.string.saved_empty_action),
+            onAction = onGoHome,
         )
     }
-}
-
-private val COLOR_STOPS = listOf(
-    0 to Triple(198, 40, 40),
-    30 to Triple(230, 81, 0),
-    50 to Triple(245, 127, 23),
-    65 to Triple(158, 157, 36),
-    78 to Triple(46, 125, 50),
-    88 to Triple(0, 137, 123),
-    100 to Triple(21, 101, 192),
-)
-
-private fun scoreColorList(score: Int): Color {
-    val s = score.coerceIn(0, 100)
-    var lo = COLOR_STOPS.first()
-    var hi = COLOR_STOPS.last()
-    for (i in 0 until COLOR_STOPS.size - 1) {
-        if (s >= COLOR_STOPS[i].first && s <= COLOR_STOPS[i + 1].first) {
-            lo = COLOR_STOPS[i]
-            hi = COLOR_STOPS[i + 1]
-            break
-        }
-    }
-    val t = if (hi.first == lo.first) 0f else (s - lo.first).toFloat() / (hi.first - lo.first)
-    val r = (lo.second.first + (hi.second.first - lo.second.first) * t).toInt()
-    val g = (lo.second.second + (hi.second.second - lo.second.second) * t).toInt()
-    val b = (lo.second.third + (hi.second.third - lo.second.third) * t).toInt()
-    return Color(r, g, b)
 }
