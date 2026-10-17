@@ -53,12 +53,7 @@ import com.car.autoverdict.BuildConfig
 import com.car.autoverdict.R
 import com.car.autoverdict.ui.AdBanner
 import com.car.autoverdict.ui.components.AvTopBar
-import com.car.autoverdict.ui.theme.Background
-import com.car.autoverdict.ui.theme.Border
-import com.car.autoverdict.ui.theme.Danger
-import com.car.autoverdict.ui.theme.Primary
-import com.car.autoverdict.ui.theme.TextPrimary
-import com.car.autoverdict.ui.theme.TextSecondary
+import com.car.autoverdict.ui.theme.AvTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -76,6 +71,7 @@ fun SettingsScreen(
     val scope = rememberCoroutineScope()
     var cacheCount by remember { mutableStateOf(0) }
     var showCacheClearDialog by remember { mutableStateOf(false) }
+    val colors = AvTheme.colors
 
     LaunchedEffect(Unit) {
         val app = context.applicationContext as AutoVerdictApp
@@ -85,7 +81,7 @@ fun SettingsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Background),
+            .background(colors.surfaceMuted),
     ) {
         AvTopBar(onBack = onBack, title = "설정")
 
@@ -98,30 +94,30 @@ fun SettingsScreen(
                 SettingsGroup {
                     SettingsRow(
                         icon = Icons.Outlined.Storage,
-                        iconTint = Primary,
-                        iconBg = Primary.copy(alpha = 0.1f),
+                        iconTint = colors.accentText,
+                        iconBg = colors.accentWeak,
                         title = "캐시 항목",
                         subtitle = "${cacheCount}개 저장됨",
                         trailing = {
                             Text(
                                 text = "${cacheCount}",
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                                color = TextPrimary,
+                                color = colors.textPrimary,
                             )
                         },
                     )
                     SettingsDivider()
                     SettingsRow(
                         icon = Icons.Outlined.Schedule,
-                        iconTint = Primary,
-                        iconBg = Primary.copy(alpha = 0.1f),
+                        iconTint = colors.accentText,
+                        iconBg = colors.accentWeak,
                         title = "캐시 유효기간",
                         subtitle = "24시간 후 자동 만료",
                         trailing = {
                             Text(
                                 text = "24h",
                                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                                color = TextSecondary,
+                                color = colors.textSecondary,
                             )
                         },
                     )
@@ -129,17 +125,17 @@ fun SettingsScreen(
                         SettingsDivider()
                         SettingsRow(
                             icon = Icons.Outlined.DeleteOutline,
-                            iconTint = Danger,
-                            iconBg = Danger.copy(alpha = 0.1f),
+                            iconTint = colors.dangerText,
+                            iconBg = colors.dangerBg,
                             title = "캐시 삭제",
                             subtitle = "저장된 분석 캐시 전체 제거",
-                            titleColor = Danger,
+                            titleColor = colors.dangerText,
                             onClick = { showCacheClearDialog = true },
                             trailing = {
                                 Icon(
                                     imageVector = Icons.Outlined.ChevronRight,
                                     contentDescription = null,
-                                    tint = TextSecondary,
+                                    tint = colors.textSecondary,
                                 )
                             },
                         )
@@ -154,8 +150,8 @@ fun SettingsScreen(
                 SettingsGroup {
                     SettingsRow(
                         icon = Icons.Outlined.HelpOutline,
-                        iconTint = Primary,
-                        iconBg = Primary.copy(alpha = 0.1f),
+                        iconTint = colors.accentText,
+                        iconBg = colors.accentWeak,
                         title = "사용법 다시 보기",
                         subtitle = "엔카 공유로 분석하는 방법 안내",
                         onClick = onReplayGuide,
@@ -163,15 +159,15 @@ fun SettingsScreen(
                             Icon(
                                 imageVector = Icons.Outlined.ChevronRight,
                                 contentDescription = null,
-                                tint = TextSecondary,
+                                tint = colors.textSecondary,
                             )
                         },
                     )
                     SettingsDivider()
                     SettingsRow(
                         icon = Icons.Outlined.PrivacyTip,
-                        iconTint = Primary,
-                        iconBg = Primary.copy(alpha = 0.1f),
+                        iconTint = colors.accentText,
+                        iconBg = colors.accentWeak,
                         title = "개인정보 처리방침",
                         subtitle = "데이터 사용 및 권한 안내",
                         onClick = onPrivacyPolicy,
@@ -179,15 +175,15 @@ fun SettingsScreen(
                             Icon(
                                 imageVector = Icons.Outlined.ChevronRight,
                                 contentDescription = null,
-                                tint = TextSecondary,
+                                tint = colors.textSecondary,
                             )
                         },
                     )
                     SettingsDivider()
                     SettingsRow(
                         icon = Icons.Outlined.Description,
-                        iconTint = Primary,
-                        iconBg = Primary.copy(alpha = 0.1f),
+                        iconTint = colors.accentText,
+                        iconBg = colors.accentWeak,
                         title = stringResource(R.string.settings_licenses_title),
                         subtitle = stringResource(R.string.settings_licenses_subtitle),
                         onClick = onLicenses,
@@ -195,22 +191,22 @@ fun SettingsScreen(
                             Icon(
                                 imageVector = Icons.Outlined.ChevronRight,
                                 contentDescription = null,
-                                tint = TextSecondary,
+                                tint = colors.textSecondary,
                             )
                         },
                     )
                     SettingsDivider()
                     SettingsRow(
                         icon = Icons.Outlined.Info,
-                        iconTint = Primary,
-                        iconBg = Primary.copy(alpha = 0.1f),
+                        iconTint = colors.accentText,
+                        iconBg = colors.accentWeak,
                         title = "버전",
                         subtitle = "AutoVerdict for Android",
                         trailing = {
                             Text(
                                 text = "v${BuildConfig.VERSION_NAME}",
                                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                                color = TextSecondary,
+                                color = colors.textSecondary,
                             )
                         },
                     )
@@ -224,8 +220,8 @@ fun SettingsScreen(
                     SettingsGroup {
                         SettingsRow(
                             icon = Icons.Outlined.Palette,
-                            iconTint = Primary,
-                            iconBg = Primary.copy(alpha = 0.1f),
+                            iconTint = colors.accentText,
+                            iconBg = colors.accentWeak,
                             title = stringResource(R.string.settings_gallery_title),
                             subtitle = stringResource(R.string.settings_gallery_subtitle),
                             onClick = onGallery,
@@ -233,7 +229,7 @@ fun SettingsScreen(
                                 Icon(
                                     imageVector = Icons.Outlined.ChevronRight,
                                     contentDescription = null,
-                                    tint = TextSecondary,
+                                    tint = colors.textSecondary,
                                 )
                             },
                         )
@@ -247,7 +243,7 @@ fun SettingsScreen(
                 Text(
                     text = "AutoVerdict · 엔카 매물 종합 평가",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary.copy(alpha = 0.7f),
+                    color = colors.textSecondary.copy(alpha = 0.7f),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp),
@@ -268,7 +264,7 @@ fun SettingsScreen(
                 Icon(
                     imageVector = Icons.Outlined.DeleteOutline,
                     contentDescription = null,
-                    tint = Danger,
+                    tint = colors.dangerText,
                 )
             },
             title = {
@@ -281,7 +277,7 @@ fun SettingsScreen(
                 Text(
                     text = "${cacheCount}개의 분석 캐시가 모두 삭제됩니다. 다음 분석 시 다시 캐싱됩니다.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary,
+                    color = colors.textSecondary,
                 )
             },
             confirmButton = {
@@ -302,12 +298,12 @@ fun SettingsScreen(
                         }
                     },
                 ) {
-                    Text(text = "삭제", color = Danger, fontWeight = FontWeight.SemiBold)
+                    Text(text = "삭제", color = colors.dangerText, fontWeight = FontWeight.SemiBold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showCacheClearDialog = false }) {
-                    Text(text = "취소", color = TextSecondary)
+                    Text(text = "취소", color = colors.textSecondary)
                 }
             },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -318,12 +314,13 @@ fun SettingsScreen(
 
 @Composable
 private fun SectionHeader(title: String) {
+    val colors = AvTheme.colors
     Text(
         text = title,
         style = MaterialTheme.typography.labelMedium.copy(
             fontWeight = FontWeight.SemiBold,
         ),
-        color = TextSecondary,
+        color = colors.textSecondary,
         modifier = Modifier.padding(start = 8.dp, top = 12.dp, bottom = 8.dp),
     )
 }
@@ -342,12 +339,13 @@ private fun SettingsGroup(content: @Composable () -> Unit) {
 
 @Composable
 private fun SettingsDivider() {
+    val colors = AvTheme.colors
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 64.dp)
             .height(0.5.dp)
-            .background(Border.copy(alpha = 0.6f)),
+            .background(colors.border.copy(alpha = 0.6f)),
     )
 }
 
@@ -358,10 +356,11 @@ private fun SettingsRow(
     iconBg: Color,
     title: String,
     subtitle: String? = null,
-    titleColor: Color = TextPrimary,
+    titleColor: Color = AvTheme.colors.textPrimary,
     onClick: (() -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
 ) {
+    val colors = AvTheme.colors
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -396,7 +395,7 @@ private fun SettingsRow(
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary,
+                    color = colors.textSecondary,
                 )
             }
         }

@@ -46,17 +46,7 @@ import androidx.compose.ui.unit.sp
 import com.car.autoverdict.AutoVerdictApp
 import com.car.autoverdict.db.SavedCarEntity
 import com.car.autoverdict.ui.components.AvTopBar
-import com.car.autoverdict.ui.theme.Background
-import com.car.autoverdict.ui.theme.Border
-import com.car.autoverdict.ui.theme.Danger
-import com.car.autoverdict.ui.theme.DangerBg
-import com.car.autoverdict.ui.theme.Primary
-import com.car.autoverdict.ui.theme.Success
-import com.car.autoverdict.ui.theme.SuccessBg
-import com.car.autoverdict.ui.theme.TextPrimary
-import com.car.autoverdict.ui.theme.TextSecondary
-import com.car.autoverdict.ui.theme.Warning
-import com.car.autoverdict.ui.theme.WarningBg
+import com.car.autoverdict.ui.theme.AvTheme
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -73,6 +63,7 @@ fun CompareScreen(
     val app = context.applicationContext as AutoVerdictApp
     var cars by remember { mutableStateOf<List<SavedCarEntity>>(emptyList()) }
     val numberFormat = remember { NumberFormat.getNumberInstance(Locale.KOREA) }
+    val colors = AvTheme.colors
 
     LaunchedEffect(carIds) {
         val loaded = app.database.savedCarDao().getByCarIds(carIds)
@@ -82,7 +73,7 @@ fun CompareScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Background)
+            .background(colors.surfaceMuted)
             .navigationBarsPadding(),
     ) {
         AvTopBar(
@@ -187,8 +178,8 @@ fun CompareScreen(
                         CountCell(
                             modifier = Modifier.weight(1f),
                             count = car.dangerCount,
-                            textColor = Danger,
-                            bgColor = DangerBg,
+                            textColor = colors.dangerText,
+                            bgColor = colors.dangerBg,
                             isBest = car.carId == winners.bestDangerId,
                         )
                     }
@@ -198,8 +189,8 @@ fun CompareScreen(
                         CountCell(
                             modifier = Modifier.weight(1f),
                             count = car.cautionCount,
-                            textColor = Warning,
-                            bgColor = WarningBg,
+                            textColor = colors.warningText,
+                            bgColor = colors.warningBg,
                             isBest = car.carId == winners.bestCautionId,
                         )
                     }
@@ -209,8 +200,8 @@ fun CompareScreen(
                         CountCell(
                             modifier = Modifier.weight(1f),
                             count = car.passCount,
-                            textColor = Success,
-                            bgColor = SuccessBg,
+                            textColor = colors.successText,
+                            bgColor = colors.successBg,
                             isBest = car.carId == winners.bestPassId,
                         )
                     }
@@ -220,8 +211,8 @@ fun CompareScreen(
                         CountCell(
                             modifier = Modifier.weight(1f),
                             count = car.unknownCount,
-                            textColor = TextSecondary,
-                            bgColor = Border,
+                            textColor = colors.textSecondary,
+                            bgColor = colors.border,
                             isBest = false,
                         )
                     }
@@ -235,6 +226,7 @@ fun CompareScreen(
 
 @Composable
 private fun EmptyLoadingState() {
+    val colors = AvTheme.colors
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -248,7 +240,7 @@ private fun EmptyLoadingState() {
                 .height(120.dp)
                 .clip(RoundedCornerShape(28.dp))
                 .background(MaterialTheme.colorScheme.surface)
-                .border(1.dp, Border, RoundedCornerShape(28.dp)),
+                .border(1.dp, colors.border, RoundedCornerShape(28.dp)),
             contentAlignment = Alignment.Center,
         ) {
             Text(
@@ -257,20 +249,20 @@ private fun EmptyLoadingState() {
                     fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold,
                 ),
-                color = TextSecondary.copy(alpha = 0.5f),
+                color = colors.textSecondary.copy(alpha = 0.5f),
             )
         }
         Spacer(Modifier.height(20.dp))
         Text(
             text = "매물 정보를 불러오는 중",
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-            color = TextPrimary,
+            color = colors.textPrimary,
         )
         Spacer(Modifier.height(4.dp))
         Text(
             text = "잠시만 기다려 주세요",
             style = MaterialTheme.typography.bodySmall,
-            color = TextSecondary,
+            color = colors.textSecondary,
         )
     }
 }
@@ -306,6 +298,7 @@ private fun HeroCarCard(
     car: SavedCarEntity,
     isBest: Boolean,
 ) {
+    val colors = AvTheme.colors
     val accent = scoreColor(car.score)
     val animatedFill by animateFloatAsState(
         targetValue = car.score.coerceIn(0, 100) / 100f,
@@ -319,7 +312,7 @@ private fun HeroCarCard(
             .background(MaterialTheme.colorScheme.surface)
             .border(
                 width = if (isBest) 1.5.dp else 1.dp,
-                color = if (isBest) accent else Border,
+                color = if (isBest) accent else colors.border,
                 shape = RoundedCornerShape(16.dp),
             )
             .padding(horizontal = 14.dp, vertical = 14.dp),
@@ -332,7 +325,7 @@ private fun HeroCarCard(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.8.sp,
                 ),
-                color = TextSecondary,
+                color = colors.textSecondary,
             )
             Spacer(Modifier.weight(1f))
             if (isBest) {
@@ -362,7 +355,7 @@ private fun HeroCarCard(
                 fontWeight = FontWeight.SemiBold,
                 lineHeight = 18.sp,
             ),
-            color = TextPrimary,
+            color = colors.textPrimary,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
@@ -382,7 +375,7 @@ private fun HeroCarCard(
                 style = MaterialTheme.typography.labelSmall.copy(
                     fontFamily = FontFamily.Monospace,
                 ),
-                color = TextSecondary,
+                color = colors.textSecondary,
                 modifier = Modifier.padding(bottom = 6.dp),
             )
         }
@@ -392,7 +385,7 @@ private fun HeroCarCard(
                 .fillMaxWidth()
                 .height(4.dp)
                 .clip(RoundedCornerShape(2.dp))
-                .background(Border),
+                .background(colors.border),
         ) {
             Box(
                 modifier = Modifier
@@ -409,6 +402,7 @@ private fun CompareSection(
     title: String,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    val colors = AvTheme.colors
     Column {
         Row(
             modifier = Modifier
@@ -421,7 +415,7 @@ private fun CompareSection(
                     .width(3.dp)
                     .height(14.dp)
                     .clip(RoundedCornerShape(2.dp))
-                    .background(Primary),
+                    .background(colors.accent),
             )
             Spacer(Modifier.width(8.dp))
             Text(
@@ -430,7 +424,7 @@ private fun CompareSection(
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = 0.3.sp,
                 ),
-                color = TextPrimary,
+                color = colors.textPrimary,
             )
         }
         content()
@@ -444,6 +438,7 @@ private fun MetricRow(
     last: Boolean = false,
     content: @Composable RowScope.() -> Unit,
 ) {
+    val colors = AvTheme.colors
     val rowHeight: Dp = if (tall) 76.dp else 52.dp
     Column(
         modifier = Modifier.background(MaterialTheme.colorScheme.surface),
@@ -469,7 +464,7 @@ private fun MetricRow(
                         fontWeight = FontWeight.Medium,
                         letterSpacing = 0.3.sp,
                     ),
-                    color = TextSecondary,
+                    color = colors.textSecondary,
                 )
             }
             content()
@@ -478,7 +473,7 @@ private fun MetricRow(
             HorizontalDivider(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp),
                 thickness = 0.5.dp,
-                color = Border.copy(alpha = 0.7f),
+                color = colors.border.copy(alpha = 0.7f),
             )
         }
     }
@@ -492,13 +487,14 @@ private fun ValueCell(
     mono: Boolean = false,
     emphasize: Boolean = false,
 ) {
+    val colors = AvTheme.colors
     Box(
         modifier = modifier
             .fillMaxHeight()
             .padding(vertical = 6.dp)
             .clip(RoundedCornerShape(10.dp))
             .then(
-                if (isBest) Modifier.background(Primary.copy(alpha = 0.07f)) else Modifier,
+                if (isBest) Modifier.background(colors.accentWeak) else Modifier,
             )
             .padding(horizontal = 8.dp),
         contentAlignment = Alignment.Center,
@@ -508,7 +504,7 @@ private fun ValueCell(
                 Text(
                     text = "▲",
                     fontSize = 9.sp,
-                    color = Primary,
+                    color = colors.accentText,
                 )
                 Spacer(Modifier.width(4.dp))
             }
@@ -522,7 +518,7 @@ private fun ValueCell(
                         else -> FontWeight.Normal
                     },
                 ),
-                color = if (isBest) Primary else TextPrimary,
+                color = if (isBest) colors.accentText else colors.textPrimary,
                 textAlign = TextAlign.Center,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -537,6 +533,7 @@ private fun ScoreCell(
     score: Int,
     isBest: Boolean,
 ) {
+    val colors = AvTheme.colors
     val accent = scoreColor(score)
     val animatedFill by animateFloatAsState(
         targetValue = score.coerceIn(0, 100) / 100f,
@@ -575,7 +572,7 @@ private fun ScoreCell(
             Text(
                 text = "점",
                 style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
-                color = TextSecondary,
+                color = colors.textSecondary,
                 modifier = Modifier.padding(bottom = 3.dp),
             )
         }
@@ -585,7 +582,7 @@ private fun ScoreCell(
                 .fillMaxWidth()
                 .height(3.dp)
                 .clip(RoundedCornerShape(2.dp))
-                .background(Border),
+                .background(colors.border),
         ) {
             Box(
                 modifier = Modifier
@@ -603,10 +600,11 @@ private fun VerdictCell(
     verdict: String,
     score: Int,
 ) {
+    val colors = AvTheme.colors
     val (bg, fg) = when {
-        score >= 78 -> SuccessBg to Success
-        score >= 50 -> WarningBg to Warning
-        else -> DangerBg to Danger
+        score >= 78 -> colors.successBg to colors.successText
+        score >= 50 -> colors.warningBg to colors.warningText
+        else -> colors.dangerBg to colors.dangerText
     }
     Box(
         modifier = modifier
@@ -640,6 +638,7 @@ private fun CountCell(
     bgColor: Color,
     isBest: Boolean,
 ) {
+    val colors = AvTheme.colors
     Box(
         modifier = modifier
             .fillMaxHeight()
@@ -651,7 +650,7 @@ private fun CountCell(
                 Text(
                     text = "▲",
                     fontSize = 9.sp,
-                    color = Success,
+                    color = colors.successText,
                 )
                 Spacer(Modifier.width(4.dp))
             }
@@ -677,7 +676,7 @@ private fun CountCell(
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontFamily = FontFamily.Monospace,
                     ),
-                    color = TextSecondary.copy(alpha = 0.6f),
+                    color = colors.textSecondary.copy(alpha = 0.6f),
                 )
             }
         }
@@ -692,6 +691,7 @@ private fun DiagnosisStackBar(
     pass: Int,
     unknown: Int,
 ) {
+    val colors = AvTheme.colors
     val total = (danger + caution + pass + unknown).coerceAtLeast(1)
     Column(
         modifier = modifier
@@ -704,14 +704,14 @@ private fun DiagnosisStackBar(
                 .fillMaxWidth()
                 .height(8.dp)
                 .clip(RoundedCornerShape(4.dp))
-                .background(Border),
+                .background(colors.border),
         ) {
             if (danger > 0) {
                 Box(
                     modifier = Modifier
                         .weight(danger.toFloat())
                         .fillMaxHeight()
-                        .background(Danger),
+                        .background(colors.dangerFill),
                 )
             }
             if (caution > 0) {
@@ -719,7 +719,7 @@ private fun DiagnosisStackBar(
                     modifier = Modifier
                         .weight(caution.toFloat())
                         .fillMaxHeight()
-                        .background(Warning),
+                        .background(colors.warningFill),
                 )
             }
             if (pass > 0) {
@@ -727,7 +727,7 @@ private fun DiagnosisStackBar(
                     modifier = Modifier
                         .weight(pass.toFloat())
                         .fillMaxHeight()
-                        .background(Success),
+                        .background(colors.successFill),
                 )
             }
             if (unknown > 0) {
@@ -735,7 +735,7 @@ private fun DiagnosisStackBar(
                     modifier = Modifier
                         .weight(unknown.toFloat())
                         .fillMaxHeight()
-                        .background(Border),
+                        .background(colors.border),
                 )
             }
         }
@@ -746,7 +746,7 @@ private fun DiagnosisStackBar(
                 fontFamily = FontFamily.Monospace,
                 letterSpacing = 0.2.sp,
             ),
-            color = TextSecondary,
+            color = colors.textSecondary,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
         )
