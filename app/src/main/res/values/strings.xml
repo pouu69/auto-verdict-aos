@@ -14,11 +14,6 @@
     <string name="section_state_collapsed">접힘</string>
     <string name="section_fold_click_label">%1$s 접기</string>
     <string name="section_expand_click_label">%1$s 펼치기</string>
-    <string name="licenses_title">오픈소스 라이선스</string>
-    <string name="license_pretendard_notice">Pretendard는 SIL Open Font License 1.1에 따라 사용합니다.</string>
-    <string name="license_material_notice">Material Symbols 아이콘은 Apache License 2.0에 따라 사용합니다.</string>
-    <string name="license_show_full">전문 보기</string>
-    <string name="license_hide_full">접기</string>
     <string name="loading_step_done">완료</string>
     <string name="loading_step_active">진행 중</string>
     <string name="loading_step_pending">대기 중</string>

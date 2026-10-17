@@ -16,6 +16,7 @@ import com.car.autoverdict.ui.AdBanner
 import com.car.autoverdict.ui.AdMediumRectangle
 import com.car.autoverdict.ui.gallery.ComponentGalleryScreen
 import com.car.autoverdict.ui.screen.CompareRoute
+import com.car.autoverdict.ui.screen.LicenseDetailScreen
 import com.car.autoverdict.ui.screen.LicensesScreen
 import com.car.autoverdict.ui.screen.PrivacyPolicyScreen
 import com.car.autoverdict.ui.screen.SavedListRoute
@@ -49,7 +50,11 @@ fun AppScreenContent(route: Route, host: ScreenHost) {
         }
         Route.Settings -> SettingsRoute(host)
         Route.PrivacyPolicy -> PrivacyPolicyScreen(onBack = host.back)
-        Route.Licenses -> LicensesScreen(onBack = host.back)
+        Route.Licenses -> LicensesScreen(
+            onBack = host.back,
+            onOpenDetail = { id -> host.navigate(Route.LicenseDetail(id)) },
+        )
+        is Route.LicenseDetail -> LicenseDetailScreen(id = route.id, onBack = host.back)
         // Debug-only: release builds never reach it, and R8 drops the gallery code (spec 6).
         Route.Gallery -> if (BuildConfig.DEBUG) ComponentGalleryScreen(onBack = host.back)
         // Saved status comes from the DB, so route.fromSaved is ignored (kept for saved-state compatibility).
