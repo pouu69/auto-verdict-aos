@@ -15,7 +15,7 @@ import com.car.autoverdict.result.CollectStage
 import com.car.autoverdict.util.EncarUrl
 import org.json.JSONObject
 
-class CollectorWebView(context: Context) {
+class CollectorWebView(context: Context) : Collector {
     sealed class Result {
         data class Success(val json: String) : Result()
         /** [kind] drives the error screen; [message] is for logs only. */
@@ -64,10 +64,10 @@ class CollectorWebView(context: Context) {
      * [onStage] reports progress on the main thread: [CollectStage.OpeningPage] right before the
      * page load, [CollectStage.FetchingHistory] right before the record/diagnosis/inspection calls.
      */
-    fun collect(
+    override fun collect(
         url: String,
         carId: String,
-        onStage: (CollectStage) -> Unit = {},
+        onStage: (CollectStage) -> Unit,
         callback: (Result) -> Unit,
     ) {
         cancelTimeout()
@@ -328,7 +328,7 @@ class CollectorWebView(context: Context) {
         timeoutRunnable = null
     }
 
-    fun destroy() {
+    override fun destroy() {
         cancelTimeout()
         // 예약된 추출 재시도/브리지 콜백이 파괴된 WebView에 접근하지 않도록 무효화
         sessionId++

@@ -3,22 +3,28 @@ package com.car.autoverdict.result
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import com.car.autoverdict.collector.Collector
 import com.car.autoverdict.collector.CollectorWebView
 import com.car.autoverdict.db.AppDatabase
 import com.car.autoverdict.db.CacheEntity
 import com.car.autoverdict.db.SavedCarEntity
 import com.car.autoverdict.report.EvaluationReport
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
 
-/** Room + [CollectorWebView] backed [ResultRepository]. DAO calls are main-safe suspend functions. */
+/**
+ * Room + [CollectorWebView] backed [ResultRepository]. DAO calls are main-safe suspend functions.
+ * [mainDispatcher] must run on the main looper (collectors are main-thread only); tests swap it.
+ */
 class DefaultResultRepository(
     private val context: Context,
     private val db: AppDatabase,
     private val clock: () -> Long = System::currentTimeMillis,
-    private val collectorFactory: (Context) -> CollectorWebView = ::CollectorWebView,
+    private val collectorFactory: (Context) -> Collector = ::CollectorWebView,
+    private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main,
 ) : ResultRepository {
 
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -33,30 +39,32 @@ class DefaultResultRepository(
         url: String,
         carId: String,
         onStage: (CollectStage) -> Unit,
-    ): CollectOutcome = withContext(Dispatchers.Main) {
+    ): CollectOutcome = withContext(mainDispatcher) {
         suspendCancellableCoroutine { cont ->
             val collector = collectorFactory(context)
-            // Both paths below run on the main thread; destroy exactly once.
+            // Every caller of destroyOnce runs on the main thread; destroy exactly once.
             var destroyed = false
-            val destroyOnMain = {
-                mainHandler.post {
-                    if (!destroyed) {
-                        destroyed = true
-                        collector.destroy()
-                    }
-                }
+            fun destroyOnce() {
+                if (destroyed) return
+                destroyed = true
+                collector.destroy()
             }
-            cont.invokeOnCancellation { destroyOnMain() }
-            collector.collect(url, carId, onStage = onStage) { result ->
-                val outcome = when (result) {
-                    is CollectorWebView.Result.Success -> CollectOutcome.Success(result.json)
-                    is CollectorWebView.Result.Error -> CollectOutcome.Failed(result.kind)
-                    CollectorWebView.Result.Deleted -> CollectOutcome.Deleted
+            cont.invokeOnCancellation { mainHandler.post(::destroyOnce) }
+            try {
+                collector.collect(url, carId, onStage = onStage) { result ->
+                    val outcome = when (result) {
+                        is CollectorWebView.Result.Success -> CollectOutcome.Success(result.json)
+                        is CollectorWebView.Result.Error -> CollectOutcome.Failed(result.kind)
+                        CollectorWebView.Result.Deleted -> CollectOutcome.Deleted
+                    }
+                    // The collector still touches its WebView after the callback returns
+                    // (e.g. loading about:blank), so destroy on the next main-loop turn.
+                    mainHandler.post(::destroyOnce)
+                    if (cont.isActive) cont.resume(outcome)
                 }
-                // The collector still touches its WebView after the callback returns
-                // (e.g. loading about:blank), so destroy on the next main-loop turn.
-                destroyOnMain()
-                if (cont.isActive) cont.resume(outcome)
+            } catch (e: Exception) {
+                destroyOnce()
+                throw e
             }
         }
     }

@@ -1,20 +1,31 @@
 package com.car.autoverdict.result
 
+import android.os.Looper
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import com.car.autoverdict.collector.Collector
+import com.car.autoverdict.collector.CollectorWebView
 import com.car.autoverdict.db.AppDatabase
 import com.car.autoverdict.db.CacheEntity
 import com.car.autoverdict.report.EvaluationReport
 import com.car.autoverdict.report.ReportParser
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 class DefaultResultRepositoryTest {
 
@@ -165,6 +176,115 @@ class DefaultResultRepositoryTest {
         assertNull(repository.savedCar(report.carId))
     }
 
+    // --- collect (fake collector; the WebView itself is covered by CollectorWebViewTest) ---
+
+    private class FakeCollector : Collector {
+        var url: String? = null
+        var carId: String? = null
+        var onStage: ((CollectStage) -> Unit)? = null
+        var callback: ((CollectorWebView.Result) -> Unit)? = null
+        var destroyCount = 0
+        var throwOnCollect: RuntimeException? = null
+
+        override fun collect(
+            url: String,
+            carId: String,
+            onStage: (CollectStage) -> Unit,
+            callback: (CollectorWebView.Result) -> Unit,
+        ) {
+            this.url = url
+            this.carId = carId
+            this.onStage = onStage
+            this.callback = callback
+            throwOnCollect?.let { throw it }
+        }
+
+        override fun destroy() {
+            destroyCount++
+        }
+    }
+
+    private fun TestScope.collecting(fake: FakeCollector) = DefaultResultRepository(
+        context = ApplicationProvider.getApplicationContext(),
+        db = db,
+        clock = { now },
+        collectorFactory = { fake },
+        mainDispatcher = StandardTestDispatcher(testScheduler),
+    )
+
+    /** Runs the destroy that collect() posts to the main looper. */
+    private fun idleMain() = shadowOf(Looper.getMainLooper()).idle()
+
+    @Test
+    fun `collect maps every collector result and destroys the collector once`() = runTest {
+        val cases = listOf(
+            CollectorWebView.Result.Success("raw") to CollectOutcome.Success("raw"),
+            CollectorWebView.Result.Error(CollectErrorKind.Network, "log") to
+                CollectOutcome.Failed(CollectErrorKind.Network),
+            CollectorWebView.Result.Error(CollectErrorKind.Timeout, "log") to
+                CollectOutcome.Failed(CollectErrorKind.Timeout),
+            CollectorWebView.Result.Error(CollectErrorKind.PageUnreadable, "log") to
+                CollectOutcome.Failed(CollectErrorKind.PageUnreadable),
+            CollectorWebView.Result.Deleted to CollectOutcome.Deleted,
+        )
+        for ((result, expected) in cases) {
+            val fake = FakeCollector()
+            val outcome = async { collecting(fake).collect(URL, CAR_ID) {} }
+            runCurrent()
+            assertEquals(URL, fake.url)
+            assertEquals(CAR_ID, fake.carId)
+
+            fake.callback!!(result)
+            assertEquals(expected, outcome.await())
+            idleMain()
+            assertEquals(1, fake.destroyCount)
+        }
+    }
+
+    @Test
+    fun `collect forwards progress stages`() = runTest {
+        val fake = FakeCollector()
+        val stages = mutableListOf<CollectStage>()
+        val outcome = async { collecting(fake).collect(URL, CAR_ID) { stages += it } }
+        runCurrent()
+
+        fake.onStage!!(CollectStage.OpeningPage)
+        fake.onStage!!(CollectStage.FetchingHistory)
+        fake.callback!!(CollectorWebView.Result.Deleted)
+        outcome.await()
+
+        assertEquals(listOf(CollectStage.OpeningPage, CollectStage.FetchingHistory), stages)
+    }
+
+    @Test
+    fun `cancelling collect destroys the collector once and drops a late result`() = runTest {
+        val fake = FakeCollector()
+        val outcome = async { collecting(fake).collect(URL, CAR_ID) {} }
+        runCurrent()
+
+        outcome.cancel()
+        runCurrent()
+        idleMain()
+        assertEquals(1, fake.destroyCount)
+
+        fake.callback!!(CollectorWebView.Result.Success("late"))
+        idleMain()
+        assertEquals(1, fake.destroyCount)
+        assertTrue(outcome.isCancelled)
+    }
+
+    @Test
+    fun `collect destroys the collector and rethrows when collect throws synchronously`() = runTest {
+        val fake = FakeCollector().apply { throwOnCollect = IllegalStateException("boom") }
+
+        val result = runCatching { collecting(fake).collect(URL, CAR_ID) {} }
+
+        assertTrue(result.exceptionOrNull() is IllegalStateException)
+        assertEquals(1, fake.destroyCount)
+        idleMain()
+        assertEquals(1, fake.destroyCount)
+    }
+
     private fun sample(name: String): EvaluationReport {
         val text = requireNotNull(javaClass.classLoader?.getResource("report/$name")).readText()
         return (ReportParser.parse(text) as ReportParser.Result.Ok).report
@@ -172,6 +292,8 @@ class DefaultResultRepositoryTest {
 
     private companion object {
         const val RAW = """{"carId":"41878112"}"""
+        const val CAR_ID = "41878112"
+        const val URL = "https://fem.encar.com/cars/detail/$CAR_ID"
         const val DAY_MS = 24 * 60 * 60 * 1000L
     }
 }
