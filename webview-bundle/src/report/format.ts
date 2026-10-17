@@ -8,6 +8,9 @@ export const groupDigits = (n: number): string =>
 export const formatMan = (won: number): string =>
   won === 0 ? '0원' : `${groupDigits(Math.round(won / 10_000))}만원`;
 
+/** Joined part names read with "·": "실린더 블록 / 오일팬" -> "실린더 블록·오일팬"; "자동변속기(A/T)" stays. */
+export const partName = (title: string): string => title.trim().replace(/\s+\/\s+/g, '·');
+
 /** "2023-11" -> "2023년 11월"; anything else is returned as is. */
 export const koreanMonth = (ym: string): string => {
   const m = ym.match(/^(\d{4})-(\d{2})$/);

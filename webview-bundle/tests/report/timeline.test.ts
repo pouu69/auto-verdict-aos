@@ -1,18 +1,22 @@
 import { describe, it, expect } from 'vitest';
 import type { MobileOrchestratorInput } from '../../src/orchestrate-mobile';
 import { orchestrateMobile } from '../../src/orchestrate-mobile';
-import { accidentGroups, buildTimeline } from '../../src/report/timeline';
+import { accidentGroups, allocateMan, buildTimeline } from '../../src/report/timeline';
 import { formatMan } from '../../src/report/format';
+import type { TimelineEntry } from '../../src/report/types';
 import { FIXTURE_IDS, load, rawOf } from './fixtures';
 
 const PLATE = /\d{2,3}[가-힣]\s?\d{4}|XXXX/;
 
 const timelineOf = (raw: MobileOrchestratorInput) => buildTimeline(raw, orchestrateMobile(raw));
 
+/** Entries without their sheets (covered in details-timeline.test.ts). */
+const strip = (t: TimelineEntry[]) => t.map(({ sheet: _sheet, ...e }) => e);
+
 describe('buildTimeline', () => {
   it('41878112: registration, owner changes, gaps, accidents in date order', () => {
     const { raw, out } = load('41878112');
-    const t = buildTimeline(raw, out);
+    const t = strip(buildTimeline(raw, out));
     expect(t[0]).toEqual({ date: '2015-04', label: '신차 등록', detail: null, tone: 'neutral' });
     expect(t.filter((e) => e.label === '소유자 변경')).toHaveLength(5);
     expect(t.filter((e) => e.label === '보험 미가입')).toEqual([
@@ -33,7 +37,7 @@ describe('buildTimeline', () => {
 
   it('39339524: same-month accidents grouped per side', () => {
     const { raw, out } = load('39339524');
-    const t = buildTimeline(raw, out);
+    const t = strip(buildTimeline(raw, out));
     const dec = t.filter((e) => e.date === '2021-12');
     expect(dec).toEqual([
       { date: '2021-12', label: '사고 · 내차 피해', detail: '수리비 합계 114만원', tone: 'warning' },
@@ -47,7 +51,7 @@ describe('buildTimeline', () => {
 
   it('42264483: accidents on different days of the same month become one row', () => {
     const { raw, out } = load('42264483');
-    const jan = buildTimeline(raw, out).filter((e) => e.date === '2018-01');
+    const jan = strip(buildTimeline(raw, out)).filter((e) => e.date === '2018-01');
     expect(jan).toEqual([
       { date: '2018-01', label: '사고 2건 · 내차 피해', detail: '수리비 합계 221만원', tone: 'warning' },
       { date: '2018-01', label: '사고 · 타차 가해', detail: '수리비 합계 13만원', tone: 'warning' },
@@ -67,22 +71,41 @@ describe('buildTimeline', () => {
       expect(total('타차 가해'), `${id} 타차`).toBe(rec.otherAccidentCost);
       expect(total('내차 피해'), `${id} 내차 = R10`).toBe(damages.value.ownDamageWon);
       expect(total('타차 가해'), `${id} 타차 = R10`).toBe(damages.value.otherDamageWon);
-      // Every grouped accident row shows its group's repair cost (order-independent).
-      const key = (date: string, label: string, detail: string | null) => `${date}|${label}|${detail}`;
-      const rows = buildTimeline(raw, out)
-        .filter((e) => e.label.startsWith('사고'))
-        .map((e) => key(e.date, e.label, e.detail));
-      const expected = groups.map((g) =>
-        key(
-          g.ym,
-          g.count > 1 ? `사고 ${g.count}건 · ${g.side}` : `사고 · ${g.side}`,
-          Math.round(g.won / 10_000) > 0 ? `수리비 합계 ${formatMan(g.won)}` : null,
-        ),
-      );
-      expect([...rows].sort(), id).toEqual([...expected].sort());
+      // Shown 만원 per side add up to the amount R10 shows (formatMan of the side total).
+      const rows = buildTimeline(raw, out).filter((e) => e.label.startsWith('사고'));
+      expect(rows).toHaveLength(groups.length);
+      const shown = (side: string) =>
+        rows
+          .filter((e) => e.label.endsWith(side))
+          .reduce((s, e) => s + Number((e.detail ?? '0').replace(/[^\d]/g, '')), 0);
+      expect(`${shown('내차 피해')}만원`, `${id} 내차 표시`).toBe(formatMan(damages.value.ownDamageWon).replace(/,/g, ''));
+      if (damages.value.otherDamageWon > 0) {
+        expect(`${shown('타차 가해')}만원`, `${id} 타차 표시`).toBe(formatMan(damages.value.otherDamageWon).replace(/,/g, ''));
+      }
+      // Each row stays within 1만원 of its own rounded cost.
+      for (const g of groups) {
+        const e = rows.find((r) => r.date === g.ym && r.label.endsWith(g.side))!;
+        const man = Number((e.detail ?? '0').replace(/[^\d]/g, ''));
+        expect(Math.abs(man - g.won / 10_000), `${id} ${g.ym} ${g.side}`).toBeLessThan(1);
+      }
       checked += 1;
     }
     expect(checked).toBe(3);
+  });
+
+  it('allocateMan: largest remainder hits the rounded total', () => {
+    // 1.6 + 1.6 + 1.6 = 4.8 -> 5; rounding each would give 6.
+    expect(allocateMan([16_000, 16_000, 16_000], 5)).toEqual([2, 2, 1]);
+    expect(allocateMan([14_000, 26_000], 4)).toEqual([1, 3]);
+    expect(allocateMan([], 0)).toEqual([]);
+  });
+
+  it('39339524: 내차 rows sum to 1,126만원 like R10, not 1,127만원', () => {
+    const { raw, out } = load('39339524');
+    const sum = buildTimeline(raw, out)
+      .filter((e) => e.label.endsWith('내차 피해'))
+      .reduce((s, e) => s + Number((e.detail ?? '0').replace(/[^\d]/g, '')), 0);
+    expect(sum).toBe(1126);
   });
 
   it('41623744: no record -> empty', () => {
@@ -110,7 +133,8 @@ describe('buildTimeline', () => {
       { type: '1', date: '2020-08-10', insuranceBenefit: 0, partCost: 0, laborCost: 0, paintingCost: 0 },
       { type: '2', date: '2020-08-21', insuranceBenefit: 0, partCost: 0, laborCost: 0, paintingCost: 0 },
     ];
-    const t = timelineOf(raw);
+    const full = timelineOf(raw);
+    const t = strip(full);
     expect(t).toContainEqual({ date: '2019-03', label: '번호 변경', detail: null, tone: 'neutral' });
     expect(t.filter((e) => e.label === '번호 변경')).toHaveLength(1);
     expect(t.filter((e) => e.date === '2020-08')).toEqual([
@@ -118,7 +142,7 @@ describe('buildTimeline', () => {
       { date: '2020-08', label: '침수 피해', detail: null, tone: 'danger' },
       { date: '2020-08', label: '전손 처리', detail: null, tone: 'danger' },
     ]);
-    expect(JSON.stringify(t)).not.toMatch(PLATE);
+    expect(JSON.stringify(full)).not.toMatch(PLATE);
   });
 
   it('no fixture leaks a plate number', () => {

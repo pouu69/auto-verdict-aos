@@ -32,8 +32,52 @@
       "tone": "neutral",
       "label": "미확인",
       "message": "프레임 상태를 확인할 자료가 없어요",
+      "summary": "확인 불가 · 자료 없음",
       "why": "프레임은 차의 뼈대예요. 여기가 손상됐다는 건 충격이 뼈대까지 갔다는 뜻이라 주행 안정성과 되팔 때 가격에 큰 영향을 줘요. 그래서 위험으로 분류해요. 성능점검의 사고 이력은 주요 골격이나 쿼터 패널 같은 일부 외판을 용접·교환했다는 뜻이에요. 문·펜더 같은 바깥 패널 교환은 상대적으로 가벼운 편이에요.",
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "프레임/외판",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "확인하지 못한 이유",
+            "rows": [
+              {
+                "label": "엔카진단",
+                "value": "자료 없음",
+                "tone": "neutral"
+              },
+              {
+                "label": "성능점검",
+                "value": "자료 없음",
+                "tone": "neutral"
+              },
+              {
+                "label": "매물 정보",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "위험",
+                "value": "엔카진단 프레임 손상 또는 성능점검 사고 이력",
+                "tone": "danger"
+              },
+              {
+                "label": "통과",
+                "value": "프레임 손상 없음(외판 교환·수리는 감점 없음)",
+                "tone": "success"
+              }
+            ],
+            "note": "엔카진단 판정을 먼저 보고, 판정이 분명하지 않으면 성능점검의 사고 이력을 봐요"
+          }
+        ]
+      }
     },
     {
       "ruleId": "R05",
@@ -42,8 +86,47 @@
       "tone": "neutral",
       "label": "미확인",
       "message": "엔카에 이 차의 보험 이력이 없어요",
+      "summary": "확인 불가 · 자료 없음",
       "why": "렌트·영업용 차는 개인 차보다 하루 주행량과 부하가 몇 배예요. 주행거리가 같아도 실제 마모는 훨씬 커서 위험으로 봐요. 관용차는 관리가 잘된 편이라 주의 정도로 봐요.",
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "렌트·택시 이력",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "확인하지 못한 이유",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "자료 없음",
+                "tone": "neutral"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "위험",
+                "value": "렌트·영업용 이력이 1회라도 있음",
+                "tone": "danger"
+              },
+              {
+                "label": "주의",
+                "value": "관용 이력이 1회라도 있음",
+                "tone": "warning"
+              },
+              {
+                "label": "통과",
+                "value": "세 가지 모두 없음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R06",
@@ -52,8 +135,42 @@
       "tone": "neutral",
       "label": "미확인",
       "message": "엔카에 이 차의 보험 이력이 없어요",
+      "summary": "확인 불가 · 자료 없음",
       "why": "전손은 보험사가 고쳐 쓰느니 폐차가 낫다고 판정했던 차예요. 침수는 전기장치 부식이 나중에 문제를 일으키고, 도난 이력은 부품이 손상됐을 수 있어 모두 위험으로 봐요.",
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "전손·침수·도난",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "확인하지 못한 이유",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "자료 없음",
+                "tone": "neutral"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "위험",
+                "value": "전손·침수전손·침수분손·도난 중 1회라도 있음",
+                "tone": "danger"
+              },
+              {
+                "label": "통과",
+                "value": "모두 없음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R07",
@@ -62,8 +179,42 @@
       "tone": "neutral",
       "label": "미확인",
       "message": "엔카에 이 차의 보험 이력이 없어요",
+      "summary": "확인 불가 · 자료 없음",
       "why": "소유자가 자주 바뀐 차는 문제가 있어 자주 되팔렸거나, 정비 이력이 끊겨 관리 상태를 알기 어려운 경우가 많아요. 3회 이상부터 주의 신호로 봐요.",
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "소유자 변경",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "확인하지 못한 이유",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "자료 없음",
+                "tone": "neutral"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "통과",
+                "value": "2회 이하",
+                "tone": "success"
+              },
+              {
+                "label": "주의",
+                "value": "3회 이상",
+                "tone": "warning"
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R08",
@@ -72,8 +223,42 @@
       "tone": "neutral",
       "label": "미확인",
       "message": "엔카에 이 차의 보험 이력이 없어요",
+      "summary": "확인 불가 · 자료 없음",
       "why": "보험에 가입하지 않은 기간에 난 사고는 이력에 남지 않아요. 이력이 깨끗해 보여도 숨은 사고가 있을 수 있는 공백 구간이에요.",
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "자차보험 공백",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "확인하지 못한 이유",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "자료 없음",
+                "tone": "neutral"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "주의",
+                "value": "자차보험 미가입 기간이 1개월이라도 있음",
+                "tone": "warning"
+              },
+              {
+                "label": "통과",
+                "value": "미가입 기간 없음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R09",
@@ -82,8 +267,42 @@
       "tone": "neutral",
       "label": "미확인",
       "message": "엔카에 이 차의 보험 이력이 없어요",
+      "summary": "확인 불가 · 자료 없음",
       "why": "사고 기록은 있는데 수리비 금액이 확정되지 않은 상태예요. 손상 규모를 숫자로 가늠할 수 없어 실제로 얼마나 크게 다쳤는지 알기 어려워요.",
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "수리비 확정",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "확인하지 못한 이유",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "자료 없음",
+                "tone": "neutral"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "주의",
+                "value": "수리비가 확정되지 않은 사고가 있음",
+                "tone": "warning"
+              },
+              {
+                "label": "통과",
+                "value": "없음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R10",
@@ -92,8 +311,47 @@
       "tone": "neutral",
       "label": "미확인",
       "message": "엔카에 이 차의 보험 이력이 없어요",
+      "summary": "확인 불가 · 자료 없음",
       "why": "사고가 있어도 금액이 작으면 가벼운 접촉 수준이에요. 하지만 국산 200만원, 수입 400만원을 넘으면 단순 접촉을 넘어선 사고일 수 있어 주의로 봐요.",
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "보험처리 규모",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "확인하지 못한 이유",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "자료 없음",
+                "tone": "neutral"
+              },
+              {
+                "label": "매물 정보",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "통과",
+                "value": "내차·타차 수리비 중 큰 쪽이 국산 200만원·수입 400만원 이하",
+                "tone": "success"
+              },
+              {
+                "label": "주의",
+                "value": "국산 200만원·수입 400만원 초과",
+                "tone": "warning"
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     }
   ],
   "rules": [
@@ -104,8 +362,52 @@
       "tone": "neutral",
       "label": "미확인",
       "message": "프레임 상태를 확인할 자료가 없어요",
+      "summary": "확인 불가 · 자료 없음",
       "why": "프레임은 차의 뼈대예요. 여기가 손상됐다는 건 충격이 뼈대까지 갔다는 뜻이라 주행 안정성과 되팔 때 가격에 큰 영향을 줘요. 그래서 위험으로 분류해요. 성능점검의 사고 이력은 주요 골격이나 쿼터 패널 같은 일부 외판을 용접·교환했다는 뜻이에요. 문·펜더 같은 바깥 패널 교환은 상대적으로 가벼운 편이에요.",
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "프레임/외판",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "확인하지 못한 이유",
+            "rows": [
+              {
+                "label": "엔카진단",
+                "value": "자료 없음",
+                "tone": "neutral"
+              },
+              {
+                "label": "성능점검",
+                "value": "자료 없음",
+                "tone": "neutral"
+              },
+              {
+                "label": "매물 정보",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "위험",
+                "value": "엔카진단 프레임 손상 또는 성능점검 사고 이력",
+                "tone": "danger"
+              },
+              {
+                "label": "통과",
+                "value": "프레임 손상 없음(외판 교환·수리는 감점 없음)",
+                "tone": "success"
+              }
+            ],
+            "note": "엔카진단 판정을 먼저 보고, 판정이 분명하지 않으면 성능점검의 사고 이력을 봐요"
+          }
+        ]
+      }
     },
     {
       "ruleId": "R05",
@@ -114,8 +416,47 @@
       "tone": "neutral",
       "label": "미확인",
       "message": "엔카에 이 차의 보험 이력이 없어요",
+      "summary": "확인 불가 · 자료 없음",
       "why": "렌트·영업용 차는 개인 차보다 하루 주행량과 부하가 몇 배예요. 주행거리가 같아도 실제 마모는 훨씬 커서 위험으로 봐요. 관용차는 관리가 잘된 편이라 주의 정도로 봐요.",
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "렌트·택시 이력",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "확인하지 못한 이유",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "자료 없음",
+                "tone": "neutral"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "위험",
+                "value": "렌트·영업용 이력이 1회라도 있음",
+                "tone": "danger"
+              },
+              {
+                "label": "주의",
+                "value": "관용 이력이 1회라도 있음",
+                "tone": "warning"
+              },
+              {
+                "label": "통과",
+                "value": "세 가지 모두 없음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R06",
@@ -124,8 +465,42 @@
       "tone": "neutral",
       "label": "미확인",
       "message": "엔카에 이 차의 보험 이력이 없어요",
+      "summary": "확인 불가 · 자료 없음",
       "why": "전손은 보험사가 고쳐 쓰느니 폐차가 낫다고 판정했던 차예요. 침수는 전기장치 부식이 나중에 문제를 일으키고, 도난 이력은 부품이 손상됐을 수 있어 모두 위험으로 봐요.",
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "전손·침수·도난",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "확인하지 못한 이유",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "자료 없음",
+                "tone": "neutral"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "위험",
+                "value": "전손·침수전손·침수분손·도난 중 1회라도 있음",
+                "tone": "danger"
+              },
+              {
+                "label": "통과",
+                "value": "모두 없음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R07",
@@ -134,8 +509,42 @@
       "tone": "neutral",
       "label": "미확인",
       "message": "엔카에 이 차의 보험 이력이 없어요",
+      "summary": "확인 불가 · 자료 없음",
       "why": "소유자가 자주 바뀐 차는 문제가 있어 자주 되팔렸거나, 정비 이력이 끊겨 관리 상태를 알기 어려운 경우가 많아요. 3회 이상부터 주의 신호로 봐요.",
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "소유자 변경",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "확인하지 못한 이유",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "자료 없음",
+                "tone": "neutral"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "통과",
+                "value": "2회 이하",
+                "tone": "success"
+              },
+              {
+                "label": "주의",
+                "value": "3회 이상",
+                "tone": "warning"
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R08",
@@ -144,8 +553,42 @@
       "tone": "neutral",
       "label": "미확인",
       "message": "엔카에 이 차의 보험 이력이 없어요",
+      "summary": "확인 불가 · 자료 없음",
       "why": "보험에 가입하지 않은 기간에 난 사고는 이력에 남지 않아요. 이력이 깨끗해 보여도 숨은 사고가 있을 수 있는 공백 구간이에요.",
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "자차보험 공백",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "확인하지 못한 이유",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "자료 없음",
+                "tone": "neutral"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "주의",
+                "value": "자차보험 미가입 기간이 1개월이라도 있음",
+                "tone": "warning"
+              },
+              {
+                "label": "통과",
+                "value": "미가입 기간 없음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R09",
@@ -154,8 +597,42 @@
       "tone": "neutral",
       "label": "미확인",
       "message": "엔카에 이 차의 보험 이력이 없어요",
+      "summary": "확인 불가 · 자료 없음",
       "why": "사고 기록은 있는데 수리비 금액이 확정되지 않은 상태예요. 손상 규모를 숫자로 가늠할 수 없어 실제로 얼마나 크게 다쳤는지 알기 어려워요.",
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "수리비 확정",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "확인하지 못한 이유",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "자료 없음",
+                "tone": "neutral"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "주의",
+                "value": "수리비가 확정되지 않은 사고가 있음",
+                "tone": "warning"
+              },
+              {
+                "label": "통과",
+                "value": "없음",
+                "tone": "success"
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R10",
@@ -164,8 +641,47 @@
       "tone": "neutral",
       "label": "미확인",
       "message": "엔카에 이 차의 보험 이력이 없어요",
+      "summary": "확인 불가 · 자료 없음",
       "why": "사고가 있어도 금액이 작으면 가벼운 접촉 수준이에요. 하지만 국산 200만원, 수입 400만원을 넘으면 단순 접촉을 넘어선 사고일 수 있어 주의로 봐요.",
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "보험처리 규모",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "확인하지 못한 이유",
+            "rows": [
+              {
+                "label": "엔카 보험이력",
+                "value": "자료 없음",
+                "tone": "neutral"
+              },
+              {
+                "label": "매물 정보",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "통과",
+                "value": "내차·타차 수리비 중 큰 쪽이 국산 200만원·수입 400만원 이하",
+                "tone": "success"
+              },
+              {
+                "label": "주의",
+                "value": "국산 200만원·수입 400만원 초과",
+                "tone": "warning"
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R01",
@@ -174,8 +690,58 @@
       "tone": "success",
       "label": "통과",
       "message": "딜러가 보험이력을 공개했어요",
+      "summary": "보험이력 공개",
       "why": null,
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "보험이력 공개",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "딜러 공개 설정",
+            "rows": [
+              {
+                "label": "보험이력",
+                "value": "공개",
+                "tone": "success"
+              },
+              {
+                "label": "성능점검",
+                "value": "공개",
+                "tone": "success"
+              }
+            ],
+            "note": "딜러가 매물을 올릴 때 정하는 설정이에요"
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "통과",
+                "value": "보험이력 공개",
+                "tone": "success"
+              },
+              {
+                "label": "비공개",
+                "value": "보험이력 비공개",
+                "tone": "danger"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "매물 정보",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     },
     {
       "ruleId": "R02",
@@ -184,8 +750,58 @@
       "tone": "success",
       "label": "통과",
       "message": "성능점검 기록이 공개돼 있어요",
+      "summary": "성능점검 공개",
       "why": null,
-      "sellerQuestion": null
+      "sellerQuestion": null,
+      "detail": {
+        "title": "성능점검 공개",
+        "subtitle": null,
+        "blocks": [
+          {
+            "title": "딜러 공개 설정",
+            "rows": [
+              {
+                "label": "보험이력",
+                "value": "공개",
+                "tone": "success"
+              },
+              {
+                "label": "성능점검",
+                "value": "공개",
+                "tone": "success"
+              }
+            ],
+            "note": "딜러가 매물을 올릴 때 정하는 설정이에요"
+          },
+          {
+            "title": "판정 기준",
+            "rows": [
+              {
+                "label": "통과",
+                "value": "성능점검 기록 공개",
+                "tone": "success"
+              },
+              {
+                "label": "비공개",
+                "value": "성능점검 기록 비공개",
+                "tone": "danger"
+              }
+            ],
+            "note": null
+          },
+          {
+            "title": "데이터 출처",
+            "rows": [
+              {
+                "label": "매물 정보",
+                "value": "확인 완료",
+                "tone": null
+              }
+            ],
+            "note": null
+          }
+        ]
+      }
     }
   ],
   "excluded": [

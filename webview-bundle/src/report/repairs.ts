@@ -5,6 +5,7 @@
 import type { MobileOrchestratorResult } from '../orchestrate-mobile';
 import type { RepairPanel, Repairs, SystemItem, Tone } from './types';
 import { arr, isObj, str } from './raw';
+import { partName } from './format';
 
 const RANKS: Record<string, { rank: string; tone: Tone; order: number }> = {
   RANK_A: { rank: 'A랭크', tone: 'danger', order: 0 },
@@ -47,11 +48,14 @@ const toPanel = (o: unknown): (RepairPanel & { order: number }) | null => {
   };
 };
 
+/** 성능점검 `statusType.code` -> tone (code table in core api-inspection.ts `InnerNode`). */
 const CODE_TONE: Record<string, Tone> = {
   '1': 'success', '2': 'success', '3': 'success',
   '4': 'warning', '6': 'warning', '8': 'warning', '9': 'warning',
   '5': 'danger', '7': 'danger', '10': 'danger',
 };
+export const codeTone = (code: string): Tone => CODE_TONE[code] ?? 'neutral';
+
 const TONE_ORDER: Record<Tone, number> = { danger: 0, warning: 1, neutral: 2, success: 3 };
 
 /**
@@ -64,14 +68,14 @@ export function walkSystems(inners: unknown): Array<SystemItem & { code: string 
   const walk = (nodes: unknown, parent: string): void => {
     for (const n of arr(nodes)) {
       if (!isObj(n)) continue;
-      const name = isObj(n.type) ? (str(n.type, 'title') ?? '') : '';
+      const name = partName(isObj(n.type) ? (str(n.type, 'title') ?? '') : '');
       if (isObj(n.statusType)) {
         const code = String(n.statusType.code ?? '');
         out.push({
           group: parent,
           name,
           status: str(n.statusType, 'title') ?? '',
-          tone: CODE_TONE[code] ?? 'neutral',
+          tone: codeTone(code),
           code,
         });
       }
@@ -82,8 +86,11 @@ export function walkSystems(inners: unknown): Array<SystemItem & { code: string 
   return out;
 }
 
-/** null unless the 성능점검 was read and carries an `outers` or `inners` list. */
-export function buildRepairs(out: MobileOrchestratorResult): Repairs | null {
+/**
+ * null unless the 성능점검 was read and carries an `outers` or `inners` list.
+ * The "성능점검 전체 보기" sheet is attached by build-report (details/inspection.ts).
+ */
+export function buildRepairs(out: MobileOrchestratorResult): Omit<Repairs, 'sheet'> | null {
   const api = out.parsed.raw.inspectionApi;
   if (api.kind !== 'value') return null;
   const ins: unknown = api.value;
