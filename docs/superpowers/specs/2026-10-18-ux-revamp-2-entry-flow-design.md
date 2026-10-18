@@ -11,7 +11,7 @@
 
 - 홈 하나에서 세 가지가 끝나야 한다. 링크로 분석 시작, 엔카 공유 방법 확인, 최근 본 차 다시 열기.
 - 최근 본 차는 1번 이후 캐시에 저장되는 차 이름·판정·점수를 보여준다. 지금은 "매물 #123"과 시각만 나온다.
-- 온보딩은 짧게 줄인다. 무엇을 해 주는 앱인지, 엔카 앱이나 브라우저에서 어떻게 공유하는지만 알려준다.
+- 온보딩은 짧게 줄인다. 무엇을 해 주는 앱인지, 브라우저로 연 엔카 매물을 어떻게 공유하는지만 알려준다(엔카 앱 공유는 동작하지 않아 안내하지 않는다, 14절).
 - 홈과 온보딩에 남은 M3 `Button`·`Card`·`OutlinedTextField`·`ModalBottomSheet`, `FontWeight.Medium`, 영문 라벨, 하드코딩 문구를 정리한다(0번 14절 후속 과제).
 
 ## 2. 결정 사항
@@ -24,7 +24,7 @@
 | 입력 검증 시점 | 입력 중에는 에러를 띄우지 않는다. 버튼은 공백이 아니면 켜지고, **누를 때 검증**한다. 붙여넣기는 그 자리에서 검증 | 지금은 한 글자만 쳐도 빨간 에러가 뜬다. 대부분 붙여넣기로 들어오므로 손으로 칠 때만 생기는 이 소음은 없앤다 |
 | 링크 정규화 | 분석과 붙여넣기 모두 `EncarUrl.extractCarId` → `buildDetailUrl`로 정규화한 URL만 쓴다 | 지금은 "[엔카] 차명 https://…" 같은 원문이 그대로 `Route.Result.url`에 들어간다. 공유 인텐트(0번 7.2절)와 같은 규칙으로 맞춘다 |
 | 홈 상단바 | `AvTopBar(onBack = null, title = null, actions = 설정)`. 큰 질문 문장(`title1`, heading)이 화면 제목 역할을 한다 | 화면당 메시지 하나. 상단바 앱 이름(`title2`)과 질문 문장이 위아래로 붙으면 큰 글씨가 두 줄 연달아 나와 위계가 흐려진다. 브랜드는 스플래시와 아이콘이 보여준다 |
-| 공유 안내 | 홈의 행 하나(`AvListRow`)를 누르면 `AvBottomSheet`가 열린다. 시트 안에 "엔카 앱에서"·"브라우저에서" 단계와 [엔카 열기] 버튼 | 지금 구조(카드 → 시트)를 유지하고 컴포넌트만 바꾼다. 엔카 앱 경로는 지금 안내에 아예 없어서 새로 넣는다 |
+| 공유 안내 | 홈의 행 하나(`AvListRow`)를 누르면 `AvBottomSheet`가 열린다. 시트 안에 브라우저 공유 3단계(메뉴 → 공유 → AutoVerdict, 단계마다 실제 화면을 닮은 그림)와 [브라우저에서 엔카 열기] 버튼 | 지금 구조(카드 → 시트)를 유지하고 컴포넌트만 바꾼다. 처음엔 "엔카 앱에서" 경로도 넣었으나 엔카 앱 공유로는 분석이 되지 않아 뺐다(14절) |
 | 최근 본 차 데이터 | `cache`에서 **필요한 열만 고르는 새 DAO 쿼리**(`rawInputJson` 제외, `LIMIT 20`)를 쓴다. 엔티티는 그대로 둔다 | 지금 쿼리는 `SELECT *`라 행마다 수백 KB짜리 원본 JSON까지 메모리에 올린다. 쿼리와 POJO만 추가하면 스키마(해시)는 바뀌지 않는다 |
 | 만료 행 숨김 | 화면이 보이는 동안 **1분마다** 현재 시각으로 다시 조회한다(`flatMapLatest`) | 지금은 `now`를 흐름을 만들 때 한 번만 넣어서, 홈을 띄워 둔 채 24시간이 지나도 만료된 행이 남는다. 같은 주기로 "n분 전"도 갱신된다 |
 | 최근 본 차 개수 | 최대 20대 조회. 처음에는 5대만 보이고 "{n}대 더 보기"를 누르면 나머지가 펼쳐진다 | 결과 화면 이력 섹션(1번 5.2절 8)과 같은 패턴이다. 24시간 보관이라 20대를 넘기는 일은 드물다 |
@@ -96,22 +96,25 @@ AvTopBar(onBack = null, actions = [설정 아이콘])
 - 행: `AvListRow(title = "엔카에서 바로 공유하기", subtitle = "링크를 복사하지 않아도 돼요", leading = AvIllustrationIcon(Icons.Rounded.IosShare, Accent, 40dp), trailing = Icons.Rounded.ChevronRight(textTertiary), onClick = 시트 열기)`. 시트를 열기 전에 포커스를 해제한다(키보드 닫힘).
 - 시트: `AvBottomSheet(title = "엔카에서 공유하는 법")`. 내용이 길어서 `verticalScroll`을 쓰고 높이 상한은 기본값(상태바 아래까지)으로 둔다. 열림 상태는 `rememberSaveable`로 둔다.
 
+브라우저 공유 흐름(크롬 기준)만 안내한다. 엔카 앱 공유로는 분석이 되지 않아 "엔카 앱에서" 묶음은 뺐다(14절). 그림은 에뮬레이터 크롬에서 실제로 찍은 화면(툴바, 열린 메뉴, 시스템 공유 시트)의 배치를 단순화해 따른다.
+
 ```
-엔카 앱에서                              (buttonM, textSecondary, heading)
- 1  매물 화면에서 공유 버튼을 눌러요
- 2  공유 목록에서 AutoVerdict를 골라요
-브라우저에서
- 1  매물 페이지에서 메뉴를 열고 공유를 눌러요
-    [BrowserShareIllustration]
- 2  공유 목록에서 AutoVerdict를 골라요
-    [ShareSheetIllustration]
-목록에 없으면 공유 목록 끝의 더보기를 눌러 보세요   (caption1, textTertiary)
-[엔카 열기]  AvButton Primary L, 폭 전체
+브라우저에서 연 엔카 매물을 AutoVerdict로 보내요          (body2, textSecondary)
+ 1  매물 페이지에서 오른쪽 위 (⋮ 그림) 메뉴를 눌러요
+    [BrowserMenuButtonIllustration]   툴바: 홈 · 주소창(fem.encar.com/cars/detail/…) · + · 탭 수 · ⋮(강조)
+ 2  열린 메뉴에서 공유를 눌러요
+    [BrowserShareMenuIllustration]    오른쪽 위에 붙은 메뉴: 아이콘 줄 · 새 탭 · 방문 기록 · 공유…(강조) · 페이지에서 찾기
+ 3  공유 목록에서 AutoVerdict를 골라요
+    [ShareSheetIllustration]          시스템 공유 시트: 손잡이 · "링크 공유" · 링크 미리보기 · 앱 줄(AutoVerdict 강조)
+삼성 인터넷은 아래쪽 메뉴에서 공유를 눌러요                (caption1, textSecondary)
+AutoVerdict가 안 보이면 공유 목록을 위로 밀어 보세요       (caption1, textTertiary)
+[브라우저에서 엔카 열기]  AvButton Primary L, 폭 전체
 ```
 
 - 단계 번호는 화면 전용 컴포저블(24dp 원, `accentWeak` 배경, `accentText` `caption2`)로 그리고, 토큰만 쓴다. 단계 문구는 `body2` `textPrimary`.
-- [엔카 열기]를 누르면 시트를 닫는 애니메이션이 끝난 뒤 `ACTION_VIEW(EncarUrl.HOME_URL)`을 연다. 엔카 앱이 설치돼 있고 앱 링크를 처리하면 앱이 열린다. 열 앱이 없으면(`ActivityNotFoundException`) `LocalAvToast` "엔카를 열지 못했어요".
-- **일러스트 2종 정리** (`BrowserShareIllustration`, `ShareSheetIllustration`): `MaterialTheme.*`와 `copy(alpha=…)`를 토큰으로 바꾼다. 바탕은 `surfaceSubtle`, 모양은 `shapes.tile`, 흐린 항목은 `textTertiary`, 문구는 `caption1`/`caption2`. 문구는 모두 `strings.xml`로 옮기고 다음을 고친다. 반말 "← 이것 탭!"·"← 이것만 탭!"은 "여기를 눌러요"로, 화살표 글리프(←, ↓)는 삭제, "⋮"는 Pretendard에 없을 수 있어 "크롬은 오른쪽 위, 삼성 인터넷은 아래쪽 메뉴에 있어요"로. 일러스트 전체는 장식으로 처리한다(`clearAndSetSemantics {}`, 같은 내용을 단계 문구가 읽어 줌).
+- 1단계 문구의 ⋮는 글리프가 아니라 인라인 그림(`InlineTextContent`, `Icons.Rounded.MoreVert`를 `accentWeak` 원 안에 `accentText`로, 크기 1.3em이라 글꼴 크기를 따라감)이다. 문자열은 `%1$s` 자리에 그림을 넣고, 화면 읽기 프로그램은 대체 문구 "점 세 개"를 읽어 "오른쪽 위 점 세 개 메뉴를 눌러요"로 들린다.
+- [브라우저에서 엔카 열기]를 누르면 시트를 닫는 애니메이션이 끝난 뒤 엔카 모바일 웹(`EncarUrl.HOME_URL`)을 **브라우저로** 연다. `ACTION_VIEW` 인텐트에 selector `Intent(ACTION_MAIN).addCategory(CATEGORY_APP_BROWSER)`를 붙여 브라우저만 고르게 하고(엔카 앱의 앱 링크 처리를 건너뜀), 실패하면 selector 없는 `ACTION_VIEW`, 그것도 없으면(`ActivityNotFoundException`) `LocalAvToast` "엔카를 열지 못했어요". `Intent.makeMainSelectorActivity(MAIN, APP_BROWSER)`는 반환값 자체가 MAIN + LAUNCHER 인텐트(아무 실행 가능한 앱)이고 브라우저 조건은 그 안의 selector에 있어서, selector로 그대로 쓰면 안 된다.
+- **일러스트 3종** (`ui/components/BrowserShareIllustration.kt`의 `BrowserMenuButtonIllustration`·`BrowserShareMenuIllustration`, `ShareSheetIllustration.kt`): 공통 틀 `MockScreen`(흰 바탕, `border` 1dp 테두리, `shapes.tile`). 강조는 accent 토큰만 쓴다. ⋮ 버튼은 `accent` 원 + `onAccent` 아이콘, 메뉴의 공유…는 `accentWeak` 바탕 + `accentText`, AutoVerdict 타일은 실제 앱 아이콘(`accent` 둥근 사각형 위 `ic_launcher_foreground`를 `onAccent`로 칠함) 둘레에 `accent` 2dp 링. 흐린 항목은 `textSecondary`/`textTertiary`, 페이지 내용은 `surfaceMuted` 스켈레톤. 주소·URL 문구는 한 줄 말줄임, 앱 라벨도 한 줄 말줄임으로 둬서 큰 글꼴(1.3배)에서 줄이 넘쳐 레이아웃이 밀리지 않게 했다(에뮬레이터 확인은 기본 글꼴 크기에서만 했다). 그림 전체는 장식으로 처리한다(`clearAndSetSemantics {}`, 같은 내용을 단계 문구가 읽어 줌). 온보딩 2쪽도 같은 `ShareSheetIllustration`을 쓴다.
 
 ### 3.4 최근 본 차
 
@@ -188,7 +191,7 @@ HorizontalPager (2쪽, 스와이프 가능)
           소유자 변경·자차보험 공백       (Icons.Rounded.People, Warning)
           성능점검 교환·수리 부위         (Icons.Rounded.Build, Neutral)
   쪽 2  "엔카에서 공유하면 바로 분석해요"                            (title1, heading)
-        1  엔카 앱이나 브라우저에서 매물을 열어요
+        1  브라우저에서 엔카 매물을 열어요
         2  공유를 누르고 AutoVerdict를 골라요
         [ShareSheetIllustration]
         "링크를 복사해 홈에 붙여 넣어도 돼요"                         (caption1, textTertiary)
@@ -268,25 +271,23 @@ AvBottomCta: AvButton Primary L 폭 전체
 | `home_recent_empty_title` / `_description` | 아직 본 차가 없어요 / 분석한 매물은 24시간 동안 여기에 남아요 |
 | `time_just_now` / `time_minutes_ago` / `time_hours_ago` | 방금 전 / %1$d분 전 / %1$d시간 전 |
 | `guide_title` | 엔카에서 공유하는 법 |
-| `guide_from_app` / `guide_from_browser` | 엔카 앱에서 / 브라우저에서 |
-| `guide_app_step_share` | 매물 화면에서 공유 버튼을 눌러요 |
-| `guide_browser_step_share` | 매물 페이지에서 메뉴를 열고 공유를 눌러요 |
+| `guide_intro` | 브라우저에서 연 엔카 매물을 AutoVerdict로 보내요 |
+| `guide_step_menu` / `guide_menu_icon_a11y` | 매물 페이지에서 오른쪽 위 %1$s 메뉴를 눌러요(%1$s = ⋮ 그림) / 점 세 개 |
+| `guide_step_share` | 열린 메뉴에서 공유를 눌러요 |
 | `guide_step_pick_app` | 공유 목록에서 AutoVerdict를 골라요 |
-| `guide_tip_more` | 목록에 없으면 공유 목록 끝의 더보기를 눌러 보세요 |
-| `guide_open_encar` | 엔카 열기 |
+| `guide_note_samsung` | 삼성 인터넷은 아래쪽 메뉴에서 공유를 눌러요 |
+| `guide_tip_more` | AutoVerdict가 안 보이면 공유 목록을 위로 밀어 보세요 |
+| `guide_open_encar` | 브라우저에서 엔카 열기 |
 | `toast_open_encar_failed` | 엔카를 열지 못했어요 |
-| `illus_share_sheet_caption` | 공유 목록에서 이렇게 보여요 |
-| `illus_tap_here` | 여기를 눌러요 |
-| `illus_menu_caption` | 메뉴를 열면 |
-| `illus_menu_favorite` / `illus_menu_share` / `illus_menu_print` | 즐겨찾기 / 공유 / 인쇄 |
-| `illus_app_messenger` / `illus_app_message` | 메신저 / 메시지 (기존 더미 앱 라벨) |
-| `illus_browser_note` | 크롬은 오른쪽 위, 삼성 인터넷은 아래쪽 메뉴에 있어요 |
+| `illus_menu_new_tab` / `illus_menu_history` / `illus_menu_share` / `illus_menu_find` | 새 탭 / 방문 기록 / 공유… / 페이지에서 찾기 (크롬 메뉴 라벨) |
+| `illus_share_sheet_title` | 링크 공유 |
+| `illus_app_messenger` / `illus_app_message` / `illus_app_mail` | 메신저 / 메시지 / 메일 (더미 앱 라벨) |
 | `onboarding_skip` / `onboarding_next` / `onboarding_start` / `onboarding_close` | 건너뛰기 / 다음 / 시작하기 / 닫기 |
 | `onboarding_value_title` | 엔카 매물, 사기 전에 확인해 보세요 |
 | `onboarding_value_body` | 12가지 기준으로 살펴보고 결론부터 알려 드려요 |
 | `onboarding_value_point_history` / `_owner` / `_inspection` | 사고·침수·전손 이력 / 소유자 변경·자차보험 공백 / 성능점검 교환·수리 부위 |
 | `onboarding_share_title` | 엔카에서 공유하면 바로 분석해요 |
-| `onboarding_share_step_open` / `_step_pick` | 엔카 앱이나 브라우저에서 매물을 열어요 / 공유를 누르고 AutoVerdict를 골라요 |
+| `onboarding_share_step_open` / `_step_pick` | 브라우저에서 엔카 매물을 열어요 / 공유를 누르고 AutoVerdict를 골라요 |
 | `onboarding_share_tip` | 링크를 복사해 홈에 붙여 넣어도 돼요 |
 | `onboarding_pending_share` | 공유한 매물은 시작하면 바로 분석해요 |
 | `onboarding_page_cd` | %2$d쪽 중 %1$d쪽 |
@@ -317,7 +318,7 @@ AvBottomCta: AvButton Primary L 폭 전체
 
 ## 9. 접근성
 
-- 질문 문장, 온보딩 쪽 제목, 시트의 "엔카 앱에서"·"브라우저에서"는 `heading()`.
+- 질문 문장, 온보딩 쪽 제목은 `heading()`. 공유 안내 시트는 시트 제목이 heading이고 그룹 제목은 없다(14절).
 - 최근 행은 하나로 합쳐 읽힌다: "2015 BMW 5시리즈, 82점 · 3시간 전, 괜찮아요". 동작 이름은 "분석 결과 보기".
 - 입력 에러는 `AvTextField`의 기존 `error` 시맨틱과 polite live region으로 읽힌다.
 - [붙여넣기]·[건너뛰기]는 S 크기 버튼이라 `minimumInteractiveComponentSize()`로 터치 영역 48dp를 확보한다.
@@ -333,7 +334,7 @@ AvBottomCta: AvButton Primary L 폭 전체
 **제외**
 - 저장한 차·비교(3번), 설정 화면 정리·캐시 비우기 다이얼로그·앱 아이콘·스토어 자산(4번). `SavedListScreen`·`SettingsScreen`·`PrivacyPolicyScreen`의 `FontWeight.Medium`도 각 하위 프로젝트에서 처리한다.
 - 최근 행 개별 삭제·스와이프, 최근 행의 "저장됨" 표시(저장 테이블 조인).
-- 차 번호(carId)만 입력하는 방식, 엔카 앱 공유 문구가 다른 URL 형식일 때 `EncarUrl` 확장(11절 리스크, QA에서 확인 후 별도 결정).
+- 차 번호(carId)만 입력하는 방식, 엔카 앱 공유 지원(`EncarUrl` 확장 등, 14절).
 - 클립보드 내용 감지 후 붙여넣기 버튼 강조(API 31+ `ClipDescription` 분류). 단순함을 위해 버튼을 항상 보여준다.
 - 판정·점수 로직, vendored core, DB 스키마, 스플래시.
 
@@ -341,9 +342,9 @@ AvBottomCta: AvButton Primary L 폭 전체
 
 | 리스크 | 대응 |
 |---|---|
-| 엔카 **앱**의 공유 텍스트가 `/cars/detail/{id}`가 아닌 형식일 수 있다(지금 파서는 이 형식만 앎) | 에뮬레이터에는 엔카 앱이 없을 수 있다. 실제 기기 공유 문구를 확인하기 전까지 안내 문구는 유지하고, 다르면 사용자에게 보고한 뒤 `EncarUrl` 확장을 별도로 결정한다. 그 전까지는 무효 공유 토스트로 안전하게 실패한다 |
+| ~~엔카 **앱**의 공유 텍스트가 `/cars/detail/{id}`가 아닌 형식일 수 있다~~ | **확인됨(14절)**: 엔카 앱 공유로는 분석이 되지 않는다. 안내에서 엔카 앱 경로를 빼고 브라우저 흐름만 남겼다. 엔카 앱에서 공유하면 지금처럼 무효 공유 토스트로 안전하게 실패한다 |
 | 자동 채움 제거로 탭이 한 번 늘어남 | 공유 경로(탭 0번)를 홈과 온보딩에서 더 잘 보이게 한다. 붙여넣기는 버튼 하나 |
-| 브라우저마다 메뉴 위치가 다름 | 일러스트 아래 크롬·삼성 인터넷 위치를 문구로 안내(기존 유지) |
+| 브라우저마다 메뉴 위치가 다름 | 그림은 크롬(오른쪽 위 메뉴) 기준으로 그리고, 삼성 인터넷(아래쪽 메뉴)은 시트 아래 한 줄로 안내 |
 | `focusRingInside`가 다른 화면의 행 모양을 바꿈 | 링은 키보드·D-pad 포커스에서만 보인다. 갤러리에서 확인 |
 | DB 쿼리 추가가 스키마를 바꾸는지 | 엔티티는 그대로. `app/schemas/.../1.json` diff가 비어 있어야 한다(리뷰 체크) |
 | 1분 주기 재조회 비용 | 원본 JSON을 빼고 20행만 조회하며, RESUMED에서만 돈다 |
@@ -393,6 +394,12 @@ AvBottomCta: AvButton Primary L 폭 전체
 - 삭제 매물 판정: 페이지가 `cars/GET_BASE` 실패만 표시하면 수집기가 base API(`api.encar.com/v1/readside/vehicle/{id}`)를 다시 요청해 **404일 때만** `Deleted`로 본다. 5xx·네트워크 오류·시간 초과(10초)는 다시 시도할 수 있는 `PageUnreadable`이다(1ecdb02).
 - `webview-bundle/src/normalize-input.ts`: 코어가 예외를 던지던 엔카 응답 형태(`base.category`·`advertisement`·`spec` 누락, 배열이 아닌 점검 목록 등)를 코어에 넘기기 전에 고친다. 정상 입력은 그대로라 계약 JSON이 바뀌지 않는다(b0e9f71, 568c0d2). core는 수정하지 않았다.
 
+**공유 안내 개편 (후속, 2026-10-18)**
+- 엔카 앱 공유로는 분석이 되지 않는다(사용자 확인). 공유 안내 시트에서 "엔카 앱에서" 묶음을 지우고, 온보딩 2쪽 문구(`onboarding_share_step_open`)와 스토어 설명·스크린샷 캡션(`docs/store-listing.md`, `docs/assets-guide.md`, `docs/play-store-checklist.md`, 4번 설계 문서의 인용)도 브라우저 기준으로 고쳤다. 안 쓰게 된 문자열 키(`guide_from_app`·`guide_from_browser`·`guide_app_step_share`·`guide_browser_step_share`·`illus_share_sheet_caption`·`illus_tap_here`·`illus_menu_caption`·`illus_menu_favorite`·`illus_menu_print`·`illus_browser_note`)는 지웠다.
+- 시트를 실제 크롬 공유 흐름을 따르는 번호 3단계로 다시 만들었다(3.3절). 에뮬레이터 `AV_API_36` 크롬에서 매물 페이지 → ⋮ → 공유를 찍어 배치를 맞췄다(툴바 순서, 메뉴가 오른쪽 위에 붙어 열리고 위에 아이콘 줄이 있음, 공유 시트는 "링크 공유" 제목·링크 미리보기·앱 줄 순서이며 AutoVerdict가 두 번째 칸).
+- [엔카 열기]를 [브라우저에서 엔카 열기]로 바꾸고, 엔카 앱이 아닌 브라우저로 열리게 했다(3.3절 selector 설명). 에뮬레이터에서 누르면 크롬이 엔카 모바일 웹을 연다.
+- `ShareGuideSheetTest`: 엔카 앱 묶음이 없고 3단계 문구(인라인 ⋮의 대체 문구 포함)가 읽히는지, 그림 라벨이 시맨틱에 없는지, 버튼이 한 번만 닫고 여는지, 브라우저 selector 인텐트와 그 대체 경로를 확인한다.
+
 **후속 과제**
-- 엔카 앱 공유 문구 형식 확인(11절 리스크). 실제 기기에서 확인하기 전까지는 무효 공유 토스트로 안전하게 실패한다.
+- 엔카 앱 공유 지원은 범위 밖이다. 필요해지면 엔카 앱이 넘기는 공유 문구를 실제 기기에서 받아 `EncarUrl` 확장을 따로 결정한다.
 - 404 판별용 base API 재요청은 엔카 페이지 안의 `fetch`로 한다. 404 응답에 CORS 헤더가 없으면 상태 코드를 읽지 못하고 네트워크 오류로 처리되어 삭제 매물이 "다시 시도"로 보일 수 있다. 실제 삭제 매물로 확인해야 한다.
