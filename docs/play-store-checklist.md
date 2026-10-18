@@ -73,7 +73,7 @@
 
 | 항목 | 값                    |
 |---|----------------------|
-| 개발자명 | �AutoVerdict                  |
+| 개발자명 | AutoVerdict          |
 | 연락처 이메일 | pouu69@gmail.com     |
 | 서명 키 별칭 | `autoverdict-upload` |
 
