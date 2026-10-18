@@ -56,7 +56,7 @@
 ### 인텐트 필터 (앱 진입점)
 
 - `MAIN` / `LAUNCHER` — 일반 앱 실행
-- `SEND` (`text/plain`) — 엔카 앱·브라우저의 **공유 시트에서 AutoVerdict로 URL 공유** 가능
+- `SEND` (`text/plain`) — 브라우저(엔카 모바일 웹)의 **공유 시트에서 AutoVerdict로 URL 공유** 가능
 
 ### AdMob
 
