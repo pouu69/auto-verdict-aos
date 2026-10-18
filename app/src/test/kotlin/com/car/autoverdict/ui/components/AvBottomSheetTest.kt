@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -26,11 +28,15 @@ import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeDown
+import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.car.autoverdict.ui.theme.AvTheme
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -138,6 +144,47 @@ class AvBottomSheetTest {
         val (sheet, window) = rule.sheetAndWindowHeight()
         assertTrue("sheet $sheet should be at most half of $window", sheet <= window * 0.5f + px(1))
         assertTrue("sheet $sheet should fill about half of $window", sheet >= window * 0.5f - px(40))
+    }
+
+    private var dismissed = 0
+    private lateinit var sheetValue: () -> SheetValue
+
+    /** A capped sheet with long scrolling content whose dismissals are counted. */
+    private fun showDismissable() {
+        rule.setContent {
+            AvTheme {
+                val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+                sheetValue = { state.currentValue }
+                AvBottomSheet(onDismiss = { dismissed++ }, sheetState = state, maxHeightFraction = 0.5f) {
+                    Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
+                        repeat(60) { Text("줄 ${it + 1}", Modifier.height(40.dp)) }
+                    }
+                }
+            }
+        }
+        rule.waitForIdle()
+    }
+
+    @Test fun `scrolling or flinging the content past its top keeps the sheet open`() {
+        showDismissable()
+        val content = rule.onNode(hasScrollAction() and hasAnyDescendant(hasText("줄 1")))
+        // A slow drag down from the top, then a scroll down and a fast fling back past the top.
+        content.performTouchInput { swipeDown(durationMillis = 800) }
+        content.performTouchInput { swipeUp() }
+        content.performTouchInput { swipeDown(durationMillis = 50) }
+        rule.waitForIdle()
+        assertEquals(0, dismissed)
+        assertEquals(SheetValue.Expanded, sheetValue())
+        rule.onNodeWithText("줄 1").assertIsDisplayed()
+    }
+
+    @Test fun `dragging the handle down still closes the sheet`() {
+        showDismissable()
+        rule.onNode(sheetHandle).performTouchInput {
+            swipeDown(startY = centerY, endY = centerY + 400.dp.toPx(), durationMillis = 300)
+        }
+        rule.waitForIdle()
+        assertEquals(1, dismissed)
     }
 
     @Test fun `a cap outside zero to one is rejected`() {

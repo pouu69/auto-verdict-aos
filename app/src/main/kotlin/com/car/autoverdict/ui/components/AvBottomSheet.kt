@@ -21,12 +21,17 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import com.car.autoverdict.R
 import com.car.autoverdict.ui.theme.AvPalette
@@ -34,11 +39,14 @@ import com.car.autoverdict.ui.theme.AvTheme
 import kotlin.math.roundToInt
 
 /**
- * Modal sheet with a 24dp top radius, drag handle and drag-to-dismiss.
+ * Modal sheet with a 24dp top radius and a drag handle. It closes by dragging its non-scrolling
+ * top (drag handle, title), tapping the scrim or pressing back.
  *
  * To close from inside the sheet (e.g. a button), animate it out first:
  * `scope.launch { sheetState.hide() }.invokeOnCompletion { onDismiss() }`.
- * Content is not scrollable by default; add `verticalScroll` for long content.
+ * Content is not scrollable by default; add `verticalScroll` for long content. Scrolling that
+ * content never moves or closes the sheet: what is left of a drag or fling once the content
+ * hits its top stays in the content instead of reaching the sheet (see [KeepScrollInContent]).
  *
  * The sheet never reaches under the status bar: at its tallest it stops at the bottom of the
  * status bar, so the drag handle stays clear of the clock and icons.
@@ -92,6 +100,7 @@ fun AvBottomSheet(
         }
         Column(
             modifier = cap
+                .nestedScroll(KeepScrollInContent)
                 .fillMaxWidth()
                 .padding(start = 20.dp, end = 20.dp, bottom = 24.dp),
         ) {
@@ -107,6 +116,19 @@ fun AvBottomSheet(
             content()
         }
     }
+}
+
+/**
+ * Swallows whatever scroll and fling the sheet content's scrollables leave over, so none of it
+ * reaches [ModalBottomSheet]'s own nested-scroll connection. That connection would otherwise
+ * turn a downward drag or fling past the content's top into a dismiss drag. Pre-scroll is left
+ * alone, so the sheet still gets first say there (it only acts while it is off its anchor).
+ * Drags on the drag handle and title do not go through nested scroll and still move the sheet.
+ */
+private object KeepScrollInContent : NestedScrollConnection {
+    override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset = available
+
+    override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity = available
 }
 
 /**

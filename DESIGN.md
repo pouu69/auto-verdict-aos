@@ -45,7 +45,7 @@ Spacing: 4 · 8 · 12 · 16 · 20 · 24 · 32; screen side padding 20.
 L/M only) · `AvBottomCta` · `AvListRow` · `AvTextField` · `AvBadge` · `AvFactTile` ·
 `AvSectionHeader` (optional `expanded`/`onToggle` makes the whole title row a fold button with
 a chevron; pair with `AvCollapsibleBody`) · `AvSectionDivider` · `AvEmptyState` · `AvIllustrationIcon` ·
-`AvBottomSheet` (optional `maxHeightFraction` caps it, e.g. detail sheets at 0.5; content scrolls) · `AvDialog` · `AvToastHost`/`LocalAvToast` · `AvTabBar` · `AvLoadingSteps`.
+`AvBottomSheet` (optional `maxHeightFraction` caps it, e.g. detail sheets at 0.5; content scrolls; 내용 스크롤로는 닫히지 않음; 손잡이·바깥 영역·뒤로가기로 닫힘) · `AvDialog` · `AvToastHost`/`LocalAvToast` · `AvTabBar` · `AvLoadingSteps`.
 Debug builds show all of them under Settings → 컴포넌트 갤러리.
 
 Optional parameters (defaults keep the old behavior):
