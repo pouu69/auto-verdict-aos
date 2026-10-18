@@ -482,9 +482,9 @@ sealed interface Route {
 |---|---|
 | 결과 화면 본문(WebView) 재설계, 영문 판정 라벨(`UNKNOWN` 등) 한글화, 로딩 단계(`AvLoadingSteps`)를 실제 수집 단계에 연결 | 1번 |
 | 결과 화면 로딩 중 MREC 노출 확인(분석이 빨라 QA에서 관찰하지 못함) | 1번 |
-| 홈 화면 재설계: 기존 M3 버튼·카드를 `Av*` 컴포넌트로 교체, 남은 `FontWeight.Medium`(Regular로 매칭됨) 정리 | 2번 |
-| 비교 화면: "미확인" 칩을 `neutralBg`로, 가격 행 굵기 구분 재검토, ▲ 기호 글꼴 대체 확인 | 3번 |
-| 설정: `android.widget.Toast`와 `AlertDialog`를 `LocalAvToast`·`AvDialog`로 교체(교체 시 하단 배너와 토스트 위치 겹침 확인), 행 눌림 반응을 `avPressable`로 통일 | 4번 |
-| 화면 폭을 꽉 채우는 행과 clip된 부모 안에서 포커스 링이 잘리는 문제(안쪽 링 옵션 검토) | 다음에 해당 컴포넌트를 쓰는 하위 프로젝트 |
-| pop 애니메이션 중 같은 route를 다시 열 때 저장 상태가 재사용되는 드문 경우 | 1번(셸 손볼 때) |
+| 홈 화면 재설계: 기존 M3 버튼·카드를 `Av*` 컴포넌트로 교체, 남은 `FontWeight.Medium`(Regular로 매칭됨) 정리 | 2번 — **해결**(홈·온보딩 재작성) |
+| 비교 화면: "미확인" 칩을 `neutralBg`로, 가격 행 굵기 구분 재검토, ▲ 기호 글꼴 대체 확인 | 3번 — **해결**(미확인 Neutral 배지, 가격은 표시·굵기 없음, ▲ 제거) |
+| 설정: `android.widget.Toast`와 `AlertDialog`를 `LocalAvToast`·`AvDialog`로 교체(교체 시 하단 배너와 토스트 위치 겹침 확인), 행 눌림 반응을 `avPressable`로 통일 | 4번 — **해결**(`AvDialog`·`LocalAvToast`, 설정 토스트는 배너 위, 행은 `AvListRow`) |
+| 화면 폭을 꽉 채우는 행과 clip된 부모 안에서 포커스 링이 잘리는 문제(안쪽 링 옵션 검토) | 다음에 해당 컴포넌트를 쓰는 하위 프로젝트 — **해결**(2번 `avPressable(focusRingInside)`, 3번 저장 목록 행 여백) |
+| pop 애니메이션 중 같은 route를 다시 열 때 저장 상태가 재사용되는 드문 경우 | 1번(셸 손볼 때) — **수용**(2번 2절 결정: 같은 route면 같은 데이터라 고치지 않음) |
 

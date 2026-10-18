@@ -48,6 +48,27 @@ a chevron; pair with `AvCollapsibleBody`) · `AvSectionDivider` · `AvEmptyState
 `AvBottomSheet` (optional `maxHeightFraction` caps it, e.g. detail sheets at 0.5; content scrolls) · `AvDialog` · `AvToastHost`/`LocalAvToast` · `AvTabBar` · `AvLoadingSteps`.
 Debug builds show all of them under Settings → 컴포넌트 갤러리.
 
+Optional parameters (defaults keep the old behavior):
+
+- `AvTextField(actionLabel, onAction)`: a Weak S button (48dp touch) on the right while the
+  value is empty, e.g. 붙여넣기; once there is a value the clear icon takes its place.
+- `AvListRow(onClickLabel)`: the screen reader's action name ("분석 결과 보기").
+- `Modifier.avPressable(focusRingInside = true)`: draws the focus ring 2dp inside the element
+  instead of outside. `AvListRow` and the collapsible `AvSectionHeader` use it because they
+  span the full width and an outer ring would be clipped. Other full-width custom rows keep
+  side margins so the outer ring fits (saved list: 8dp outside, 12dp inside).
+- `LocalAvToast.current.show(..., long = true)`: `SnackbarDuration.Long`, for undo toasts.
+- `AvBottomSheet(maxHeightFraction)`: see above.
+
+Patterns:
+
+- **Swipe to delete + undo** (saved list): swipe end→start only (`SwipeToDismissBox`), a
+  `dangerBg` background with a `dangerText` delete icon, clipped to the row shape. Delete
+  immediately, no confirm dialog; show "삭제했어요" with a "되돌리기" action as a long toast,
+  and restore the exact rows (timestamps included). Always add a `customActions` "삭제" for
+  screen-reader users, and turn swiping off in selection modes. Use a confirm `AvDialog`
+  (`destructive`) instead only where undo isn't offered (Settings bulk clears).
+
 Insets: `AvTopBar` owns the status bar, `AvTabBar`/`AvBottomCta` own the navigation bar
 (and IME for `AvBottomCta`). Don't add blanket insets at the screen root.
 
@@ -62,5 +83,17 @@ Insets: `AvTopBar` owns the status bar, `AvTabBar`/`AvBottomCta` own the navigat
 - Buttons: verb, 2–3 words ("저장하기", "비교하기", "다시 시도").
 - Numbers: "8.2만km", "2,180만원", "2022년 2월~9월".
 - No emoji in UI text; use `AvIllustrationIcon` for pictures.
-- New UI strings (components, navigation, new screens) go in `res/values/strings.xml`.
-  Existing screen copy moves there when that screen is redesigned (sub-projects 1–4).
+- UI strings live in `res/values/strings*.xml`: `strings.xml` for shared, component and most
+  screen copy; `strings_settings.xml`, `strings_licenses.xml`, `strings_privacy.xml` for those
+  screens. No hard-coded copy in Compose.
+- Exception to "no English": license and library names on the licenses screens are proper
+  nouns and stay as published.
+
+## App icon
+
+Adaptive icon: `@color/av_accent` background + white front-view car
+(`drawable/ic_launcher_foreground`) with the windshield, headlights and a check cut out as
+holes (evenOdd). The same drawable is the `<monochrome>` themed-icon layer, so keep the holes
+real transparency. No legacy PNGs (minSdk 26). Splash: white background, the foreground on an
+accent icon circle. Source SVG and Play assets: `docs/assets/source/`, rendering steps in
+`docs/assets-guide.md`.

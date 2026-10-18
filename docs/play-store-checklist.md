@@ -18,7 +18,9 @@
 | 개인정보처리방침 작성 | ✅ 완료 — `docs/privacy-policy.md` |
 | 스토어 카피 작성 | ✅ 완료 — `docs/store-listing.md` |
 | 개인정보처리방침 호스팅 | ✅ 완료 — https://pouu69.github.io/auto-verdict-aos/ |
-| 스크린샷 캡처 | ✅ 완료 — `docs/assets/screenshots/` |
+| 스크린샷 캡처 | ✅ 완료 — 새 디자인 8장, 스토어용 `docs/assets/screenshots/play/01~08.png` (원본 `raw/`, 목록·캡션은 `docs/assets-guide.md`) |
+| 오픈소스 고지 | 의존성을 바꿨으면 `scripts/oss-notices/README.md` 절차로 다시 생성 |
+| EEA·영국 광고 동의(UMP) | ⛔ 미구현 — 해당 지역 배포 전 동의 흐름 필요 |
 | targetSdk 36 대응 | ✅ 완료 — compileSdk/targetSdk 36, Robolectric 4.16 |
 | **Keystore 외부 백업** | ⛔ **사용자 진행 필요** |
 | **Play Console 등록·업로드** | ⛔ **사용자 진행 필요** |
@@ -54,7 +56,7 @@
 ### 인텐트 필터 (앱 진입점)
 
 - `MAIN` / `LAUNCHER` — 일반 앱 실행
-- `SEND` (`text/plain`) — 엔카 앱·브라우저의 **공유 시트에서 AutoVerdict로 URL 공유** 가능
+- `SEND` (`text/plain`) — 브라우저(엔카 모바일 웹)의 **공유 시트에서 AutoVerdict로 URL 공유** 가능
 
 ### AdMob
 
@@ -141,7 +143,7 @@ Play Console은 **공개 URL**을 요구합니다. 앱 내 정책 화면만으�
 
 ## STEP 2 — 스크린샷 캡처 (최소 2장, 권장 8장) ✅ 완료
 
-> ✅ 캡처 완료: `docs/assets/screenshots/` (`01.png` …) — 아래 절차는 재촬영 시 참고용.
+> ✅ 캡처 완료: 원본 `docs/assets/screenshots/raw/01~08.png`, 틀에 넣은 스토어용 `docs/assets/screenshots/play/01~08.png` — 촬영·합성 절차는 `docs/assets-guide.md` 3절, 아래는 참고용.
 
 ### 디바이스 준비
 
@@ -172,8 +174,8 @@ export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 ```bash
 # Android Studio: Logcat 옆 카메라 버튼 (가장 편함)
 # 또는 adb로:
-adb exec-out screencap -p > docs/assets/screenshots/01.png
-adb exec-out screencap -p > docs/assets/screenshots/02.png
+adb exec-out screencap -p > docs/assets/screenshots/raw/01.png
+adb exec-out screencap -p > docs/assets/screenshots/raw/02.png
 # ... 8장 반복
 ```
 
@@ -193,7 +195,7 @@ adb exec-out screencap -p > docs/assets/screenshots/02.png
 
 | 입력 항목 | 값 |
 |---|---|
-| 앱 이름 | AutoVerdict — 엔카 매물 평가 |
+| 앱 이름 | AutoVerdict — 중고차 매물 평가 (`store-listing.md`와 동일, 상표 '엔카' 제외) |
 | 기본 언어 | 한국어 (대한민국) |
 | 앱 또는 게임 | 앱 |
 | 무료 또는 유료 | 무료 |
@@ -213,7 +215,7 @@ adb exec-out screencap -p > docs/assets/screenshots/02.png
 - **자세한 설명** (4000자) — 긴 설명 그대로
 - **앱 아이콘** — `docs/assets/play-icon-512.png`
 - **피처 그래픽** — `docs/assets/feature-graphic-1024x500.png`
-- **휴대전화 스크린샷** — `docs/assets/screenshots/*.png` (Step 2에서 생성)
+- **휴대전화 스크린샷** — `docs/assets/screenshots/play/01~08.png` (Step 2에서 생성)
 - **앱 카테고리** — 자동차
 
 ### 3-5. 앱 콘텐츠 (정책 페이지)
@@ -227,15 +229,19 @@ adb exec-out screencap -p > docs/assets/screenshots/02.png
 | 콘텐츠 등급 | IARC 설문 진행 (모두 "아니오" 응답 → 전체이용가) |
 | 정부 앱 | 아니오 |
 | 뉴스 앱 | 아니오 |
-| 데이터 안전성 | `docs/store-listing.md` 9절 참조 |
+| 데이터 안전성 | `docs/store-listing.md`의 "데이터 안전성 (Data Safety) 응답 가이드" 절 참조 (기준: `docs/privacy-policy.md`) |
 
 #### 데이터 안전성 핵심 응답
 
-- **데이터 수집:** 광고 ID (AAID)만 — Google AdMob에 의해
-- **데이터 공유:** 광고 ID → Google
-- **데이터 처리 위치:** 사용자 기기 (앱 자체는 서버 미운영)
-- **암호화:** ✅ 전송 시 HTTPS
-- **삭제 요청 가능:** ✅ 앱 내에서
+- **데이터 수집·공유 (Google AdMob SDK → Google):** 광고 ID(AAID)·앱 세트 ID, IP 주소, 기기·앱 정보(모델·OS 버전·언어 등), 광고 노출·클릭
+- **네 데이터 유형 공통 용도:** 기기 또는 기타 ID(광고 ID·앱 세트 ID), 앱 활동 > 앱 상호작용(광고 노출·클릭), 앱 정보 및 성능 > 진단(기기·앱 정보), 위치 > 대략적인 위치(IP 주소) 모두 **광고 또는 마케팅, 분석, 사기 예방·보안·규정 준수** 체크 (2026-10-18 결정)
+  - Play Console 경로: 각 데이터 유형 → 수집·공유 모두 체크 → 일시적 처리 "아니요" → "필수" → 용도 세 개 체크
+- **IP 주소 → 위치 > 대략적인 위치:** 수집 예 / 공유 예(Google, AdMob SDK) / 일시적 처리 아니오 / 필수 / 용도: 광고 또는 마케팅, 분석, 사기 예방·보안·규정 준수 (근거: Google Mobile Ads SDK Play 데이터 공개 안내)
+  - Play Console 경로: **앱 콘텐츠 → 데이터 보안 → 데이터 유형 → 위치 → "대략적인 위치" 체크 → 수집·공유 모두 체크 → 일시적 처리 "아니요" → "필수" → 용도 체크**
+- **엔카로 직접 전달:** 매물 ID와 차량번호(이력 조회용), IP 주소 등 일반 접속 정보 — 사용자가 요청한 매물 조회용, 앱 운영자 서버를 거치지 않음
+- **앱이 만드는 데이터:** 매물 URL·분석 결과·저장한 차는 기기에만 저장 (앱 운영자 서버 없음, 기기 백업 제외)
+- **암호화:** ✅ 전송 시 HTTPS 전용
+- **삭제:** ✅ 설정 → "최근 본 차 지우기" / "저장한 차 모두 지우기", 저장한 차 개별 삭제, 앱 삭제 시 전부 제거
 
 ---
 

@@ -4,10 +4,13 @@ import android.app.Application
 import com.car.autoverdict.db.AppDatabase
 import com.car.autoverdict.engine.RuleEngine
 import com.car.autoverdict.engine.WebViewEngineHost
+import com.car.autoverdict.licenses.OssNoticeRepository
 import com.car.autoverdict.result.DefaultResultRepository
+import com.car.autoverdict.saved.SavedCarsRepository
 import com.google.android.gms.ads.MobileAds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 class AutoVerdictApp : Application() {
@@ -18,6 +21,14 @@ class AutoVerdictApp : Application() {
     val ruleEngine: RuleEngine by lazy { RuleEngine({ WebViewEngineHost(this) }) }
 
     val resultRepository: DefaultResultRepository by lazy { DefaultResultRepository(this, database) }
+
+    /** App-scoped so the grouped list is shared across tabs and an undo outlives the screen (spec 3.5, 4.6). */
+    val savedCarsRepository: SavedCarsRepository by lazy {
+        SavedCarsRepository(database.savedCarDao(), CoroutineScope(SupervisorJob()))
+    }
+
+    /** Parsed once and kept: the list and detail screens share it across navigation and rotation. */
+    val ossNoticeRepository: OssNoticeRepository by lazy { OssNoticeRepository(resources) }
 
     override fun onCreate() {
         super.onCreate()

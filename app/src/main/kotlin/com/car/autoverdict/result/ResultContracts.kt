@@ -31,10 +31,16 @@ interface ResultRepository {
     suspend fun writeCache(report: EvaluationReport, rawJson: String)
 
     /**
-     * Upserts the saved row from [report]. [savedAt] keeps the original save time when
+     * Upserts the saved row [carId] from [report]. [savedAt] keeps the original save time when
      * refreshing an already-saved car; null means "now". Returns the savedAt actually written.
+     * New saves pass the [SavedCarKey]; refreshes pass the id of the row being refreshed.
      */
-    suspend fun save(report: EvaluationReport, rawJson: String, savedAt: Long? = null): Long
+    suspend fun save(
+        report: EvaluationReport,
+        rawJson: String,
+        savedAt: Long? = null,
+        carId: String = report.carId,
+    ): Long
 
     suspend fun delete(carId: String)
 }

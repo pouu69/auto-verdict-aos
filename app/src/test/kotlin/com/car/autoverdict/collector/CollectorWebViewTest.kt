@@ -122,14 +122,36 @@ class CollectorWebViewTest {
         assertTrue(shadow.lastEvaluatedJavascript.contains("pender"))
     }
 
+    // The base-API probe answers through the ApiCallback bridge.
+    private fun probeResponds(json: String) {
+        val bridge = shadow.getJavascriptInterface("ApiCallback") as CollectorWebView.ApiBridge
+        bridge.onResult(json)
+        shadowOf(Looper.getMainLooper()).idle()
+    }
+
     @Test
-    fun missingListing_afterPageFinished_reportsDeleted() {
+    fun missingListing_afterPageFinished_probes404_reportsDeleted() {
         collect(carId = "30000000")
         pageFinished()
         respond(MISSING_STATE)
 
+        assertTrue("deletion needs a confirmed 404", results.isEmpty())
+        assertTrue(shadow.lastEvaluatedJavascript.contains("api.encar.com/v1/readside/vehicle/"))
+        probeResponds("""{"status":404}""")
+
         assertEquals(listOf(CollectorWebView.Result.Deleted), results)
         assertEquals(listOf(CollectStage.OpeningPage), stages)
+    }
+
+    @Test
+    fun missingListing_probeServerError_reportsRetryablePageUnreadable() {
+        collect(carId = "30000000")
+        pageFinished()
+        respond(MISSING_STATE)
+        probeResponds("""{"status":503}""")
+
+        val error = results.single() as CollectorWebView.Result.Error
+        assertEquals(CollectErrorKind.PageUnreadable, error.kind)
     }
 
     @Test
@@ -145,6 +167,7 @@ class CollectorWebViewTest {
 
         pageFinished()
         respond(MISSING_STATE)
+        probeResponds("""{"status":404}""")
         assertEquals(listOf(CollectorWebView.Result.Deleted), results)
     }
 

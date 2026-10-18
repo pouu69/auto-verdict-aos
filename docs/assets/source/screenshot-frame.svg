@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1080" height="1920" viewBox="0 0 1080 1920">
+  <!--
+    Play Store phone screenshot frame (1080x1920, 9:16).
+    Spec: docs/superpowers/specs/2026-10-18-ux-revamp-4-settings-cleanup-design.md §6.4
+    Template tokens (replaced per shot by the loop in docs/assets-guide.md §3):
+      __CAPTION_1__ / __CAPTION_2__  caption lines (2 lines, Pretendard Bold 60px)
+      __SHOT__                       two-digit shot number (01..08)
+    The image href is relative ("raw/__SHOT__.png"): the filled-in copy must sit in
+    docs/assets/screenshots/ because librsvg only loads images at or below the SVG's directory.
+  -->
+  <defs>
+    <clipPath id="shot-clip">
+      <!-- Raw capture 1080x2400 scaled to 900x2000; only the top ~1520px stays inside the frame. -->
+      <rect x="90" y="400" width="900" height="2000" rx="48"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background: surfaceMuted -->
+  <rect width="1080" height="1920" fill="#F2F4F6"/>
+
+  <!-- Caption area (height 360) -->
+  <g font-family="Pretendard" font-size="60" font-weight="700" fill="#191F28" text-anchor="middle" letter-spacing="-1.5">
+    <text x="540" y="170">__CAPTION_1__</text>
+    <text x="540" y="246">__CAPTION_2__</text>
+  </g>
+
+  <!-- Screen capture -->
+  <image x="90" y="400" width="900" height="2000" preserveAspectRatio="xMidYMin slice"
+         clip-path="url(#shot-clip)"
+         href="raw/__SHOT__.png" xlink:href="raw/__SHOT__.png"/>
+</svg>

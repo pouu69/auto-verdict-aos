@@ -8,6 +8,8 @@ sealed interface Route {
     data object Settings : Route
     data object PrivacyPolicy : Route
     data object Licenses : Route
+    /** [id] is a library or Google-bundled component id from the notices data; never contains "|". */
+    data class LicenseDetail(val id: String) : Route
     data object Gallery : Route
     data class Result(val url: String, val fromSaved: Boolean) : Route
     data class Compare(val carIds: List<String>) : Route

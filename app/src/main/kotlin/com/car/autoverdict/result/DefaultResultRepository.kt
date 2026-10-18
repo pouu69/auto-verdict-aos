@@ -9,6 +9,7 @@ import com.car.autoverdict.db.AppDatabase
 import com.car.autoverdict.db.CacheEntity
 import com.car.autoverdict.db.SavedCarEntity
 import com.car.autoverdict.report.EvaluationReport
+import com.car.autoverdict.util.EncarUrl
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -86,14 +87,15 @@ class DefaultResultRepository(
         )
     }
 
-    override suspend fun save(report: EvaluationReport, rawJson: String, savedAt: Long?): Long {
+    override suspend fun save(report: EvaluationReport, rawJson: String, savedAt: Long?, carId: String): Long {
         val now = clock()
         val written = savedAt ?: now
         val counts = report.counts
         db.savedCarDao().upsert(
             SavedCarEntity(
-                carId = report.carId,
-                url = report.url,
+                carId = carId,
+                // Opening a row keyed by the original id should land on that listing directly.
+                url = if (carId == report.carId) report.url else EncarUrl.buildDetailUrl(carId),
                 title = report.car.title.take(200),
                 year = report.car.year,
                 mileageKm = report.car.mileageKm,

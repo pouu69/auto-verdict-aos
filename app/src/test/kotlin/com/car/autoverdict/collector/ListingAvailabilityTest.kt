@@ -189,6 +189,14 @@ class ListingAvailabilityTest {
     }
 
     @Test
+    fun baseProbe_onlyA404ConfirmsMissing() {
+        assertTrue(ListingAvailability.isConfirmedMissing("""{"status":404}"""))
+        assertFalse(ListingAvailability.isConfirmedMissing("""{"status":500}"""))
+        assertFalse(ListingAvailability.isConfirmedMissing("""{"error":"Failed to fetch"}"""))
+        assertFalse(ListingAvailability.isConfirmedMissing("""{"error":"timeout"}"""))
+    }
+
+    @Test
     fun idMismatchWithoutDummyFlag_isGone() {
         assertTrue(
             ListingAvailability.isGone(

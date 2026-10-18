@@ -66,7 +66,10 @@ class MainActivity : ComponentActivity() {
         )
 }
 
-/** Collects the saved count here so its updates recompose only this scope, not setContent's root. */
+/**
+ * Collects the saved count here so its updates recompose only this scope, not setContent's root.
+ * The count is of grouped items, so twin rows of one car count once (spec 3.4).
+ */
 @Composable
 private fun AutoVerdictAppContent(
     app: AutoVerdictApp,
@@ -74,7 +77,7 @@ private fun AutoVerdictAppContent(
     pendingNavEvent: NavEvent?,
     onPendingNavEventConsumed: () -> Unit,
 ) {
-    val savedCount by remember { app.database.savedCarDao().countFlow() }
+    val savedCount by remember { app.savedCarsRepository.itemCount }
         .collectAsStateWithLifecycle(initialValue = 0)
     AppRoot(
         onboardingComplete = preferences.isOnboardingComplete,

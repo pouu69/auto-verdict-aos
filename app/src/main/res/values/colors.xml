@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Mirrors AvColors (ui/theme/AvColors.kt). XML only needs what the splash and window use. -->
+    <!-- Mirrors AvColors (ui/theme/AvColors.kt). XML only needs what the launcher icon, splash and window use. -->
     <color name="av_accent">#3182F6</color>
     <color name="av_background">#FFFFFF</color>
 </resources>

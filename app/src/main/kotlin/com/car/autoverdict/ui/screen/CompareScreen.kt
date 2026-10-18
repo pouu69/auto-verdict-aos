@@ -1,16 +1,11 @@
 package com.car.autoverdict.ui.screen
 
-import androidx.compose.animation.core.EaseOutCubic
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,804 +13,453 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.CompareArrows
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.car.autoverdict.AutoVerdictApp
-import com.car.autoverdict.db.SavedCarEntity
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.car.autoverdict.R
+import com.car.autoverdict.compare.CompareCell
+import com.car.autoverdict.compare.CompareController
+import com.car.autoverdict.compare.CompareHeader
+import com.car.autoverdict.compare.CompareLabel
+import com.car.autoverdict.compare.CompareRow
+import com.car.autoverdict.compare.CompareSection
+import com.car.autoverdict.compare.CompareTable
+import com.car.autoverdict.compare.CompareUiState
+import com.car.autoverdict.compare.CompareValue
+import com.car.autoverdict.engine.ReportEvaluator
+import com.car.autoverdict.saved.SavedCarsRepository
+import com.car.autoverdict.ui.components.AvBadge
+import com.car.autoverdict.ui.components.AvEmptyState
+import com.car.autoverdict.ui.components.AvSectionDivider
+import com.car.autoverdict.ui.components.AvSectionHeader
 import com.car.autoverdict.ui.components.AvTopBar
+import com.car.autoverdict.ui.components.avPressable
 import com.car.autoverdict.ui.theme.AvTheme
-import java.text.NumberFormat
-import java.util.Locale
+import com.car.autoverdict.ui.theme.tone
+import kotlinx.coroutines.delay
 
-private val LABEL_COL_WIDTH = 72.dp
-private val SIDE_PADDING = 16.dp
-private val COLUMN_GAP = 10.dp
+/** Gap between compared columns (spec 3 6.2). */
+private val COLUMN_GAP = 12.dp
+
+/** Inner padding of every cell, so a marked cell's tile doesn't shift its text. */
+private val CELL_PADDING_H = 8.dp
+private val CELL_PADDING_V = 4.dp
+
+/** A load that finishes within this never shows the loading text (spec 3 6.4). */
+private const val LOADING_TEXT_DELAY_MS = 300L
 
 /** OpenType tabular figures so numbers line up across columns (Pretendard supports tnum). */
 private const val TNUM = "tnum"
 
+/**
+ * Wires [CompareScreen] to a [CompareController] for [carIds]. The controller lives as long as
+ * this route stays composed; leaving the screen cancels the evaluations.
+ */
+@Composable
+fun CompareRoute(
+    carIds: List<String>,
+    repository: SavedCarsRepository,
+    evaluator: ReportEvaluator,
+    onBack: () -> Unit,
+    onOpenResult: (url: String) -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    val controller = remember(carIds) { CompareController(carIds, repository::observe, evaluator, scope) }
+    LaunchedEffect(controller) { controller.start() }
+    val state by controller.state.collectAsStateWithLifecycle()
+    CompareScreen(state = state, onBack = onBack, onOpenResult = onOpenResult)
+}
+
 @Composable
 fun CompareScreen(
-    carIds: List<String>,
+    state: CompareUiState,
     onBack: () -> Unit,
+    onOpenResult: (url: String) -> Unit,
 ) {
-    val context = LocalContext.current
-    val app = context.applicationContext as AutoVerdictApp
-    var cars by remember { mutableStateOf<List<SavedCarEntity>>(emptyList()) }
-    val numberFormat = remember { NumberFormat.getNumberInstance(Locale.KOREA) }
     val colors = AvTheme.colors
-
-    LaunchedEffect(carIds) {
-        val loaded = app.database.savedCarDao().getByCarIds(carIds)
-        cars = carIds.mapNotNull { id -> loaded.firstOrNull { it.carId == id } }.take(2)
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(colors.surfaceMuted)
+            .background(colors.background)
             .navigationBarsPadding(),
     ) {
         AvTopBar(
             onBack = onBack,
-            title = "비교 분석",
-            subtitle = if (cars.isNotEmpty()) "2대 매물을 한눈에" else null,
+            title = stringResource(R.string.compare_title),
+            subtitle = (state as? CompareUiState.Ready)?.let {
+                stringResource(R.string.compare_subtitle, it.table.headers.size)
+            },
         )
-
-        if (cars.isEmpty()) {
-            EmptyLoadingState()
-            return@Column
-        }
-
-        val winners = remember(cars) { computeWinners(cars) }
-
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
-        ) {
-            HeroStrip(cars = cars, bestScoreId = winners.bestScoreId)
-
-            CompareSection(title = "기본 정보") {
-                MetricRow(label = "연식") {
-                    cars.forEach { car ->
-                        ValueCell(
-                            modifier = Modifier.weight(1f),
-                            text = car.year?.let { "${it}년" } ?: "—",
-                            isBest = car.carId == winners.bestYearId,
-                            tabular = true,
-                        )
-                    }
-                }
-                MetricRow(label = "주행") {
-                    cars.forEach { car ->
-                        ValueCell(
-                            modifier = Modifier.weight(1f),
-                            text = car.mileageKm?.let { "${numberFormat.format(it)}km" } ?: "—",
-                            isBest = car.carId == winners.bestMileageId,
-                            tabular = true,
-                        )
-                    }
-                }
-                MetricRow(label = "가격") {
-                    cars.forEach { car ->
-                        ValueCell(
-                            modifier = Modifier.weight(1f),
-                            text = car.priceWon?.let { "${numberFormat.format(it / 10000)}만원" } ?: "—",
-                            isBest = car.carId == winners.bestPriceId,
-                            tabular = true,
-                            emphasize = true,
-                        )
-                    }
-                }
-                MetricRow(label = "연료", last = true) {
-                    cars.forEach { car ->
-                        ValueCell(
-                            modifier = Modifier.weight(1f),
-                            text = car.fuelType ?: "—",
-                            isBest = false,
-                        )
-                    }
-                }
-            }
-
-            CompareSection(title = "종합 평가") {
-                MetricRow(label = "점수", tall = true) {
-                    cars.forEach { car ->
-                        ScoreCell(
-                            modifier = Modifier.weight(1f),
-                            score = car.score,
-                            isBest = car.carId == winners.bestScoreId,
-                        )
-                    }
-                }
-                MetricRow(label = "판정", last = true) {
-                    cars.forEach { car ->
-                        VerdictCell(
-                            modifier = Modifier.weight(1f),
-                            verdict = car.verdict,
-                            score = car.score,
-                        )
-                    }
-                }
-            }
-
-            CompareSection(title = "진단 결과") {
-                MetricRow(label = "분포", tall = true) {
-                    cars.forEach { car ->
-                        DiagnosisStackBar(
-                            modifier = Modifier.weight(1f),
-                            danger = car.dangerCount,
-                            caution = car.cautionCount,
-                            pass = car.passCount,
-                            unknown = car.unknownCount,
-                        )
-                    }
-                }
-                MetricRow(label = "위험") {
-                    cars.forEach { car ->
-                        CountCell(
-                            modifier = Modifier.weight(1f),
-                            count = car.dangerCount,
-                            textColor = colors.dangerText,
-                            bgColor = colors.dangerBg,
-                            isBest = car.carId == winners.bestDangerId,
-                        )
-                    }
-                }
-                MetricRow(label = "주의") {
-                    cars.forEach { car ->
-                        CountCell(
-                            modifier = Modifier.weight(1f),
-                            count = car.cautionCount,
-                            textColor = colors.warningText,
-                            bgColor = colors.warningBg,
-                            isBest = car.carId == winners.bestCautionId,
-                        )
-                    }
-                }
-                MetricRow(label = "양호") {
-                    cars.forEach { car ->
-                        CountCell(
-                            modifier = Modifier.weight(1f),
-                            count = car.passCount,
-                            textColor = colors.successText,
-                            bgColor = colors.successBg,
-                            isBest = car.carId == winners.bestPassId,
-                        )
-                    }
-                }
-                MetricRow(label = "미확인", last = true) {
-                    cars.forEach { car ->
-                        CountCell(
-                            modifier = Modifier.weight(1f),
-                            count = car.unknownCount,
-                            textColor = colors.textSecondary,
-                            bgColor = colors.border,
-                            isBest = false,
-                        )
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(40.dp))
+        when (state) {
+            CompareUiState.Loading -> CompareLoading()
+            CompareUiState.TooFew -> AvEmptyState(
+                icon = Icons.AutoMirrored.Rounded.CompareArrows,
+                title = stringResource(R.string.compare_too_few_title),
+                description = stringResource(R.string.compare_too_few_desc),
+                actionLabel = stringResource(R.string.compare_too_few_action),
+                onAction = onBack,
+            )
+            is CompareUiState.Ready -> CompareTableContent(state.table, onOpenResult)
         }
     }
 }
 
 @Composable
-private fun EmptyLoadingState() {
-    val colors = AvTheme.colors
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Box(
-            modifier = Modifier
-                .width(120.dp)
-                .height(120.dp)
-                .clip(RoundedCornerShape(28.dp))
-                .background(MaterialTheme.colorScheme.surface)
-                .border(1.dp, colors.border, RoundedCornerShape(28.dp)),
-            contentAlignment = Alignment.Center,
-        ) {
+private fun CompareLoading() {
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        delay(LOADING_TEXT_DELAY_MS)
+        visible = true
+    }
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        if (visible) {
             Text(
-                text = "01",
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontFeatureSettings = TNUM,
-                ),
-                color = colors.textSecondary.copy(alpha = 0.5f),
+                text = stringResource(R.string.compare_loading),
+                style = AvTheme.typography.body2,
+                color = AvTheme.colors.textTertiary,
             )
         }
-        Spacer(Modifier.height(20.dp))
-        Text(
-            text = "매물 정보를 불러오는 중",
-            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-            color = colors.textPrimary,
-        )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = "잠시만 기다려 주세요",
-            style = MaterialTheme.typography.bodySmall,
-            color = colors.textSecondary,
-        )
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun HeroStrip(
-    cars: List<SavedCarEntity>,
-    bestScoreId: String?,
+private fun CompareTableContent(table: CompareTable, onOpenResult: (String) -> Unit) {
+    val colors = AvTheme.colors
+    val noName = stringResource(R.string.saved_no_name)
+    val names = table.headers.map { it.name ?: noName }
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        stickyHeader(key = "names") {
+            Column(Modifier.background(colors.background)) {
+                ColumnsRow(table.headers.size, Modifier.padding(vertical = 12.dp)) { i ->
+                    NameCell(table.headers[i], names[i])
+                }
+                Spacer(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(colors.border),
+                )
+            }
+        }
+        item(key = "heads") {
+            ColumnsRow(table.headers.size, Modifier.padding(top = 12.dp, bottom = 20.dp)) { i ->
+                ColumnHead(table.headers[i], names[i], onOpenResult)
+            }
+        }
+        table.sections.forEach { section -> sectionItems(section, names) }
+        item(key = "legend") {
+            AvSectionDivider()
+            Text(
+                text = stringResource(R.string.compare_legend),
+                style = AvTheme.typography.caption1,
+                color = colors.textTertiary,
+                modifier = Modifier.padding(horizontal = AvTheme.spacing.screenHorizontal, vertical = 20.dp),
+            )
+        }
+    }
+}
+
+/** One equal-width slot per column, 20dp screen margins and [COLUMN_GAP] between slots. */
+@Composable
+private fun ColumnsRow(
+    count: Int,
+    modifier: Modifier = Modifier,
+    content: @Composable (index: Int) -> Unit,
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(top = 18.dp, bottom = 12.dp, end = SIDE_PADDING),
+            .padding(horizontal = AvTheme.spacing.screenHorizontal),
         horizontalArrangement = Arrangement.spacedBy(COLUMN_GAP),
-        verticalAlignment = Alignment.Top,
     ) {
-        Spacer(Modifier.width(LABEL_COL_WIDTH - COLUMN_GAP))
-        cars.forEachIndexed { index, car ->
-            HeroCarCard(
-                modifier = Modifier.weight(1f),
-                index = index + 1,
-                car = car,
-                isBest = car.carId == bestScoreId,
-            )
+        repeat(count) { i ->
+            Box(Modifier.weight(1f)) { content(i) }
         }
     }
 }
 
 @Composable
-private fun HeroCarCard(
-    modifier: Modifier,
-    index: Int,
-    car: SavedCarEntity,
-    isBest: Boolean,
-) {
+private fun NameCell(header: CompareHeader, name: String) {
     val colors = AvTheme.colors
-    val accent = scoreColor(car.score)
-    val animatedFill by animateFloatAsState(
-        targetValue = car.score.coerceIn(0, 100) / 100f,
-        animationSpec = tween(durationMillis = 700, easing = EaseOutCubic),
-        label = "heroBar-${car.carId}",
-    )
-
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .border(
-                width = if (isBest) 1.5.dp else 1.dp,
-                color = if (isBest) accent else colors.border,
-                shape = RoundedCornerShape(16.dp),
-            )
-            .padding(horizontal = 14.dp, vertical = 14.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = "0$index".takeLast(2),
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 0.8.sp,
-                    fontFeatureSettings = TNUM,
-                ),
-                color = colors.textSecondary,
-            )
-            Spacer(Modifier.weight(1f))
-            if (isBest) {
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(accent.copy(alpha = 0.12f))
-                        .padding(horizontal = 6.dp, vertical = 2.dp),
-                ) {
-                    Text(
-                        text = "TOP",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 0.6.sp,
-                        ),
-                        color = accent,
-                    )
-                }
-            }
-        }
-        Spacer(Modifier.height(10.dp))
+    val typography = AvTheme.typography
+    Column(Modifier.padding(horizontal = CELL_PADDING_H)) {
         Text(
-            text = car.title.ifBlank { "매물 #${car.carId}" },
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontWeight = FontWeight.SemiBold,
-                lineHeight = 18.sp,
-            ),
+            text = name,
+            style = typography.body2.copy(fontWeight = FontWeight.SemiBold),
             color = colors.textPrimary,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
-        Spacer(Modifier.height(14.dp))
-        Row(verticalAlignment = Alignment.Bottom) {
+        if (header.fallback) {
             Text(
-                text = "${car.score}",
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 32.sp,
-                    lineHeight = 40.sp,
-                    fontFeatureSettings = TNUM,
-                ),
-                color = accent,
-                maxLines = 1,
-            )
-            Spacer(Modifier.width(3.dp))
-            Text(
-                text = "/100",
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontFeatureSettings = TNUM,
-                ),
-                color = colors.textSecondary,
-                modifier = Modifier.padding(bottom = 6.dp),
+                text = stringResource(R.string.compare_fallback_note),
+                style = typography.caption1,
+                color = colors.textTertiary,
             )
         }
+    }
+}
+
+/** Verdict, score, score bar and "결과 보기": one tap target per column (spec 3 6.2). */
+@Composable
+private fun ColumnHead(header: CompareHeader, name: String, onOpenResult: (String) -> Unit) {
+    val colors = AvTheme.colors
+    val typography = AvTheme.typography
+    val toneColors = colors.tone(header.verdictTone)
+    val verdict = stringResource(header.verdictLabel)
+    val score = stringResource(R.string.result_score, header.score)
+    val description = listOf(
+        name,
+        "${stringResource(R.string.compare_row_verdict)} $verdict",
+        "${stringResource(R.string.compare_row_score)} $score",
+    ).joinToString(", ")
+    val bestState = if (header.scoreBest) stringResource(R.string.compare_best_high) else null
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .avPressable(
+                onClick = { onOpenResult(header.url) },
+                onClickLabel = stringResource(R.string.compare_open_result),
+                focusShape = AvTheme.shapes.tile,
+            )
+            .clearAndSetSemantics {
+                contentDescription = description
+                if (bestState != null) stateDescription = bestState
+            }
+            .padding(horizontal = CELL_PADDING_H, vertical = CELL_PADDING_V),
+    ) {
+        AvBadge(text = verdict, tone = header.verdictTone)
+        Spacer(Modifier.height(6.dp))
+        Text(
+            text = score,
+            style = typography.title2.copy(fontFeatureSettings = TNUM),
+            color = toneColors.text,
+            maxLines = 1,
+            modifier = if (header.scoreBest) {
+                Modifier
+                    .clip(AvTheme.shapes.tile)
+                    .background(colors.accentWeak)
+                    .padding(horizontal = 6.dp)
+            } else {
+                Modifier
+            },
+        )
         Spacer(Modifier.height(8.dp))
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(4.dp)
-                .clip(RoundedCornerShape(2.dp))
-                .background(colors.border),
+                .clip(AvTheme.shapes.chip)
+                .background(colors.surfaceMuted),
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(animatedFill)
+                    .fillMaxWidth(header.score.coerceIn(0, 100) / 100f)
                     .fillMaxHeight()
-                    .background(accent),
+                    .clip(AvTheme.shapes.chip)
+                    .background(toneColors.fill),
             )
         }
-    }
-}
-
-@Composable
-private fun CompareSection(
-    title: String,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    val colors = AvTheme.colors
-    Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp, top = 18.dp, bottom = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                modifier = Modifier
-                    .width(3.dp)
-                    .height(14.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(colors.accent),
-            )
-            Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.height(10.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = title,
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    letterSpacing = 0.3.sp,
-                ),
-                color = colors.textPrimary,
+                text = stringResource(R.string.compare_open_result),
+                style = typography.caption1,
+                color = colors.accentText,
+            )
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                contentDescription = null,
+                tint = colors.accentText,
+                modifier = Modifier.size(16.dp),
             )
         }
-        content()
     }
 }
 
+private fun LazyListScope.sectionItems(section: CompareSection, names: List<String>) {
+    item(key = "section-${section.title}") {
+        AvSectionDivider()
+        AvSectionHeader(title = stringResource(section.title))
+    }
+    section.rows.forEachIndexed { index, row ->
+        item(key = "row-${section.title}-$index") {
+            CompareRowItem(row, section, names, last = index == section.rows.lastIndex)
+        }
+    }
+}
+
+/** Label line across the screen, then one value per column (spec 3 6.2). */
 @Composable
-private fun MetricRow(
-    label: String,
-    tall: Boolean = false,
-    last: Boolean = false,
-    content: @Composable RowScope.() -> Unit,
-) {
+private fun CompareRowItem(row: CompareRow, section: CompareSection, names: List<String>, last: Boolean) {
     val colors = AvTheme.colors
-    val rowHeight: Dp = if (tall) 76.dp else 52.dp
-    Column(
-        modifier = Modifier.background(MaterialTheme.colorScheme.surface),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(rowHeight)
-                .padding(end = SIDE_PADDING),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(COLUMN_GAP),
-        ) {
-            Box(
+    val label = when (val l = row.label) {
+        is CompareLabel.Res -> stringResource(l.id)
+        is CompareLabel.Text -> l.text
+        // The issues row has no label of its own; the section title names it.
+        null -> null
+    }
+    val a11yLabel = label ?: stringResource(section.title)
+    val bestState = row.bestState?.let { stringResource(it) }
+    Column(Modifier.padding(top = 8.dp, bottom = if (last) 20.dp else 4.dp)) {
+        if (label != null) {
+            Text(
+                text = label,
+                style = AvTheme.typography.caption1,
+                color = colors.textTertiary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                // Each value cell reads its own label, so the line itself stays silent.
                 modifier = Modifier
-                    .width(LABEL_COL_WIDTH - COLUMN_GAP)
-                    .fillMaxHeight()
-                    .padding(start = 16.dp, end = 4.dp),
-                contentAlignment = Alignment.CenterStart,
-            ) {
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.Normal,
-                        letterSpacing = 0.3.sp,
-                    ),
-                    color = colors.textSecondary,
-                )
-            }
-            content()
-        }
-        if (!last) {
-            HorizontalDivider(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                thickness = 0.5.dp,
-                color = colors.border.copy(alpha = 0.7f),
+                    .padding(horizontal = AvTheme.spacing.screenHorizontal + CELL_PADDING_H)
+                    .padding(bottom = 2.dp)
+                    .clearAndSetSemantics {},
             )
+        }
+        ColumnsRow(row.cells.size) { i ->
+            ValueCell(row.cells[i], "${names[i]} $a11yLabel", bestState)
         }
     }
 }
 
 @Composable
-private fun ValueCell(
-    modifier: Modifier,
-    text: String,
-    isBest: Boolean,
-    tabular: Boolean = false,
-    emphasize: Boolean = false,
-) {
+private fun ValueCell(cell: CompareCell, a11yPrefix: String, bestState: String?) {
     val colors = AvTheme.colors
+    val spoken = spokenValue(cell.value)
     Box(
-        modifier = modifier
-            .fillMaxHeight()
-            .padding(vertical = 6.dp)
-            .clip(RoundedCornerShape(10.dp))
+        modifier = Modifier
             .then(
-                if (isBest) Modifier.background(colors.accentWeak) else Modifier,
+                if (cell.best) {
+                    Modifier
+                        .clip(AvTheme.shapes.tile)
+                        .background(colors.accentWeak)
+                } else {
+                    Modifier
+                },
             )
-            .padding(horizontal = 8.dp),
-        contentAlignment = Alignment.Center,
+            .padding(horizontal = CELL_PADDING_H, vertical = CELL_PADDING_V)
+            // "{car} {row} {value}": a value alone can't tell the columns apart (spec 3 8).
+            .clearAndSetSemantics {
+                contentDescription = "$a11yPrefix $spoken"
+                if (cell.best && bestState != null) stateDescription = bestState
+            },
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (isBest) {
-                Text(
-                    text = "▲",
-                    fontSize = 11.sp,
-                    color = colors.accentText,
-                )
-                Spacer(Modifier.width(4.dp))
-            }
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontFeatureSettings = if (tabular) TNUM else null,
-                    fontWeight = when {
-                        isBest -> FontWeight.SemiBold
-                        emphasize -> FontWeight.SemiBold
-                        else -> FontWeight.Normal
-                    },
-                ),
-                color = if (isBest) colors.accentText else colors.textPrimary,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+        CellValue(cell.value, cell.best)
     }
 }
 
 @Composable
-private fun ScoreCell(
-    modifier: Modifier,
-    score: Int,
-    isBest: Boolean,
-) {
+private fun CellValue(value: CompareValue, best: Boolean) {
     val colors = AvTheme.colors
-    val accent = scoreColor(score)
-    val animatedFill by animateFloatAsState(
-        targetValue = score.coerceIn(0, 100) / 100f,
-        animationSpec = tween(durationMillis = 700, easing = EaseOutCubic),
-        label = "scoreCell-$score",
-    )
-    Column(
-        modifier = modifier
-            .fillMaxHeight()
-            .padding(horizontal = 8.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Row(
-            verticalAlignment = Alignment.Bottom,
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            if (isBest) {
-                Text(
-                    text = "▲",
-                    fontSize = 11.sp,
-                    color = accent,
-                    modifier = Modifier.padding(end = 4.dp, bottom = 5.dp),
-                )
-            }
-            Text(
-                text = "$score",
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontFeatureSettings = TNUM,
-                ),
-                color = accent,
-                maxLines = 1,
-            )
-            Spacer(Modifier.width(2.dp))
-            Text(
-                text = "점",
-                style = MaterialTheme.typography.labelSmall,
-                color = colors.textSecondary,
-                modifier = Modifier.padding(bottom = 3.dp),
-            )
-        }
-        Spacer(Modifier.height(6.dp))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(3.dp)
-                .clip(RoundedCornerShape(2.dp))
-                .background(colors.border),
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(animatedFill)
-                    .fillMaxHeight()
-                    .background(accent),
-            )
-        }
-    }
-}
-
-@Composable
-private fun VerdictCell(
-    modifier: Modifier,
-    verdict: String,
-    score: Int,
-) {
-    val colors = AvTheme.colors
-    val (bg, fg) = when {
-        score >= 78 -> colors.successBg to colors.successText
-        score >= 50 -> colors.warningBg to colors.warningText
-        else -> colors.dangerBg to colors.dangerText
-    }
-    Box(
-        modifier = modifier
-            .fillMaxHeight()
-            .padding(horizontal = 8.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(999.dp))
-                .background(bg)
-                .padding(horizontal = 12.dp, vertical = 6.dp),
-        ) {
-            Text(
-                text = verdict.ifBlank { "—" },
-                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
-                color = fg,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-    }
-}
-
-@Composable
-private fun CountCell(
-    modifier: Modifier,
-    count: Int,
-    textColor: Color,
-    bgColor: Color,
-    isBest: Boolean,
-) {
-    val colors = AvTheme.colors
-    Box(
-        modifier = modifier
-            .fillMaxHeight()
-            .padding(horizontal = 8.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (isBest) {
-                Text(
-                    text = "▲",
-                    fontSize = 11.sp,
-                    color = colors.successText,
-                )
-                Spacer(Modifier.width(4.dp))
-            }
-            if (count > 0) {
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(bgColor)
-                        .padding(horizontal = 10.dp, vertical = 4.dp),
-                ) {
-                    Text(
-                        text = "$count",
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            fontWeight = FontWeight.SemiBold,
-                            fontFeatureSettings = TNUM,
-                        ),
-                        color = textColor,
-                    )
-                }
-            } else {
-                Text(
-                    text = "0",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontFeatureSettings = TNUM,
-                    ),
-                    color = colors.textSecondary.copy(alpha = 0.6f),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun DiagnosisStackBar(
-    modifier: Modifier,
-    danger: Int,
-    caution: Int,
-    pass: Int,
-    unknown: Int,
-) {
-    val colors = AvTheme.colors
-    val total = (danger + caution + pass + unknown).coerceAtLeast(1)
-    Column(
-        modifier = modifier
-            .fillMaxHeight()
-            .padding(horizontal = 8.dp),
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(colors.border),
-        ) {
-            if (danger > 0) {
-                Box(
-                    modifier = Modifier
-                        .weight(danger.toFloat())
-                        .fillMaxHeight()
-                        .background(colors.dangerFill),
-                )
-            }
-            if (caution > 0) {
-                Box(
-                    modifier = Modifier
-                        .weight(caution.toFloat())
-                        .fillMaxHeight()
-                        .background(colors.warningFill),
-                )
-            }
-            if (pass > 0) {
-                Box(
-                    modifier = Modifier
-                        .weight(pass.toFloat())
-                        .fillMaxHeight()
-                        .background(colors.successFill),
-                )
-            }
-            if (unknown > 0) {
-                Box(
-                    modifier = Modifier
-                        .weight(unknown.toFloat())
-                        .fillMaxHeight()
-                        .background(colors.border),
-                )
-            }
-        }
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = "총 ${total}건 점검",
-            style = MaterialTheme.typography.labelSmall.copy(
-                letterSpacing = 0.2.sp,
-                fontFeatureSettings = TNUM,
-            ),
-            color = colors.textSecondary,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth(),
+    val typography = AvTheme.typography
+    val valueStyle = typography.body2.copy(fontFeatureSettings = TNUM)
+    val bestStyle = valueStyle.copy(fontWeight = FontWeight.SemiBold, color = colors.accentText)
+    when (value) {
+        CompareValue.Missing -> PlainValue(stringResource(R.string.compare_missing), valueStyle.copy(color = colors.textTertiary))
+        is CompareValue.Text -> PlainValue(
+            value.text,
+            when {
+                best -> bestStyle
+                value.tone != null -> valueStyle.copy(color = colors.tone(value.tone).text)
+                else -> valueStyle.copy(color = colors.textPrimary)
+            },
         )
+        is CompareValue.Count -> {
+            val text = countText(value)
+            when {
+                value.count > 0 -> AvBadge(text = text, tone = value.tone)
+                best -> PlainValue(text, bestStyle)
+                else -> PlainValue(text, valueStyle.copy(color = colors.textTertiary))
+            }
+        }
+        is CompareValue.Issues -> IssuesValue(value)
     }
 }
 
-private data class WinnerIds(
-    val bestScoreId: String?,
-    val bestYearId: String?,
-    val bestMileageId: String?,
-    val bestPriceId: String?,
-    val bestDangerId: String?,
-    val bestCautionId: String?,
-    val bestPassId: String?,
-)
-
-private fun computeWinners(cars: List<SavedCarEntity>): WinnerIds {
-    return WinnerIds(
-        bestScoreId = uniqueWinner(cars, higherIsBetter = true) { it.score.toDouble() },
-        bestYearId = uniqueWinner(cars, higherIsBetter = true) { it.year?.toDouble() },
-        bestMileageId = uniqueWinner(cars, higherIsBetter = false) { it.mileageKm?.toDouble() },
-        bestPriceId = uniqueWinner(cars, higherIsBetter = false) { it.priceWon?.toDouble() },
-        bestDangerId = uniqueWinner(cars, higherIsBetter = false) { it.dangerCount.toDouble() },
-        bestCautionId = uniqueWinner(cars, higherIsBetter = false) { it.cautionCount.toDouble() },
-        bestPassId = uniqueWinner(cars, higherIsBetter = true) { it.passCount.toDouble() },
-    )
+@Composable
+private fun PlainValue(text: String, style: TextStyle) {
+    Text(text = text, style = style, maxLines = 2, overflow = TextOverflow.Ellipsis)
 }
 
-private inline fun uniqueWinner(
-    cars: List<SavedCarEntity>,
-    higherIsBetter: Boolean,
-    selector: (SavedCarEntity) -> Double?,
-): String? {
-    if (cars.size < 2) return null
-    val pairs = cars.mapNotNull { car -> selector(car)?.let { car.carId to it } }
-    if (pairs.size < 2) return null
-    val target = if (higherIsBetter) pairs.maxOf { it.second } else pairs.minOf { it.second }
-    val tops = pairs.filter { it.second == target }
-    return if (tops.size == 1) tops.first().first else null
-}
-
-private val COLOR_STOPS = listOf(
-    0 to Triple(198, 40, 40),
-    30 to Triple(230, 81, 0),
-    50 to Triple(245, 127, 23),
-    65 to Triple(158, 157, 36),
-    78 to Triple(46, 125, 50),
-    88 to Triple(0, 137, 123),
-    100 to Triple(21, 101, 192),
-)
-
-private fun scoreColor(score: Int): Color {
-    val s = score.coerceIn(0, 100)
-    var lo = COLOR_STOPS.first()
-    var hi = COLOR_STOPS.last()
-    for (i in 0 until COLOR_STOPS.size - 1) {
-        if (s >= COLOR_STOPS[i].first && s <= COLOR_STOPS[i + 1].first) {
-            lo = COLOR_STOPS[i]
-            hi = COLOR_STOPS[i + 1]
-            break
+@Composable
+private fun IssuesValue(value: CompareValue.Issues) {
+    val colors = AvTheme.colors
+    val typography = AvTheme.typography
+    if (value.lines.isEmpty()) {
+        PlainValue(stringResource(R.string.compare_issues_none), typography.body2.copy(color = colors.textTertiary))
+        return
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        value.lines.forEach { line ->
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(SpanStyle(color = colors.tone(line.tone).text, fontWeight = FontWeight.SemiBold)) {
+                        append(line.label)
+                    }
+                    append(" ")
+                    append(line.title)
+                },
+                style = typography.body2,
+                color = colors.textPrimary,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        if (value.more > 0) {
+            Text(
+                text = stringResource(R.string.compare_issues_more, value.more),
+                style = typography.caption1,
+                color = colors.textTertiary,
+            )
         }
     }
-    val t = if (hi.first == lo.first) 0f else (s - lo.first).toFloat() / (hi.first - lo.first)
-    val r = (lo.second.first + (hi.second.first - lo.second.first) * t).toInt()
-    val g = (lo.second.second + (hi.second.second - lo.second.second) * t).toInt()
-    val b = (lo.second.third + (hi.second.third - lo.second.third) * t).toInt()
-    return Color(r, g, b)
+}
+
+@Composable
+private fun countText(value: CompareValue.Count): String =
+    value.label?.let { stringResource(it, value.count) } ?: value.count.toString()
+
+/** Full value for screen readers; truncated cells still read everything. */
+@Composable
+private fun spokenValue(value: CompareValue): String = when (value) {
+    CompareValue.Missing -> stringResource(R.string.compare_missing_a11y)
+    is CompareValue.Text -> value.text
+    is CompareValue.Count -> countText(value)
+    is CompareValue.Issues ->
+        if (value.lines.isEmpty()) {
+            stringResource(R.string.compare_issues_none)
+        } else {
+            val lines = value.lines.map { "${it.label} ${it.title}" }
+            val more = if (value.more > 0) listOf(stringResource(R.string.compare_issues_more, value.more)) else emptyList()
+            (lines + more).joinToString(", ")
+        }
 }

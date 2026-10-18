@@ -1,407 +1,214 @@
 package com.car.autoverdict.ui.screen
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ChevronRight
-import androidx.compose.material.icons.outlined.DeleteOutline
-import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.HelpOutline
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Palette
-import androidx.compose.material.icons.outlined.PrivacyTip
-import androidx.compose.material.icons.outlined.Schedule
-import androidx.compose.material.icons.outlined.Storage
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.car.autoverdict.AutoVerdictApp
-import com.car.autoverdict.BuildConfig
 import com.car.autoverdict.R
-import com.car.autoverdict.ui.AdBanner
+import com.car.autoverdict.ui.components.AvDialog
+import com.car.autoverdict.ui.components.AvListRow
+import com.car.autoverdict.ui.components.AvSectionDivider
+import com.car.autoverdict.ui.components.AvSectionHeader
 import com.car.autoverdict.ui.components.AvTopBar
 import com.car.autoverdict.ui.theme.AvTheme
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
+/**
+ * What the settings screen shows. A null count means the DB has not answered yet: the row
+ * shows no value and can't be tapped, instead of flashing "없음" first.
+ */
+@Immutable
+data class SettingsUiState(
+    val recentCount: Int?,
+    val savedCount: Int?,
+    val versionName: String,
+)
+
+/** Which data a pending confirm dialog would clear. */
+enum class ClearTarget { Recent, Saved }
+
+/**
+ * Stateless settings (spec 3). Only the open confirm dialog is kept here; [onClearRecent] and
+ * [onClearSaved] run once the user confirms it. [onGallery] is null outside debug builds.
+ */
 @Composable
 fun SettingsScreen(
+    state: SettingsUiState,
+    onClearRecent: () -> Unit,
+    onClearSaved: () -> Unit,
+    onPrivacyPolicy: () -> Unit,
+    onLicenses: () -> Unit,
+    onReplayGuide: () -> Unit,
+    onContact: () -> Unit,
+    onGallery: (() -> Unit)?,
     onBack: () -> Unit,
+    bannerAd: @Composable () -> Unit,
     modifier: Modifier = Modifier,
-    onPrivacyPolicy: () -> Unit = {},
-    onLicenses: () -> Unit = {},
-    onReplayGuide: () -> Unit = {},
-    onGallery: (() -> Unit)? = null,
 ) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var cacheCount by remember { mutableStateOf(0) }
-    var showCacheClearDialog by remember { mutableStateOf(false) }
     val colors = AvTheme.colors
-
-    LaunchedEffect(Unit) {
-        val app = context.applicationContext as AutoVerdictApp
-        cacheCount = app.database.cacheDao().count()
-    }
+    val typography = AvTheme.typography
+    // Saveable so an open dialog survives rotation (spec 3.2).
+    var pendingClear by rememberSaveable { mutableStateOf<ClearTarget?>(null) }
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(colors.surfaceMuted),
+            .background(colors.background),
     ) {
-        AvTopBar(onBack = onBack, title = "설정")
+        AvTopBar(onBack = onBack, title = stringResource(R.string.settings_title))
 
-        LazyColumn(
-            modifier = Modifier.weight(1f).fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
-        ) {
-            item { SectionHeader("저장공간") }
+        LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
+            item { AvSectionHeader(title = stringResource(R.string.settings_section_data)) }
             item {
-                SettingsGroup {
-                    SettingsRow(
-                        icon = Icons.Outlined.Storage,
-                        iconTint = colors.accentText,
-                        iconBg = colors.accentWeak,
-                        title = "캐시 항목",
-                        subtitle = "${cacheCount}개 저장됨",
-                        trailing = {
-                            Text(
-                                text = "${cacheCount}",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                                color = colors.textPrimary,
-                            )
-                        },
-                    )
-                    SettingsDivider()
-                    SettingsRow(
-                        icon = Icons.Outlined.Schedule,
-                        iconTint = colors.accentText,
-                        iconBg = colors.accentWeak,
-                        title = "캐시 유효기간",
-                        subtitle = "24시간 후 자동 만료",
-                        trailing = {
-                            Text(
-                                text = "24h",
-                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                                color = colors.textSecondary,
-                            )
-                        },
-                    )
-                    if (cacheCount > 0) {
-                        SettingsDivider()
-                        SettingsRow(
-                            icon = Icons.Outlined.DeleteOutline,
-                            iconTint = colors.dangerText,
-                            iconBg = colors.dangerBg,
-                            title = "캐시 삭제",
-                            subtitle = "저장된 분석 캐시 전체 제거",
-                            titleColor = colors.dangerText,
-                            onClick = { showCacheClearDialog = true },
-                            trailing = {
-                                Icon(
-                                    imageVector = Icons.Outlined.ChevronRight,
-                                    contentDescription = null,
-                                    tint = colors.textSecondary,
-                                )
-                            },
-                        )
-                    }
-                }
+                CountRow(
+                    title = stringResource(R.string.settings_clear_recent),
+                    count = state.recentCount,
+                    onClick = { pendingClear = ClearTarget.Recent },
+                )
             }
-
-            item { Spacer(Modifier.height(16.dp)) }
-
-            item { SectionHeader("정보") }
             item {
-                SettingsGroup {
-                    SettingsRow(
-                        icon = Icons.Outlined.HelpOutline,
-                        iconTint = colors.accentText,
-                        iconBg = colors.accentWeak,
-                        title = "사용법 다시 보기",
-                        subtitle = "엔카 공유로 분석하는 방법 안내",
-                        onClick = onReplayGuide,
-                        trailing = {
-                            Icon(
-                                imageVector = Icons.Outlined.ChevronRight,
-                                contentDescription = null,
-                                tint = colors.textSecondary,
-                            )
-                        },
-                    )
-                    SettingsDivider()
-                    SettingsRow(
-                        icon = Icons.Outlined.PrivacyTip,
-                        iconTint = colors.accentText,
-                        iconBg = colors.accentWeak,
-                        title = "개인정보 처리방침",
-                        subtitle = "데이터 사용 및 권한 안내",
-                        onClick = onPrivacyPolicy,
-                        trailing = {
-                            Icon(
-                                imageVector = Icons.Outlined.ChevronRight,
-                                contentDescription = null,
-                                tint = colors.textSecondary,
-                            )
-                        },
-                    )
-                    SettingsDivider()
-                    SettingsRow(
-                        icon = Icons.Outlined.Description,
-                        iconTint = colors.accentText,
-                        iconBg = colors.accentWeak,
-                        title = stringResource(R.string.settings_licenses_title),
-                        subtitle = stringResource(R.string.settings_licenses_subtitle),
-                        onClick = onLicenses,
-                        trailing = {
-                            Icon(
-                                imageVector = Icons.Outlined.ChevronRight,
-                                contentDescription = null,
-                                tint = colors.textSecondary,
-                            )
-                        },
-                    )
-                    SettingsDivider()
-                    SettingsRow(
-                        icon = Icons.Outlined.Info,
-                        iconTint = colors.accentText,
-                        iconBg = colors.accentWeak,
-                        title = "버전",
-                        subtitle = "AutoVerdict for Android",
-                        trailing = {
-                            Text(
-                                text = "v${BuildConfig.VERSION_NAME}",
-                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                                color = colors.textSecondary,
-                            )
-                        },
-                    )
-                }
+                CountRow(
+                    title = stringResource(R.string.settings_clear_saved),
+                    count = state.savedCount,
+                    onClick = { pendingClear = ClearTarget.Saved },
+                )
+            }
+            item { AvSectionDivider() }
+
+            item { AvSectionHeader(title = stringResource(R.string.settings_section_app)) }
+            item { NavRow(title = stringResource(R.string.settings_replay_guide), onClick = onReplayGuide) }
+            item { NavRow(title = stringResource(R.string.settings_privacy), onClick = onPrivacyPolicy) }
+            item { NavRow(title = stringResource(R.string.settings_licenses), onClick = onLicenses) }
+            item {
+                NavRow(
+                    title = stringResource(R.string.settings_contact),
+                    subtitle = stringResource(R.string.settings_contact_email),
+                    onClick = onContact,
+                )
+            }
+            item {
+                AvListRow(
+                    title = stringResource(R.string.settings_version),
+                    trailing = { ValueText(state.versionName) },
+                )
             }
 
             if (onGallery != null) {
-                item { Spacer(Modifier.height(16.dp)) }
-                item { SectionHeader(stringResource(R.string.settings_section_dev)) }
-                item {
-                    SettingsGroup {
-                        SettingsRow(
-                            icon = Icons.Outlined.Palette,
-                            iconTint = colors.accentText,
-                            iconBg = colors.accentWeak,
-                            title = stringResource(R.string.settings_gallery_title),
-                            subtitle = stringResource(R.string.settings_gallery_subtitle),
-                            onClick = onGallery,
-                            trailing = {
-                                Icon(
-                                    imageVector = Icons.Outlined.ChevronRight,
-                                    contentDescription = null,
-                                    tint = colors.textSecondary,
-                                )
-                            },
-                        )
-                    }
-                }
+                item { AvSectionDivider() }
+                item { AvSectionHeader(title = stringResource(R.string.settings_section_dev)) }
+                item { NavRow(title = stringResource(R.string.settings_gallery_title), onClick = onGallery) }
             }
-
-            item { Spacer(Modifier.height(28.dp)) }
 
             item {
                 Text(
-                    text = "AutoVerdict · 엔카 매물 종합 평가",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.textSecondary.copy(alpha = 0.7f),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    text = stringResource(R.string.settings_disclaimer),
+                    style = typography.caption1,
+                    color = colors.textTertiary,
+                    modifier = Modifier.padding(
+                        horizontal = AvTheme.spacing.screenHorizontal,
+                        vertical = AvTheme.spacing.xxl,
+                    ),
                 )
             }
         }
         // Settings used to be a tab with the shared banner; keep that exposure (spec 10).
         Box(modifier = Modifier.fillMaxWidth().navigationBarsPadding()) {
-            AdBanner()
+            bannerAd()
         }
     }
 
-    if (showCacheClearDialog) {
-        AlertDialog(
-            onDismissRequest = { showCacheClearDialog = false },
-            icon = {
-                Icon(
-                    imageVector = Icons.Outlined.DeleteOutline,
-                    contentDescription = null,
-                    tint = colors.dangerText,
-                )
+    when (pendingClear) {
+        ClearTarget.Recent -> AvDialog(
+            title = stringResource(R.string.settings_clear_recent_title),
+            message = stringResource(R.string.settings_clear_recent_message, state.recentCount ?: 0),
+            confirmLabel = stringResource(R.string.settings_clear_recent_confirm),
+            onConfirm = {
+                pendingClear = null
+                onClearRecent()
             },
-            title = {
-                Text(
-                    text = "캐시를 삭제할까요?",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                )
-            },
-            text = {
-                Text(
-                    text = "${cacheCount}개의 분석 캐시가 모두 삭제됩니다. 다음 분석 시 다시 캐싱됩니다.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = colors.textSecondary,
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        scope.launch(Dispatchers.IO) {
-                            val app = context.applicationContext as AutoVerdictApp
-                            app.database.cacheDao().clearAll()
-                            cacheCount = 0
-                            showCacheClearDialog = false
-                            withContext(Dispatchers.Main) {
-                                android.widget.Toast.makeText(
-                                    context,
-                                    "캐시가 삭제되었습니다",
-                                    android.widget.Toast.LENGTH_SHORT,
-                                ).show()
-                            }
-                        }
-                    },
-                ) {
-                    Text(text = "삭제", color = colors.dangerText, fontWeight = FontWeight.SemiBold)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showCacheClearDialog = false }) {
-                    Text(text = "취소", color = colors.textSecondary)
-                }
-            },
-            containerColor = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(20.dp),
+            dismissLabel = stringResource(R.string.settings_cancel),
+            onDismiss = { pendingClear = null },
+            destructive = true,
         )
+        ClearTarget.Saved -> AvDialog(
+            title = stringResource(R.string.settings_clear_saved_title, state.savedCount ?: 0),
+            message = stringResource(R.string.settings_clear_saved_message),
+            confirmLabel = stringResource(R.string.settings_clear_saved_confirm),
+            onConfirm = {
+                pendingClear = null
+                onClearSaved()
+            },
+            dismissLabel = stringResource(R.string.settings_cancel),
+            onDismiss = { pendingClear = null },
+            destructive = true,
+        )
+        null -> Unit
     }
 }
 
+/** "{n}대 >" row that opens a clear dialog; with nothing to clear it reads "없음" and can't be tapped. */
 @Composable
-private fun SectionHeader(title: String) {
-    val colors = AvTheme.colors
-    Text(
-        text = title,
-        style = MaterialTheme.typography.labelMedium.copy(
-            fontWeight = FontWeight.SemiBold,
-        ),
-        color = colors.textSecondary,
-        modifier = Modifier.padding(start = 8.dp, top = 12.dp, bottom = 8.dp),
+private fun CountRow(title: String, count: Int?, onClick: () -> Unit) {
+    val clickable = count != null && count > 0
+    AvListRow(
+        title = title,
+        onClick = if (clickable) onClick else null,
+        trailing = when {
+            count == null -> null
+            count > 0 -> ({ ValueWithChevron(stringResource(R.string.settings_count_cars, count)) })
+            else -> ({ ValueText(stringResource(R.string.settings_count_none)) })
+        },
     )
 }
 
 @Composable
-private fun SettingsGroup(content: @Composable () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface),
-    ) {
-        content()
-    }
+private fun NavRow(title: String, onClick: () -> Unit, subtitle: String? = null) {
+    AvListRow(title = title, subtitle = subtitle, onClick = onClick, trailing = { Chevron() })
 }
 
 @Composable
-private fun SettingsDivider() {
-    val colors = AvTheme.colors
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 64.dp)
-            .height(0.5.dp)
-            .background(colors.border.copy(alpha = 0.6f)),
-    )
-}
-
-@Composable
-private fun SettingsRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    iconTint: Color,
-    iconBg: Color,
-    title: String,
-    subtitle: String? = null,
-    titleColor: Color = AvTheme.colors.textPrimary,
-    onClick: (() -> Unit)? = null,
-    trailing: (@Composable () -> Unit)? = null,
-) {
-    val colors = AvTheme.colors
+private fun ValueWithChevron(value: String) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .then(
-                if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
-            )
-            .padding(horizontal = 14.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(AvTheme.spacing.xs),
     ) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(iconBg),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = iconTint,
-                modifier = Modifier.size(20.dp),
-            )
-        }
-        Spacer(Modifier.width(14.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                color = titleColor,
-            )
-            if (subtitle != null) {
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.textSecondary,
-                )
-            }
-        }
-        if (trailing != null) {
-            Spacer(Modifier.width(8.dp))
-            trailing()
-        }
+        ValueText(value)
+        Chevron()
     }
+}
+
+@Composable
+private fun ValueText(value: String) {
+    Text(text = value, style = AvTheme.typography.body2, color = AvTheme.colors.textTertiary)
+}
+
+/** Decorative: the row itself is the button. */
+@Composable
+private fun Chevron() {
+    Icon(
+        imageVector = Icons.Rounded.ChevronRight,
+        contentDescription = null,
+        tint = AvTheme.colors.textTertiary,
+        modifier = Modifier.size(20.dp),
+    )
 }

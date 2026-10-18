@@ -1,11 +1,11 @@
 package com.car.autoverdict.ui.screen
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,220 +13,125 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ContactMail
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.PhoneAndroid
-import androidx.compose.material.icons.outlined.Policy
-import androidx.compose.material.icons.outlined.PrivacyTip
-import androidx.compose.material.icons.outlined.PublicOff
-import androidx.compose.material.icons.outlined.Storage
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.car.autoverdict.R
+import com.car.autoverdict.ui.components.AvListRow
+import com.car.autoverdict.ui.components.AvSectionDivider
 import com.car.autoverdict.ui.components.AvTopBar
+import com.car.autoverdict.ui.components.LocalAvToast
 import com.car.autoverdict.ui.theme.AvTheme
 
-private data class PolicyEntry(
-    val number: Int,
-    val icon: ImageVector,
-    val title: String,
-    val content: String,
+/** One summary section: a heading and a plain paragraph (spec 4). */
+private data class PolicySection(@StringRes val title: Int, @StringRes val body: Int)
+
+private val policySections = listOf(
+    PolicySection(R.string.privacy_collected_title, R.string.privacy_collected_body),
+    PolicySection(R.string.privacy_storage_title, R.string.privacy_storage_body),
+    PolicySection(R.string.privacy_delete_title, R.string.privacy_delete_body),
+    PolicySection(R.string.privacy_ads_title, R.string.privacy_ads_body),
+    PolicySection(R.string.privacy_network_title, R.string.privacy_network_body),
+    PolicySection(R.string.privacy_permissions_title, R.string.privacy_permissions_body),
+    PolicySection(R.string.privacy_contact_title, R.string.privacy_contact_body),
 )
 
-private val policyEntries = listOf(
-    PolicyEntry(
-        1, Icons.Outlined.Info, "수집하는 정보",
-        "AutoVerdict는 사용자가 입력한 엔카 매물 URL과 해당 매물의 공개 정보(차량 상태, 이력, 가격 등)를 처리합니다. 모든 데이터는 사용자의 기기에만 저장되며, 외부 서버로 전송되지 않습니다.",
-    ),
-    PolicyEntry(
-        2, Icons.Outlined.PrivacyTip, "정보 이용 목적",
-        "수집된 정보는 차량 평가 분석 결과를 생성하고, 사용자가 저장한 매물 목록을 관리하는 데에만 사용됩니다.",
-    ),
-    PolicyEntry(
-        3, Icons.Outlined.Storage, "데이터 저장",
-        "• 분석 캐시: 최근 분석한 매물 데이터를 24시간 동안 기기 내부에 캐시합니다.\n• 저장 목록: 사용자가 명시적으로 저장한 매물 정보를 기기 내부 데이터베이스에 보관합니다.\n• 캐시 데이터는 설정 화면에서 수동으로 삭제할 수 있습니다.",
-    ),
-    PolicyEntry(
-        4, Icons.Outlined.Lock, "네트워크 통신",
-        "앱은 엔카(encar.com) 웹사이트에서 공개된 매물 정보를 조회합니다. 이 과정에서 사용자의 개인정보는 전송되지 않습니다.",
-    ),
-    PolicyEntry(
-        5, Icons.Outlined.PhoneAndroid, "권한 사용",
-        "• 인터넷 권한: 엔카 매물 정보를 조회하기 위해 사용합니다.\n• 광고 권한: 배너 광고 표시를 위해 사용합니다.",
-    ),
-    PolicyEntry(
-        6, Icons.Outlined.PublicOff, "제3자 제공",
-        "AutoVerdict는 수집한 데이터를 제3자에게 제공하지 않습니다.",
-    ),
-    PolicyEntry(
-        7, Icons.Outlined.ContactMail, "문의",
-        "개인정보 처리에 관한 문의는 pouu69@gmail.com 으로 연락해주세요.",
-    ),
-)
-
+/** In-app summary of the privacy policy; the full text lives on the web (spec 4). */
 @Composable
 fun PrivacyPolicyScreen(onBack: () -> Unit) {
+    val context = LocalContext.current
+    val toast = LocalAvToast.current
+    val url = stringResource(R.string.privacy_full_policy_url)
+    val noBrowser = stringResource(R.string.common_no_browser)
+    PrivacyPolicyContent(
+        onBack = onBack,
+        onOpenFullPolicy = {
+            try {
+                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+            } catch (e: ActivityNotFoundException) {
+                toast.show(noBrowser)
+            }
+        },
+    )
+}
+
+/** Stateless body, so tests can render it without a toast host or an activity. */
+@Composable
+internal fun PrivacyPolicyContent(onBack: () -> Unit, onOpenFullPolicy: () -> Unit) {
     val colors = AvTheme.colors
+    val typography = AvTheme.typography
+    val spacing = AvTheme.spacing
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(colors.surfaceMuted)
-            .navigationBarsPadding(),
+            .background(colors.background),
     ) {
-        AvTopBar(onBack = onBack, title = "개인정보 처리방침")
-
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 32.dp),
-        ) {
-            item { PolicyHeroBlock() }
-
-            items(policyEntries) { entry ->
-                Spacer(Modifier.height(12.dp))
-                PolicyCard(entry)
-            }
-
-            item {
-                Spacer(Modifier.height(20.dp))
-                PolicyFooter()
-            }
-        }
-    }
-}
-
-@Composable
-private fun PolicyHeroBlock() {
-    val colors = AvTheme.colors
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(colors.accentWeak)
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
+        AvTopBar(onBack = onBack, title = stringResource(R.string.privacy_title))
+        Column(
             modifier = Modifier
-                .size(44.dp)
-                .clip(RoundedCornerShape(12.dp))
-                // Sits on an accentWeak block, so a translucent accent keeps it visible.
-                .background(colors.accent.copy(alpha = 0.14f)),
-            contentAlignment = Alignment.Center,
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .navigationBarsPadding(),
         ) {
-            Icon(
-                imageVector = Icons.Outlined.Policy,
-                contentDescription = null,
-                tint = colors.accentText,
-                modifier = Modifier.size(22.dp),
-            )
-        }
-        Spacer(Modifier.width(14.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = "내 기기에만 저장됩니다",
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = colors.accentText,
-            )
-            Text(
-                text = "외부 서버로 데이터를 전송하지 않아요",
-                style = MaterialTheme.typography.bodySmall,
-                color = colors.textSecondary,
-            )
-        }
-    }
-}
-
-@Composable
-private fun PolicyCard(entry: PolicyEntry) {
-    val colors = AvTheme.colors
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(18.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(colors.accentWeak),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = entry.icon,
-                    contentDescription = null,
-                    tint = colors.accentText,
-                    modifier = Modifier.size(18.dp),
-                )
-            }
-            Spacer(Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.padding(horizontal = spacing.screenHorizontal)) {
+                Spacer(Modifier.height(spacing.sm))
                 Text(
-                    text = "0${entry.number}".takeLast(2),
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 0.6.sp,
-                    ),
-                    color = colors.textSecondary,
-                )
-                Text(
-                    text = entry.title,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    text = stringResource(R.string.privacy_headline),
+                    style = typography.title2,
                     color = colors.textPrimary,
                 )
+                Spacer(Modifier.height(spacing.xs))
+                Text(
+                    text = stringResource(
+                        R.string.privacy_updated_label,
+                        stringResource(R.string.privacy_updated_at),
+                    ),
+                    style = typography.caption1,
+                    color = colors.textTertiary,
+                )
+                policySections.forEach { section ->
+                    Spacer(Modifier.height(spacing.xxl))
+                    Text(
+                        text = stringResource(section.title),
+                        style = typography.title3,
+                        color = colors.textPrimary,
+                        modifier = Modifier.semantics { heading() },
+                    )
+                    Spacer(Modifier.height(spacing.sm))
+                    Text(
+                        text = stringResource(section.body),
+                        style = typography.body2,
+                        color = colors.textSecondary,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                Spacer(Modifier.height(spacing.xxl))
             }
+            AvSectionDivider()
+            AvListRow(
+                title = stringResource(R.string.privacy_full_policy),
+                subtitle = stringResource(R.string.privacy_full_policy_subtitle),
+                onClick = onOpenFullPolicy,
+                trailing = {
+                    Icon(
+                        imageVector = Icons.Rounded.ChevronRight,
+                        contentDescription = null,
+                        tint = colors.textTertiary,
+                        modifier = Modifier.size(20.dp),
+                    )
+                },
+            )
+            Spacer(Modifier.height(spacing.xxl))
         }
-        Spacer(Modifier.height(12.dp))
-        Text(
-            text = entry.content,
-            style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 22.sp),
-            color = colors.textSecondary,
-        )
-    }
-}
-
-@Composable
-private fun PolicyFooter() {
-    val colors = AvTheme.colors
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Box(
-            modifier = Modifier
-                .width(60.dp)
-                .height(2.dp)
-                .clip(RoundedCornerShape(1.dp))
-                .background(colors.border),
-        )
-        Spacer(Modifier.height(12.dp))
-        Text(
-            text = "최종 업데이트",
-            style = MaterialTheme.typography.labelSmall,
-            color = colors.textSecondary.copy(alpha = 0.7f),
-        )
-        Spacer(Modifier.height(2.dp))
-        Text(
-            text = "2026년 5월 27일",
-            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-            color = colors.textSecondary,
-        )
     }
 }

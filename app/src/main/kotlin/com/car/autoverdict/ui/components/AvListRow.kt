@@ -15,7 +15,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.car.autoverdict.ui.theme.AvTheme
 
-/** List row: leading slot · title/subtitle · trailing slot. Min 56dp; reads as one node. */
+/**
+ * List row: leading slot · title/subtitle · trailing slot. Min 56dp; reads as one node.
+ * [onClickLabel] names the action for screen readers. Rows span the screen width, so the
+ * focus ring is drawn inside the row where scroll containers can't clip it.
+ */
 @Composable
 fun AvListRow(
     title: String,
@@ -24,11 +28,12 @@ fun AvListRow(
     subtitle: String? = null,
     leading: (@Composable () -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
+    onClickLabel: String? = null,
 ) {
     val colors = AvTheme.colors
     val typography = AvTheme.typography
     val interaction = if (onClick != null) {
-        Modifier.avPressable(onClick = onClick)
+        Modifier.avPressable(onClick = onClick, onClickLabel = onClickLabel, focusRingInside = true)
     } else {
         Modifier.semantics(mergeDescendants = true) {}
     }

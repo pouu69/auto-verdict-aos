@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -55,9 +54,10 @@ data class ScreenHost(
     val navigate: (Route) -> Unit,
     val back: () -> Unit,
     val finishOnboarding: () -> Unit,
-    /** Last link handed to analysis; the home screen skips re-filling it from the clipboard. */
-    val lastAnalyzedUrl: String?,
-    val onAnalyzed: (String) -> Unit,
+    /** True only for the onboarding shown at first launch; false when replayed from settings. */
+    val isFirstRunOnboarding: Boolean,
+    /** A share arrived during first-run onboarding and opens once it finishes. */
+    val hasPendingShare: Boolean,
     /** Jumps to a tab root, clearing sub-screens (e.g. a toast's "보기" after saving). */
     val selectTab: (MainTab) -> Unit,
 )
@@ -80,7 +80,6 @@ fun AppRoot(
         mutableStateOf(AppNavigator.initial(onboardingComplete))
     }
     var transition by remember { mutableStateOf(NavTransition.None) }
-    var lastAnalyzedUrl by rememberSaveable { mutableStateOf<String?>(null) }
     val toast = rememberAvToastState()
     // Keeps each stacked screen's rememberSaveable state while it is covered (spec 7.2).
     val saveableStateHolder = rememberSaveableStateHolder()
@@ -118,8 +117,8 @@ fun AppRoot(
         navigate = { if (navState.top == route) dispatch(NavEvent.Open(it)) },
         back = { if (navState.top == route) dispatch(NavEvent.Back) },
         finishOnboarding = { if (navState.top == route) dispatch(NavEvent.OnboardingFinished) },
-        lastAnalyzedUrl = lastAnalyzedUrl,
-        onAnalyzed = { lastAnalyzedUrl = it },
+        isFirstRunOnboarding = route == Route.Onboarding && AppNavigator.isFirstRunOnboarding(navState),
+        hasPendingShare = navState.pendingSharedUrl != null,
         // Not gated on the top route: a toast action may fire after its screen left, and
         // repeating SelectTab is a no-op, so a double tap can't stack anything.
         selectTab = { dispatch(NavEvent.SelectTab(it)) },
@@ -186,7 +185,7 @@ fun AppRoot(
                 state = toast,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .then(toastOffset(currentTab != null, bottomChromeHeight)),
+                    .padding(bottom = toastBottomPadding(top, navBarBottom, bottomChromeHeight)),
             )
         }
     }
@@ -216,12 +215,15 @@ private val TabBarRowHeight = 56.dp
 private val chromeEnter = slideInHorizontally(tween(250)) { -it / 4 } + fadeIn(tween(250))
 private val chromeExit = slideOutHorizontally(tween(250)) { -it / 4 } + fadeOut(tween(250))
 
-private fun toastOffset(onTabRoot: Boolean, bottomChromeHeight: Dp): Modifier =
-    if (onTabRoot) {
-        Modifier.padding(bottom = bottomChromeHeight)
-    } else {
-        Modifier.navigationBarsPadding().padding(bottom = 16.dp)
-    }
+/**
+ * Keeps toasts clear of the bottom chrome (spec 3.4): above the banner and tab bar on tab roots,
+ * above the settings banner on Settings, and just off the navigation bar elsewhere.
+ */
+internal fun toastBottomPadding(top: Route, navBar: Dp, bottomChromeHeight: Dp): Dp = when {
+    top.tabOrNull() != null -> bottomChromeHeight
+    top == Route.Settings -> navBar + BannerSlotHeight + 8.dp
+    else -> navBar + 16.dp
+}
 
 private fun AnimatedContentTransitionScope<Route>.transitionFor(transition: NavTransition): ContentTransform =
     when (transition) {
