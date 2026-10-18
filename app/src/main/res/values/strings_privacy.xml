@@ -16,7 +16,7 @@
     <string name="privacy_delete_body">설정의 \'최근 본 차 지우기\'와 \'저장한 차 모두 지우기\'로 한 번에 지울 수 있어요. 저장한 차는 하나씩 지울 수도 있어요. 앱을 삭제하면 모두 지워져요.</string>
 
     <string name="privacy_ads_title">광고</string>
-    <string name="privacy_ads_body">광고는 Google AdMob이 보여줘요. 이를 위해 광고 ID 같은 기기 식별자, IP 주소(대략적인 위치를 알 수 있는 정보), 기기 정보, 광고를 보거나 누른 기록이 Google로 전송돼요. Android 설정의 광고 메뉴에서 광고 ID를 재설정하거나 삭제할 수 있어요.</string>
+    <string name="privacy_ads_body">광고는 Google AdMob이 보여줘요. 광고 제공·측정, 광고 성과 분석, 부정 클릭 같은 사기 방지와 보안을 위해 광고 ID 같은 기기 식별자, IP 주소(대략적인 위치를 알 수 있는 정보), 기기 정보, 광고를 보거나 누른 기록이 Google로 전송돼요. Android 설정의 광고 메뉴에서 광고 ID를 재설정하거나 삭제할 수 있어요.</string>
 
     <string name="privacy_network_title">엔카와의 통신</string>
     <string name="privacy_network_body">매물 정보는 앱이 휴대폰에서 엔카(encar.com)에 직접 요청해서 가져와요. 이때 엔카 매물 페이지를 보이지 않게 열어서, 브라우저로 볼 때처럼 엔카와 엔카 페이지에 들어 있는 도구에 접속 정보가 전달될 수 있어요. 앱은 암호화된 연결(HTTPS)만 써요.</string>
