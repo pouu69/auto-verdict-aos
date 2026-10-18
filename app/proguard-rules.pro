@@ -48,7 +48,8 @@
 
 # === Compose ===
 -dontwarn androidx.compose.**
--keep class androidx.compose.runtime.** { *; }
+# No keep rule for Compose: its libraries ship their own consumer rules, and a blanket
+# -keep on androidx.compose.runtime.** retained ~650 classes un-shrunk and un-obfuscated.
 
 # === SplashScreen ===
 -keep class androidx.core.splashscreen.** { *; }
