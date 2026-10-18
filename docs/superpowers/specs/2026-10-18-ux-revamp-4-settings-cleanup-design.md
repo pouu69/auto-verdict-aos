@@ -562,6 +562,7 @@ AvTopBar(onBack, title = 묶음 이름)
 - **고지 수량**: Maven 아티팩트 127개(설계 시 129개 추정) + Pretendard, 묶음 15개. 라이선스는 Apache 2.0·MIT(checker-qual)·OFL 1.1·Android SDK 라이선스(URL만). Play 서비스·UMP AAR에 포함된 구성요소는 71개, 서로 다른 전문 23개다.
 - **개인정보 내용 바로잡기**: "외부 서버로 전송하지 않아요" 같은 문구를 지웠다. AdMob이 광고 ID·앱 세트 ID·IP·기기/앱 정보·광고 상호작용을 Google에 보내고, 엔카는 기기에서 직접 요청(매물 ID·차량번호·접속 정보)을 받는다는 사실을 앱 요약·`docs/privacy-policy.md`·`docs/legal/index.html`·스토어 데이터 안전성 답변에 맞췄다(7df1ffc, 3759fb5). 최종 업데이트는 2026년 10월 18일.
 - **IP 주소 = 대략적인 위치(사용자 결정)**: Play 데이터 안전성에서 IP 주소를 "위치 > 대략적인 위치"로 신고한다. 수집·공유(Google, AdMob SDK) 예, 일시적 처리 아니오, 필수, 용도는 광고 또는 마케팅·분석·사기 예방/보안/규정 준수(Google Mobile Ads SDK Play 데이터 공개 안내 기준). `docs/store-listing.md` 표, 체크리스트, Play Console 안내, 방침 문서, 앱 요약에 반영했다.
+- **사기 예방 용도를 네 행 모두에(사용자 결정)**: 데이터 안전성의 나머지 세 행(기기 또는 기타 ID, 앱 활동 > 앱 상호작용, 앱 정보 및 성능 > 진단)에도 "사기 예방·보안·규정 준수"를 더해, 네 행 모두 용도가 광고 또는 마케팅·분석·사기 예방/보안/규정 준수로 같다. AdMob 안내가 SDK가 보내는 모든 데이터의 목적을 "광고, 분석, 사기 예방"으로 적기 때문이다. `docs/store-listing.md` 표(제출 전 재확인 메모 삭제), 체크리스트, Play Console 안내에 반영했다. 방침 문서는 Play 데이터 유형별 용도를 나열하지 않아 바꾸지 않았다.
 - **렌더링**: macOS에서는 `PANGOCAIRO_BACKEND=fc`를 함께 줘야 `FONTCONFIG_FILE`이 적용된다. 빠지면 Pretendard 대신 대체 글꼴로 한글이 렌더링된다. 6.1절 명령에도 이 변수가 필요하다(`docs/assets-guide.md`에 반영).
 - **문자열**: 브라우저 없음 토스트는 `strings.xml`의 `common_no_browser` 하나를 방침 화면과 라이선스 상세("웹에서 보기")가 함께 쓴다. 라이선스 상세는 처음에 로그만 남겼으나 문서 마감 때 토스트로 고쳤다.
 - 최근 본 차 개수는 `getRecentFlow` 대신 2번의 `recentViewItems()`를, 저장한 차 개수는 3번의 `SavedCarsRepository.itemCount`를 쓴다(홈 목록·저장 탭과 같은 수).
