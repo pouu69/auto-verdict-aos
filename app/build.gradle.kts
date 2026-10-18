@@ -46,8 +46,11 @@ android {
             if (keystorePropsFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
             }
+            // The only native code is androidx.graphics.path's prebuilt .so, which ships
+            // already stripped, so there are no DWARF sections for FULL to add. A symbol
+            // table is all Play needs to symbolicate a native crash frame.
             ndk {
-                debugSymbolLevel = "FULL"
+                debugSymbolLevel = "SYMBOL_TABLE"
             }
         }
     }
@@ -69,6 +72,20 @@ android {
     // labels don't switch language on other-locale devices. Default values/ is Korean.
     androidResources {
         localeFilters += listOf("ko")
+    }
+
+    // Java-resource files nothing reads at runtime: kotlin_builtins are only for
+    // kotlin-reflect (not a dependency), DebugProbesKt.bin is the coroutines debug
+    // agent, and the AndroidX LICENSE.txt copies duplicate the Apache 2.0 text shown
+    // on the in-app open-source notices screen.
+    packaging {
+        resources {
+            excludes += listOf(
+                "kotlin/**.kotlin_builtins",
+                "DebugProbesKt.bin",
+                "META-INF/androidx/**/LICENSE.txt",
+            )
+        }
     }
 
     testOptions {
