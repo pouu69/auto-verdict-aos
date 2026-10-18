@@ -1,5 +1,7 @@
 # Google Play 출시 체크리스트
 
+> ⚠️ **옛 문서 (v1.0.2·개인 계정 기준).** 현재 게시 상태와 절차는 [play-publishing.md](./play-publishing.md)를 본다. 이 문서의 '비공개 테스트 12명 × 14일'은 조직 계정인 이 앱에는 해당하지 않는다.
+
 > AutoVerdict v1.0.2를 Play Store에 출시하기 위한 사용자 액션 가이드 (첫 Play Store 출시).
 > 모든 자동화 가능한 작업은 이미 완료됨 — 아래 단계만 진행하면 출시 가능.
 

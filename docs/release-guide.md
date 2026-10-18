@@ -112,6 +112,8 @@ bundletool install-apks --apks=app/build/outputs/bundle/release/app-release.apks
 
 ## 7. Google Play Console 업로드 순서
 
+> 현재 절차(내부 테스트 → 프로덕션 → 게시 개요 제출, 조직 계정이라 비공개 테스트 의무 없음)는 [play-publishing.md](./play-publishing.md) 4절을 따른다. 아래는 처음 작성한 옛 순서다.
+
 1. **Play Console** → 앱 만들기 → AutoVerdict
 2. **앱 무결성 → Play 앱 서명** → "Play 앱 서명 사용" 활성화
 3. **테스트 → 내부 테스트** 트랙에서 첫 AAB 업로드

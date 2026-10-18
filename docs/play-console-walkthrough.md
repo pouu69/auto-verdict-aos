@@ -1,5 +1,7 @@
 # Google Play Console 등록 — 처음부터 따라하기 (친절판)
 
+> ⚠️ **옛 문서 (v1.0.2·개인 계정 기준).** 현재 게시 상태와 절차는 [play-publishing.md](./play-publishing.md)를 본다. 이 문서의 '비공개 테스트 12명 × 14일'은 조직 계정인 이 앱에는 해당하지 않는다.
+
 > AutoVerdict v1.0.2 (versionCode 3, targetSdk 36)를 Play Store에 올리기 위한 **클릭 단위 가이드** (첫 출시).
 > 메뉴를 못 찾을 때 이 문서의 "📍 메뉴 위치"를 보고 그대로 따라가면 됩니다.
 > 입력값 모음·체크리스트는 [play-store-checklist.md](./play-store-checklist.md) 참고.

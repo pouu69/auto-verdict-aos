@@ -1,9 +1,9 @@
 # Google Play 스토어 등록 정보
 
 ## 앱 이름
-**AutoVerdict — 중고차 매물 평가**
-(타사 상표 '엔카'는 앱 이름에서 제외 — Play Console 등록명과 동일)
-(영문 폴백) AutoVerdict — Used Car Verdict for Encar
+**AutoVerdict : 중고차 매물 평가**
+(타사 상표 '엔카'는 앱 이름에서 제외 — Play Console 등록명과 동일. 게시 총정리: [play-publishing.md](./play-publishing.md))
+(영문 등록정보는 만들지 않음. 나중에 추가하면 이름에 'Encar'를 넣지 않는다 — 예: AutoVerdict: Used Car Check)
 
 ## 짧은 설명 (80자 이내 — 현재 52자)
 엔카 매물 링크 하나로 사고·보험·성능점검 이력을 12가지 기준으로 점검하고 결론부터 알려줘요

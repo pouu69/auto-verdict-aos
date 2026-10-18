@@ -149,10 +149,11 @@ cd webview-bundle && npm run gen:contract
 │   └── package.json
 ├── docs/
 │   ├── privacy-policy.md                # 공개용 정책
+│   ├── play-publishing.md               # Google Play 게시 총정리 (현황·등록 내용·게시 절차)
 │   ├── store-listing.md                 # Play Store 카피
 │   ├── release-guide.md                 # 서명·AAB·업로드 가이드
 │   ├── assets-guide.md                  # 스크린샷·아이콘 캡처 가이드
-│   ├── play-store-checklist.md          # 출시 마스터 체크리스트
+│   ├── play-store-checklist.md          # (옛 문서) v1.0.2 출시 체크리스트
 │   └── assets/                          # 512x512 아이콘, 1024x500 피처 그래픽
 └── build-all.sh                         # 전체 빌드 헬퍼
 ```
