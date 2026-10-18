@@ -46,8 +46,11 @@ android {
             if (keystorePropsFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
             }
+            // The only native code is androidx.graphics.path's prebuilt .so, which ships
+            // already stripped, so there are no DWARF sections for FULL to add. A symbol
+            // table is all Play needs to symbolicate a native crash frame.
             ndk {
-                debugSymbolLevel = "FULL"
+                debugSymbolLevel = "SYMBOL_TABLE"
             }
         }
     }
