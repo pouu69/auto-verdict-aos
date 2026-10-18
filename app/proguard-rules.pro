@@ -37,22 +37,13 @@
 }
 -dontwarn kotlinx.coroutines.flow.**
 
-# === AndroidX Lifecycle ===
--keep class * implements androidx.lifecycle.LifecycleObserver {
-    <init>(...);
-}
--keepclassmembers class * implements androidx.lifecycle.LifecycleObserver {
-    <methods>;
-}
--keep class * extends androidx.lifecycle.ViewModel { <init>(...); }
-
 # === Compose ===
 -dontwarn androidx.compose.**
-# No keep rule for Compose: its libraries ship their own consumer rules, and a blanket
-# -keep on androidx.compose.runtime.** retained ~650 classes un-shrunk and un-obfuscated.
-
-# === SplashScreen ===
--keep class androidx.core.splashscreen.** { *; }
+# No keep rules for Compose, AndroidX Lifecycle or core-splashscreen: Compose and Lifecycle
+# ship their own consumer rules (Lifecycle covers the reflective @OnLifecycleEvent /
+# ViewModel <init> cases), the app has no ViewModel or LifecycleObserver of its own, and
+# core-splashscreen uses no reflection. Blanket -keep rules here kept hundreds of library
+# classes un-shrunk and un-obfuscated.
 
 # === General ===
 -keepattributes *Annotation*
