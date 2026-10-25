@@ -187,7 +187,7 @@ export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 ## 8. 공개된 뒤 할 일
 1. **AdMob 스토어 연결:** AdMob → 앱 → AutoVerdict → "스토어 추가" → Google Play에서 `com.kcurve.autoverdict` 검색 → 연결. 연결 전에는 "광고 게재가 제한됨" 상태라 광고가 거의 나오지 않는다. **앱이 Play에 공개된 뒤에만 검색된다**(내부 테스트 상태에서는 검색 안 됨).
 2. **모니터링:** Play Console → 모니터링 및 개선(비정상 종료·ANR), AdMob 노출·수익.
-3. **선택:** 스토어 설정에 개발자 웹사이트를 넣고 그 사이트에 `app-ads.txt`를 올리면 광고 수익에 유리하다.
+3. **AdMob 앱 인증:** 스토어 설정에 개발자 웹사이트를 등록하고 해당 도메인의 루트에 `app-ads.txt`를 게시한다. 앱 소개 페이지와 파일 배포·인증 절차는 [admob-setup.md](./admob-setup.md)를 따른다.
 
 ---
 
