@@ -2,7 +2,7 @@
 
 엔카(encar.com) 중고차 매물 링크 하나로 보험이력·성능점검·엔카진단을 점검하고 결론부터 알려주는 Android 앱.
 
-현재 버전 **1.1.0** (versionCode 6) · minSdk 26 · targetSdk 36 · 패키지 `com.kcurve.autoverdict`
+현재 버전 **1.2.0** (versionCode 7) · minSdk 26 · targetSdk 36 · 패키지 `com.kcurve.autoverdict`
 개인정보처리방침: https://pouu69.github.io/auto-verdict-aos/
 
 > 엔카(SK엔카닷컴)의 공식 서비스가 아니며 제휴 관계도 없습니다. 점수와 판정은 공개 정보를 바탕으로 한 참고용입니다.
