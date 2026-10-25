@@ -1,7 +1,6 @@
 package com.car.autoverdict.ui.screen
 
 import android.app.Application
-import androidx.compose.material3.Text
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
@@ -38,7 +37,6 @@ class SettingsScreenTest {
                     onContact = { calls += "contact" },
                     onGallery = if (withGallery) ({ calls += "gallery" }) else null,
                     onBack = { calls += "back" },
-                    bannerAd = { Text("banner-ad") },
                 )
             }
         }
@@ -54,7 +52,6 @@ class SettingsScreenTest {
         row("최근 본 차 지우기", "3대").assert(clickable)
         row("저장한 차 모두 지우기", "없음").assert(!clickable)
         row("버전", "1.0.2").assert(!clickable)
-        rule.onNodeWithText("banner-ad").assertExists()
     }
 
     @Test fun `gallery row appears only with a callback`() {

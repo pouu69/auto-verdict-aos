@@ -111,8 +111,9 @@ fun ResultScreen(
     actions: ResultActions,
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState(),
+    // Kept as an injected slot for ResultRoute; displayed only at the end of successful reports.
     bannerAd: @Composable () -> Unit = {},
-    loadingAd: @Composable () -> Unit = {},
+    @Suppress("UNUSED_PARAMETER") loadingAd: @Composable () -> Unit = {},
 ) {
     val colors = AvTheme.colors
     Column(
@@ -131,16 +132,14 @@ fun ResultScreen(
         )
         when (state) {
             is ResultUiState.Loading -> {
-                LoadingBody(stage = state.stage, loadingAd = loadingAd, modifier = Modifier.weight(1f))
+                LoadingBody(stage = state.stage, modifier = Modifier.weight(1f))
             }
             is ResultUiState.Ready -> {
-                ReadyBody(state = state, actions = actions, listState = listState, modifier = Modifier.weight(1f))
+                ReadyBody(state = state, actions = actions, listState = listState, reportAd = bannerAd, modifier = Modifier.weight(1f))
                 ReadyCta(state = state, actions = actions)
-                bannerAd()
             }
             is ResultUiState.Error -> {
                 ErrorBody(kind = state.kind, actions = actions, modifier = Modifier.weight(1f))
-                bannerAd()
             }
             ResultUiState.Deleted -> {
                 CenteredState(modifier = Modifier.weight(1f)) {
@@ -151,14 +150,13 @@ fun ResultScreen(
                         onAction = actions.onBack,
                     )
                 }
-                bannerAd()
             }
         }
     }
 }
 
 @Composable
-private fun LoadingBody(stage: LoadingStage, loadingAd: @Composable () -> Unit, modifier: Modifier) {
+private fun LoadingBody(stage: LoadingStage, modifier: Modifier) {
     val colors = AvTheme.colors
     val labels = listOf(
         stringResource(R.string.result_loading_open_page),
@@ -192,9 +190,6 @@ private fun LoadingBody(stage: LoadingStage, loadingAd: @Composable () -> Unit, 
         )
         Spacer(Modifier.height(24.dp))
         AvLoadingSteps(steps = steps)
-        Spacer(Modifier.height(32.dp))
-        // MREC (300x250) while waiting (spec 5.4).
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { loadingAd() }
     }
 }
 
@@ -245,6 +240,7 @@ private fun ReadyBody(
     state: ResultUiState.Ready,
     actions: ResultActions,
     listState: LazyListState,
+    reportAd: @Composable () -> Unit,
     modifier: Modifier,
 ) {
     val onUserScrolled by rememberUpdatedState(actions.onUserScrolled)
@@ -283,6 +279,7 @@ private fun ReadyBody(
                     listState = listState,
                     openDetail = { openDetail = it },
                 )
+                item(key = "report-ad") { reportAd() }
             }
         }
         // The partial-data banner shows its own progress; otherwise a slim bar under the top bar.

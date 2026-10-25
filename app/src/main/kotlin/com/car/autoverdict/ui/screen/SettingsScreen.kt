@@ -2,7 +2,6 @@ package com.car.autoverdict.ui.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -62,7 +61,6 @@ fun SettingsScreen(
     onContact: () -> Unit,
     onGallery: (() -> Unit)?,
     onBack: () -> Unit,
-    bannerAd: @Composable () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = AvTheme.colors
@@ -73,7 +71,8 @@ fun SettingsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(colors.background),
+            .background(colors.background)
+            .navigationBarsPadding(),
     ) {
         AvTopBar(onBack = onBack, title = stringResource(R.string.settings_title))
 
@@ -130,10 +129,6 @@ fun SettingsScreen(
                     ),
                 )
             }
-        }
-        // Settings used to be a tab with the shared banner; keep that exposure (spec 10).
-        Box(modifier = Modifier.fillMaxWidth().navigationBarsPadding()) {
-            bannerAd()
         }
     }
 

@@ -221,4 +221,5 @@
     <string name="onboarding_share_tip">링크를 복사해 홈에 붙여 넣어도 돼요</string>
     <string name="onboarding_pending_share">공유한 매물은 시작하면 바로 분석해요</string>
     <string name="onboarding_page_cd">%2$d쪽 중 %1$d쪽</string>
+    <string name="ad_attribution">광고</string>
 </resources>

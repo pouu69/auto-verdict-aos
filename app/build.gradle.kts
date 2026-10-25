@@ -35,7 +35,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-dev"
+            resValue("string", "admob_app_id", "ca-app-pub-3940256099942544~3347511713")
+        }
         release {
+            resValue("string", "admob_app_id", "ca-app-pub-5353705048338468~6253564104")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -66,6 +72,7 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+        resValues = true
     }
 
     // The UI is Korean-only; drop library translations (M3, AdMob, ...) so system

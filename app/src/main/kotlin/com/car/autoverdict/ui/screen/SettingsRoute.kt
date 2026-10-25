@@ -15,7 +15,6 @@ import com.car.autoverdict.AutoVerdictApp
 import com.car.autoverdict.BuildConfig
 import com.car.autoverdict.R
 import com.car.autoverdict.home.recentViewItems
-import com.car.autoverdict.ui.AdBanner
 import com.car.autoverdict.ui.components.LocalAvToast
 import com.car.autoverdict.ui.navigation.Route
 import com.car.autoverdict.ui.navigation.ScreenHost
@@ -89,6 +88,5 @@ fun SettingsRoute(host: ScreenHost) {
         onContact = ::openContactMail,
         onGallery = if (BuildConfig.DEBUG) ({ host.navigate(Route.Gallery) }) else null,
         onBack = host.back,
-        bannerAd = { AdBanner() },
     )
 }

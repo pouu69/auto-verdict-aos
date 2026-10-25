@@ -44,6 +44,8 @@ class ResultController(
     private val carIdOf: (String) -> String? = EncarUrl::extractCarId,
     /** Runs [SavedCarKey] (a parse of the whole payload) off the main thread; tests swap it. */
     private val keyDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    /** Only the initial source decision can arm an app-open ad; retries never do. */
+    private val onInitialLoadSource: (freshCollection: Boolean) -> Unit = {},
 ) {
     private val _state = MutableStateFlow<ResultUiState>(ResultUiState.Loading(LoadingStage.OpeningPage))
     val state: StateFlow<ResultUiState> = _state.asStateFlow()
@@ -90,6 +92,7 @@ class ResultController(
         if (started) return
         started = true
         val id = carId ?: run {
+            onInitialLoadSource(false)
             _state.value = ResultUiState.Error(ResultErrorKind.InvalidUrl)
             return
         }
@@ -100,6 +103,7 @@ class ResultController(
             savedAt = entity?.savedAt
             savedRowId = entity?.carId
             if (entity != null) {
+                onInitialLoadSource(false)
                 val report = evaluate(entity.rawJson)
                 if (report != null) {
                     display(evaluated(report, entity.rawJson))
@@ -112,6 +116,7 @@ class ResultController(
             }
             val cached = readOrNull { repository.cachedRaw(id) }
             if (cached != null) {
+                onInitialLoadSource(false)
                 val report = evaluate(cached)
                 if (report != null) {
                     val fromCache = evaluated(report, cached)
@@ -120,6 +125,7 @@ class ResultController(
                     return@launch
                 }
             }
+            if (cached == null) onInitialLoadSource(true)
             collectFresh(id, gen)
         }
     }

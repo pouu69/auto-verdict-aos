@@ -6,11 +6,13 @@ import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.ContextWrapper
 import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -22,6 +24,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.car.autoverdict.MainActivity
+import com.car.autoverdict.AutoVerdictApp
 import com.car.autoverdict.R
 import com.car.autoverdict.engine.ReportEvaluator
 import com.car.autoverdict.ui.components.LocalAvToast
@@ -42,16 +45,32 @@ fun ResultRoute(
     repository: ResultRepository,
     evaluator: ReportEvaluator,
     bannerAd: @Composable () -> Unit,
-    loadingAd: @Composable () -> Unit,
+    loadingAd: @Composable () -> Unit = {},
 ) {
     val context = LocalContext.current
     val toast = LocalAvToast.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
-    val controller = remember(url) { ResultController(url, repository, evaluator, scope) }
+    val activity = remember(context) { context.mainActivity() }
+    val ads = (context.applicationContext as? AutoVerdictApp)?.appOpenAds
+    val controller = remember(url) {
+        ResultController(url, repository, evaluator, scope, onInitialLoadSource = { fresh ->
+            if (activity != null) ads?.onInitialLoadSource(activity, url, fresh)
+        })
+    }
+    DisposableEffect(controller) {
+        if (activity != null) ads?.onResultEntered(activity, url)
+        onDispose { if (activity != null) ads?.onResultLeft(activity, url) }
+    }
     // start() is idempotent; launching from an effect keeps coroutine work out of composition.
     LaunchedEffect(controller) { controller.start() }
     val state by controller.state.collectAsStateWithLifecycle()
+    LaunchedEffect(state) {
+        if (state !is ResultUiState.Loading) {
+            if (activity != null) ads?.cancelEntry(activity, url)
+            if (state is ResultUiState.Ready) ads?.onAnalysisCompleted()
+        }
+    }
 
     // A toast action may run after this screen left; always reach the latest host.
     val currentHost by rememberUpdatedState(host)
@@ -89,7 +108,10 @@ fun ResultRoute(
                 context.startSafely(Intent(Intent.ACTION_VIEW, Uri.parse(detail)))
             }
         },
-        onRetry = controller::retry,
+        onRetry = {
+            if (activity != null) ads?.cancelEntry(activity, url)
+            controller.retry()
+        },
         onApplyUpdate = controller::applyUpdate,
         onUserScrolled = controller::onUserScrolled,
         onSave = controller::save,
@@ -100,6 +122,12 @@ fun ResultRoute(
         onCopyQuestion = ::copyQuestions,
     )
     ResultScreen(state = state, actions = actions, bannerAd = bannerAd, loadingAd = loadingAd)
+}
+
+private tailrec fun Context.mainActivity(): MainActivity? = when (this) {
+    is MainActivity -> this
+    is ContextWrapper -> baseContext.mainActivity()
+    else -> null
 }
 
 /** Toast copy for each controller event (spec 5.1 retry, 5.3). Only Saved has an action. */

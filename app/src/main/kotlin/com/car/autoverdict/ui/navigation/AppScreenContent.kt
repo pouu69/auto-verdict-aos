@@ -1,9 +1,7 @@
 package com.car.autoverdict.ui.navigation
 
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.car.autoverdict.AutoVerdictApp
 import com.car.autoverdict.BuildConfig
@@ -12,8 +10,8 @@ import com.car.autoverdict.onboarding.OnboardingMode
 import com.car.autoverdict.onboarding.OnboardingScreen
 import com.car.autoverdict.preferences.AppPreferences
 import com.car.autoverdict.result.ResultRoute
-import com.car.autoverdict.ui.AdBanner
-import com.car.autoverdict.ui.AdMediumRectangle
+import com.car.autoverdict.ui.ResultNativeAd
+import com.car.autoverdict.ui.rememberResultNativeAdState
 import com.car.autoverdict.ui.gallery.ComponentGalleryScreen
 import com.car.autoverdict.ui.screen.CompareRoute
 import com.car.autoverdict.ui.screen.LicenseDetailScreen
@@ -60,13 +58,13 @@ fun AppScreenContent(route: Route, host: ScreenHost) {
         // Saved status comes from the DB, so route.fromSaved is ignored (kept for saved-state compatibility).
         is Route.Result -> {
             val app = LocalContext.current.applicationContext as AutoVerdictApp
+            val nativeAdState = rememberResultNativeAdState(route.url)
             ResultRoute(
                 url = route.url,
                 host = host,
                 repository = app.resultRepository,
                 evaluator = app.ruleEngine,
-                bannerAd = { AdBanner(Modifier.fillMaxWidth()) },
-                loadingAd = { AdMediumRectangle() },
+                bannerAd = { ResultNativeAd(nativeAdState) },
             )
         }
         is Route.Compare -> {

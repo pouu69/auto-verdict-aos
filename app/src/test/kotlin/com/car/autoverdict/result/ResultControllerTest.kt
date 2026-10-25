@@ -98,6 +98,57 @@ class ResultControllerTest {
     // --- cache ---
 
     @Test
+    fun `only first uncached collection opens an advertising opportunity`() = runTest {
+        val decisions = mutableListOf<Boolean>()
+        val c = ResultController(URL, repo, evaluator, backgroundScope,
+            keyDispatcher = Dispatchers.Unconfined, onInitialLoadSource = decisions::add)
+        c.start()
+        c.start()
+        runCurrent()
+        assertEquals(listOf(true), decisions)
+        repo.collects.single().result.complete(CollectOutcome.Failed(CollectErrorKind.Network))
+        runCurrent()
+        c.retry()
+        runCurrent()
+        assertEquals(listOf(true), decisions)
+    }
+
+    @Test
+    fun `cached result declines advertising even when evaluation fails`() = runTest {
+        repo.cache = "bad-cache"
+        val decisions = mutableListOf<Boolean>()
+        val c = ResultController(URL, repo, evaluator, backgroundScope,
+            keyDispatcher = Dispatchers.Unconfined, onInitialLoadSource = decisions::add)
+        c.start()
+        runCurrent()
+        assertEquals(listOf(false), decisions)
+        assertEquals(1, repo.collects.size)
+    }
+
+    @Test
+    fun `saved result declines advertising before its background refresh`() = runTest {
+        givenSavedCar()
+        val decisions = mutableListOf<Boolean>()
+        val c = ResultController(URL, repo, evaluator, backgroundScope,
+            keyDispatcher = Dispatchers.Unconfined, onInitialLoadSource = decisions::add)
+        c.start()
+        runCurrent()
+        assertEquals(listOf(false), decisions)
+        assertTrue(c.state.value is ResultUiState.Ready)
+    }
+
+    @Test
+    fun `invalid url declines advertising without starting collection`() = runTest {
+        val decisions = mutableListOf<Boolean>()
+        val c = ResultController("invalid", repo, evaluator, backgroundScope,
+            keyDispatcher = Dispatchers.Unconfined, onInitialLoadSource = decisions::add)
+        c.start()
+        runCurrent()
+        assertEquals(listOf(false), decisions)
+        assertTrue(repo.collects.isEmpty())
+    }
+
+    @Test
     fun `fresh cache shows Ready without collecting`() = runTest {
         repo.cache = "cache-raw"
         evaluator.results["cache-raw"] = EngineResult.Success(caution)

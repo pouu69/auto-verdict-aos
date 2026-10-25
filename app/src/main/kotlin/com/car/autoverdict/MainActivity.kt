@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -14,6 +15,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.car.autoverdict.preferences.AppPreferences
 import com.car.autoverdict.ui.AdBanner
+import com.car.autoverdict.ui.ads.LocalContentAdsAllowed
 import com.car.autoverdict.ui.navigation.AppRoot
 import com.car.autoverdict.ui.navigation.AppScreenContent
 import com.car.autoverdict.ui.navigation.NavEvent
@@ -24,6 +26,9 @@ class MainActivity : ComponentActivity() {
 
     /** One-shot event from a share intent, consumed by AppRoot once composed. */
     private val pendingNavEvent = mutableStateOf<NavEvent?>(null)
+    private var wasStopped = true
+
+    private val app: AutoVerdictApp get() = application as AutoVerdictApp
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // The only splash: onboarding state is a synchronous SharedPreferences read,
@@ -37,6 +42,7 @@ class MainActivity : ComponentActivity() {
         val preferences = AppPreferences(this)
         val app = application as AutoVerdictApp
         pendingNavEvent.value = parseShare(intent, isRestored = savedInstanceState != null)
+        if (savedInstanceState == null) armSharedEntry(pendingNavEvent.value, fromBackground = true)
 
         setContent {
             AvTheme {
@@ -54,6 +60,36 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         pendingNavEvent.value = parseShare(intent, isRestored = false)
+        armSharedEntry(pendingNavEvent.value, fromBackground = wasStopped)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        wasStopped = false
+        app.appOpenAds.onHostResumed()
+    }
+
+    override fun onStop() {
+        wasStopped = true
+        app.appOpenAds.onHostStopped()
+        super.onStop()
+    }
+
+    override fun onDestroy() {
+        app.appOpenAds.cancelEntry(this)
+        super.onDestroy()
+    }
+
+    private fun armSharedEntry(event: NavEvent?, fromBackground: Boolean) {
+        app.appOpenAds.cancelEntry(this)
+        if (event is NavEvent.OpenShared) {
+            app.appOpenAds.beginSharedEntry(
+                activity = this,
+                url = event.url,
+                fromBackground = fromBackground,
+                onboardingComplete = AppPreferences(this).isOnboardingComplete,
+            )
+        }
     }
 
     private fun parseShare(intent: Intent?, isRestored: Boolean): NavEvent? =
@@ -79,13 +115,16 @@ private fun AutoVerdictAppContent(
 ) {
     val savedCount by remember { app.savedCarsRepository.itemCount }
         .collectAsStateWithLifecycle(initialValue = 0)
-    AppRoot(
-        onboardingComplete = preferences.isOnboardingComplete,
-        onOnboardingComplete = preferences::setOnboardingComplete,
-        pendingNavEvent = pendingNavEvent,
-        onPendingNavEventConsumed = onPendingNavEventConsumed,
-        savedCount = savedCount,
-        adBanner = { AdBanner() },
-        screenContent = { route, host -> AppScreenContent(route, host) },
-    )
+    val contentAdsAllowed by app.appOpenAds.contentAdsAllowed.collectAsStateWithLifecycle()
+    CompositionLocalProvider(LocalContentAdsAllowed provides contentAdsAllowed) {
+        AppRoot(
+            onboardingComplete = preferences.isOnboardingComplete,
+            onOnboardingComplete = preferences::setOnboardingComplete,
+            pendingNavEvent = pendingNavEvent,
+            onPendingNavEventConsumed = onPendingNavEventConsumed,
+            savedCount = savedCount,
+            adBanner = { AdBanner() },
+            screenContent = { route, host -> AppScreenContent(route, host) },
+        )
+    }
 }

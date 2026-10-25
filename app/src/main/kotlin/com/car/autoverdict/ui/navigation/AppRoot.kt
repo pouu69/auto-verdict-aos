@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.car.autoverdict.R
+import com.car.autoverdict.ui.adaptiveBannerSlotHeight
 import com.car.autoverdict.ui.components.AvTabBar
 import com.car.autoverdict.ui.components.AvToastHost
 import com.car.autoverdict.ui.components.LocalAvToast
@@ -133,7 +134,8 @@ fun AppRoot(
     // start, restored sub-screen) must already stop at the right height, or its first pop jumps.
     val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val tabBarHeight = TabBarDividerHeight + TabBarRowHeight + navBarBottom
-    val bottomChromeHeight = BannerSlotHeight + tabBarHeight
+    val bannerSlotHeight = adaptiveBannerSlotHeight()
+    val bottomChromeHeight = bannerSlotHeight + tabBarHeight
 
     CompositionLocalProvider(LocalAvToast provides toast) {
         Box(modifier = Modifier.fillMaxSize().background(AvTheme.colors.background)) {
@@ -171,7 +173,7 @@ fun AppRoot(
                 // Fixed heights keep the chrome exactly bottomChromeHeight tall, whether or not
                 // the ad has loaded.
                 Column {
-                    Box(modifier = Modifier.fillMaxWidth().height(BannerSlotHeight)) { adBanner() }
+                    Box(modifier = Modifier.fillMaxWidth().height(bannerSlotHeight), contentAlignment = Alignment.Center) { adBanner() }
                     AvTabBar(
                         selected = currentTab ?: lastTab,
                         // Taps on the chrome while it leaves belong to a screen that is no longer on top.
@@ -204,9 +206,6 @@ private fun pageInsets(route: Route, bottomChromeHeight: Dp): Modifier =
         Modifier
     }
 
-// AdSize.BANNER is 320x50; the slot keeps that height before the ad loads (and in tests).
-private val BannerSlotHeight = 50.dp
-
 // AvTabBar: 1dp divider over a 56dp row, plus the navigation bar inset below it.
 private val TabBarDividerHeight = 1.dp
 private val TabBarRowHeight = 56.dp
@@ -217,11 +216,10 @@ private val chromeExit = slideOutHorizontally(tween(250)) { -it / 4 } + fadeOut(
 
 /**
  * Keeps toasts clear of the bottom chrome (spec 3.4): above the banner and tab bar on tab roots,
- * above the settings banner on Settings, and just off the navigation bar elsewhere.
+ * just off the navigation bar on sub-screens.
  */
 internal fun toastBottomPadding(top: Route, navBar: Dp, bottomChromeHeight: Dp): Dp = when {
     top.tabOrNull() != null -> bottomChromeHeight
-    top == Route.Settings -> navBar + BannerSlotHeight + 8.dp
     else -> navBar + 16.dp
 }
 

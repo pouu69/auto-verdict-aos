@@ -14,8 +14,8 @@ class ToastPaddingTest {
         assertEquals(chrome, toastBottomPadding(Route.Saved, navBar, chrome))
     }
 
-    @Test fun `settings sits above its banner`() {
-        assertEquals(navBar + 50.dp + 8.dp, toastBottomPadding(Route.Settings, navBar, chrome))
+    @Test fun `settings sits just above the navigation bar`() {
+        assertEquals(navBar + 16.dp, toastBottomPadding(Route.Settings, navBar, chrome))
     }
 
     @Test fun `other sub-screens sit just above the navigation bar`() {

@@ -15,6 +15,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import com.car.autoverdict.report.EvaluationReport
 import com.car.autoverdict.report.ReportParser
 import com.car.autoverdict.ui.theme.AvTheme
@@ -86,12 +87,12 @@ class ResultScreenTest {
         assertEquals(listOf("back", "openInEncar"), recorder.calls)
     }
 
-    @Test fun `loading marks earlier steps done and shows only the loading ad`() {
+    @Test fun `loading marks earlier steps done without content ads`() {
         show(ResultUiState.Loading(LoadingStage.FetchingHistory))
         rule.onNodeWithText("매물 페이지 열기").assert(stateIs("완료"))
         rule.onNodeWithText("이력·진단 가져오기").assert(stateIs("진행 중"))
         rule.onNodeWithText("12가지 기준으로 평가").assert(stateIs("대기 중"))
-        rule.onNodeWithText("loading-ad").assertExists()
+        rule.onNodeWithText("loading-ad").assertDoesNotExist()
         rule.onNodeWithText("banner-ad").assertDoesNotExist()
     }
 
@@ -127,7 +128,7 @@ class ResultScreenTest {
             rule.waitForIdle()
             recorder.calls.clear()
             rule.onNodeWithText(case.title).assertExists()
-            rule.onNodeWithText("banner-ad").assertExists()
+            rule.onNodeWithText("banner-ad").assertDoesNotExist()
             rule.onNodeWithText("loading-ad").assertDoesNotExist()
 
             if (case.retry) rule.onNodeWithText("다시 시도").performClick() else rule.onNodeWithText("다시 시도").assertDoesNotExist()
@@ -143,15 +144,16 @@ class ResultScreenTest {
     @Test fun `deleted listing offers to go back`() {
         show(ResultUiState.Deleted)
         rule.onNodeWithText("판매가 끝났거나 삭제된 매물이에요").assertExists()
-        rule.onNodeWithText("banner-ad").assertExists()
+        rule.onNodeWithText("banner-ad").assertDoesNotExist()
         rule.onNodeWithText("돌아가기").performClick()
         assertEquals(listOf("back"), recorder.calls)
     }
 
-    @Test fun `unsaved result offers save and shows the bottom banner`() {
+    @Test fun `unsaved result offers save and places one ad after the report`() {
         show(ResultUiState.Ready(caution, saved = false, banner = null))
         rule.onNodeWithText("저장된 매물").assertDoesNotExist()
-        rule.onNodeWithText("banner-ad").assertExists()
+        rule.onNodeWithText("banner-ad").performScrollTo().assertExists()
+        rule.onAllNodesWithText("banner-ad").assertCountEquals(1)
         rule.onNodeWithText("loading-ad").assertDoesNotExist()
         rule.onNodeWithText("저장하기").performClick()
         assertEquals(listOf("save"), recorder.calls)
